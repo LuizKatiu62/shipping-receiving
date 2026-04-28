@@ -658,11 +658,11 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
         </div>
         <div class="form-group">
           <label>Work Order #</label>
-          <input type="text" id="inc-wo" placeholder="e.g. WO-2024-100">
+          <input type="text" id="inc-wo" placeholder="e.g. WO-2024-100" maxlength="7">
         </div>
         <div class="form-group">
           <label>Previous Work Order #</label>
-          <input type="text" id="inc-prev-wo" placeholder="e.g. WO-2023-050">
+          <input type="text" id="inc-prev-wo" placeholder="e.g. WO-2023-050" maxlength="7">
         </div>
         <div class="form-group">
           <label>Date</label>
@@ -845,7 +845,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
 
         <div class="form-group">
           <label>Work Order #</label>
-          <input type="text" id="sub-wo" placeholder="e.g. WO-2024-100" oninput="prefillSubFromIncoming('wo')">
+          <input type="text" id="sub-wo" placeholder="e.g. WO-2024-100" maxlength="7" oninput="prefillSubFromIncoming('wo')">
         </div>
         <div class="form-group">
           <label>Incoming Form #</label>
@@ -1090,7 +1090,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
 
         <div class="form-group">
           <label>Work Order #</label>
-          <input type="text" id="proc-wo" placeholder="Work Order #" oninput="procLookupOrder()">
+          <input type="text" id="proc-wo" placeholder="Work Order #" maxlength="7" oninput="procLookupOrder()">
         </div>
         <div class="form-group">
           <label>Sales Order #</label>
@@ -1188,7 +1188,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
         <div class="form-group full">
           <label>Work Order Number(s)</label>
           <div class="tag-input-row">
-            <input type="text" id="shp-wo-input" placeholder="Add Work Order #" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('wo')}" oninput="checkShpOutgoing()">
+            <input type="text" id="shp-wo-input" placeholder="Add Work Order #" maxlength="7" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('wo')}" oninput="checkShpOutgoing()">
             <button class="btn btn-secondary btn-sm" onclick="addShpTag('wo')">+ Add</button>
           </div>
           <div class="tags-list" id="shp-wo-tags"></div>
@@ -2858,7 +2858,7 @@ function renderItmLines(){
         '</div>',
         '<div id="itm-l'+i+'-wogrp" style="display:'+(isWO?'block':'none')+'">',
           '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px">',
-            '<div class="form-group"><label>Work Order #</label><input type="text" id="itm-l'+i+'-wonum" placeholder="Work Order #" oninput="enforceUpper(this)" value="'+escAttr(item.workOrderNum||'')+'"></div>',
+            '<div class="form-group"><label>Work Order #</label><input type="text" id="itm-l'+i+'-wonum" placeholder="Work Order #" maxlength="7" oninput="enforceUpper(this)" value="'+escAttr(item.workOrderNum||'')+'"></div>',
             '<div class="form-group"><label>Area</label><select id="itm-l'+i+'-area"><option value="">— Area —</option>'+areaSel+'</select></div>',
             '<div class="form-group"><label>Customer</label><input type="text" id="itm-l'+i+'-cust" list="customer-suggestions" placeholder="Customer" oninput="enforceUpper(this)" value="'+escAttr(item.customer||'')+'"></div>',
             '<div class="form-group"><label>Requested By</label><input type="text" id="itm-l'+i+'-reqby" placeholder="Requester" oninput="enforceUpper(this)" value="'+escAttr(item.requestedBy||'')+'"></div>',
