@@ -159,6 +159,42 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;color:#1a1a2
   .section-actions{width:100%}
   .search-input{flex:1}
 }
+
+/* ── AUTH OVERLAY ── */
+#auth-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#0f2027,#1a3a4a,#1565c0);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-box{background:#fff;border-radius:20px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.4);overflow:hidden}
+.auth-box-header{background:linear-gradient(135deg,#0f2027,#1565c0);padding:28px 28px 20px;text-align:center}
+.auth-box-logo{display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.auth-box-title{color:#fff;font-size:1rem;font-weight:800;letter-spacing:.3px}
+.auth-box-sub{color:rgba(255,255,255,.65);font-size:.78rem;margin-top:4px}
+.auth-box-body{padding:24px 28px 28px}
+.auth-screen{display:none}
+.auth-screen.active{display:block}
+.auth-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.auth-field label{font-size:.72rem;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.4px}
+.auth-field input{padding:10px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:.9rem;font-family:inherit;outline:none;transition:border .18s}
+.auth-field input:focus{border-color:#1565c0}
+.auth-btn{width:100%;padding:11px;background:#1565c0;color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:800;cursor:pointer;font-family:inherit;transition:background .18s;margin-top:6px}
+.auth-btn:hover{background:#1976d2}
+.auth-btn:disabled{background:#93c5fd;cursor:not-allowed}
+.auth-link{background:none;border:none;color:#1565c0;cursor:pointer;font-size:.82rem;font-weight:700;font-family:inherit;text-decoration:underline;padding:0}
+.auth-link:hover{color:#1976d2}
+.auth-sep{text-align:center;color:#9ca3af;font-size:.78rem;margin:14px 0 10px;display:flex;align-items:center;gap:8px}
+.auth-sep::before,.auth-sep::after{content:'';flex:1;height:1px;background:#e5e7eb}
+.auth-error{background:#ffebee;color:#c62828;border-radius:8px;padding:9px 13px;font-size:.8rem;font-weight:600;margin-bottom:12px;display:none}
+.auth-info{background:#e3f2fd;color:#1565c0;border-radius:8px;padding:9px 13px;font-size:.8rem;font-weight:600;margin-bottom:12px}
+.auth-footer{display:flex;justify-content:center;gap:6px;align-items:center;margin-top:16px;font-size:.8rem;color:#6b7280}
+
+/* ── USER INFO BAR ── */
+.user-bar{display:flex;align-items:center;gap:10px;font-size:.78rem;color:rgba(255,255,255,.85)}
+.user-bar-email{font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-bar-badge{background:rgba(255,255,255,.18);border-radius:20px;padding:2px 9px;font-size:.68rem;font-weight:700;letter-spacing:.3px}
+.user-bar-badge.admin{background:#fbbf24;color:#1a1a2e}
+.user-bar-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:7px;padding:5px 11px;font-size:.74rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s}
+.user-bar-btn:hover{background:rgba(255,255,255,.22)}
+
+/* ── READ-ONLY MODE ── */
+body.readonly-mode .admin-only{display:none!important}
 </style>
 <script>
 // ── GLOBAL UPPERCASE ENFORCEMENT ──
@@ -183,6 +219,95 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
 </script>
 </head>
 <body>
+
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-box-header">
+      <div class="auth-box-logo">
+        <svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg" style="height:36px;width:auto">
+          <rect x="0" y="0" width="42" height="40" rx="3" fill="rgba(255,255,255,.25)"/>
+          <text x="2" y="30" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="26" fill="#ffffff">S</text>
+          <text x="20" y="33" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="20" fill="#ffffff">A</text>
+          <text x="50" y="18" font-family="Arial,sans-serif" font-weight="900" font-size="12" fill="#fff" letter-spacing="1">SOURCE</text>
+          <text x="50" y="34" font-family="Arial,sans-serif" font-weight="900" font-size="12" fill="#fff" letter-spacing="1">ATLANTIC</text>
+        </svg>
+      </div>
+      <div class="auth-box-title">Shipping &amp; Receiving</div>
+      <div class="auth-box-sub">Industrial Services — Source Atlantic</div>
+    </div>
+    <div class="auth-box-body">
+
+      <!-- LOGIN -->
+      <div class="auth-screen active" id="auth-login">
+        <div class="auth-error" id="auth-login-err"></div>
+        <div class="auth-field">
+          <label>Email</label>
+          <input type="email" id="auth-login-email" placeholder="your@email.com" autocomplete="email">
+        </div>
+        <div class="auth-field">
+          <label>Password</label>
+          <input type="password" id="auth-login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <button class="auth-btn" id="auth-login-btn" onclick="doLogin()">Sign In</button>
+        <div class="auth-footer">
+          <button class="auth-link" onclick="authShow('forgot')">Forgot password?</button>
+          <span>·</span>
+          <button class="auth-link" onclick="authShow('register')">Create account</button>
+        </div>
+      </div>
+
+      <!-- REGISTER -->
+      <div class="auth-screen" id="auth-register">
+        <div class="auth-error" id="auth-reg-err"></div>
+        <div class="auth-info">After registration you will receive a confirmation email. Verify your email to get access.</div>
+        <div class="auth-field">
+          <label>Email</label>
+          <input type="email" id="auth-reg-email" placeholder="your@email.com" autocomplete="email">
+        </div>
+        <div class="auth-field">
+          <label>Password (min 6 characters)</label>
+          <input type="password" id="auth-reg-pass" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
+        </div>
+        <div class="auth-field">
+          <label>Confirm Password</label>
+          <input type="password" id="auth-reg-pass2" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
+        </div>
+        <button class="auth-btn" id="auth-reg-btn" onclick="doRegister()">Create Account</button>
+        <div class="auth-footer">
+          Already have an account? <button class="auth-link" onclick="authShow('login')">Sign In</button>
+        </div>
+      </div>
+
+      <!-- VERIFY EMAIL -->
+      <div class="auth-screen" id="auth-verify">
+        <div class="auth-error" id="auth-verify-err"></div>
+        <div class="auth-info" id="auth-verify-msg">A verification email was sent. Please check your inbox and click the link, then return here.</div>
+        <button class="auth-btn" onclick="checkVerificationAndLogin()">✅ I've verified my email</button>
+        <div style="margin-top:10px;text-align:center">
+          <button class="auth-link" onclick="doResendVerification()">Resend verification email</button>
+        </div>
+        <div class="auth-footer">
+          <button class="auth-link" onclick="doLogout();authShow('login')">Sign out / Use different account</button>
+        </div>
+      </div>
+
+      <!-- FORGOT PASSWORD -->
+      <div class="auth-screen" id="auth-forgot">
+        <div class="auth-error" id="auth-forgot-err"></div>
+        <div class="auth-field">
+          <label>Email</label>
+          <input type="email" id="auth-forgot-email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doForgotPassword()">
+        </div>
+        <button class="auth-btn" onclick="doForgotPassword()">Send Reset Email</button>
+        <div class="auth-footer">
+          <button class="auth-link" onclick="authShow('login')">Back to Sign In</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <div id="app-loading">
   <div class="spinner"></div>
@@ -212,6 +337,11 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="topbar-title">Industrial Services</div>
       <div class="topbar-brand">Shipping & <span>Receiving</span></div>
     </div>
+    <div class="user-bar" id="user-bar" style="display:none">
+      <div class="user-bar-email" id="user-bar-email"></div>
+      <div class="user-bar-badge" id="user-bar-badge">Viewer</div>
+      <button class="user-bar-btn" onclick="doLogout()">Sign Out</button>
+    </div>
   </div>
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showSection('incoming')">📋 Incoming Form</button>
@@ -235,7 +365,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-actions">
         <input class="search-input" type="text" id="inc-search" placeholder="Search form #, WO, equipment..." oninput="filterIncoming()">
         <button class="btn btn-secondary" onclick="exportIncomingCSV()">⬇️ Export CSV</button>
-        <button class="btn btn-primary" onclick="openIncomingModal()">+ New Incoming</button>
+        <button class="btn btn-primary admin-only" onclick="openIncomingModal()">+ New Incoming</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -269,7 +399,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-actions">
         <input class="search-input" type="text" id="itm-search" placeholder="Search doc #, PO, material..." oninput="filterItems()">
         <button class="btn btn-secondary" onclick="exportItemsCSV()">⬇️ Export CSV</button>
-        <button class="btn btn-primary" onclick="openItemModal()">+ New Item</button>
+        <button class="btn btn-primary admin-only" onclick="openItemModal()">+ New Item</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -298,7 +428,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-actions">
         <input class="search-input" type="text" id="shp-search" placeholder="Search outgoing #, city, material..." oninput="filterShipping()">
         <button class="btn btn-secondary" onclick="exportShippingCSV()">⬇️ Export CSV</button>
-        <button class="btn btn-primary" onclick="openShipModal()">+ New Shipment</button>
+        <button class="btn btn-primary admin-only" onclick="openShipModal()">+ New Shipment</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -332,7 +462,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-actions">
         <input class="search-input" type="text" id="sub-search" placeholder="Search WO, customer, subcontractor..." oninput="filterSubcontractor()">
         <button class="btn btn-secondary" onclick="exportSubcontractorCSV()">⬇️ Export CSV</button>
-        <button class="btn btn-primary" onclick="openSubModal()">+ New Record</button>
+        <button class="btn btn-primary admin-only" onclick="openSubModal()">+ New Record</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -364,7 +494,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-actions">
         <input class="search-input" type="text" id="pkg-search" placeholder="Search order #, customer..." oninput="filterPacking()">
         <button class="btn btn-secondary" onclick="exportPackingCSV()">⬇️ Export CSV</button>
-        <button class="btn btn-primary" onclick="openPackModal()">+ New Record</button>
+        <button class="btn btn-primary admin-only" onclick="openPackModal()">+ New Record</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -391,7 +521,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-actions">
         <input class="search-input" type="text" id="proc-search" placeholder="Search outgoing #, WO #, customer..." oninput="filterProcess()">
         <button class="btn btn-secondary" onclick="exportProcessCSV()">⬇️ Export CSV</button>
-        <button class="btn btn-primary" onclick="openProcModal()">+ New Record</button>
+        <button class="btn btn-primary admin-only" onclick="openProcModal()">+ New Record</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -417,12 +547,13 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
   <!-- ══ PAYMENTS SECTION ══ -->
   <div id="section-payments" style="display:none">
     <div class="stats-bar" id="pay-stats"></div>
+    <div class="stats-bar" id="pay-method-stats" style="margin-top:0;border-top:1px solid #e3f2fd"></div>
     <div class="section-header">
       <div class="section-title">💰 Payments</div>
       <div class="section-actions">
         <input class="search-input" type="text" id="pay-search" placeholder="Search order #, customer, method..." oninput="filterPayments()">
         <button class="btn btn-secondary" onclick="exportPaymentsCSV()">⬇️ Export CSV</button>
-        <button class="btn btn-primary" onclick="openPayModal()">+ New Payment</button>
+        <button class="btn btn-primary admin-only" onclick="openPayModal()">+ New Payment</button>
       </div>
     </div>
 
@@ -1223,6 +1354,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 
@@ -1239,6 +1371,10 @@ var FB_CFG = {
 };
 
 var db = null;
+var auth = null;
+var currentUser = null;
+var isAdmin = false;
+var ADMIN_EMAILS = ['dasilva.luiz@sourceatlantic.ca', 'lcdsilva@hotmail.com'];
 var SR_PATH = 'shipping_receiving';
 var incomingData = {};
 var incomingFiltered = [];
@@ -1264,48 +1400,194 @@ var pendingPayEmailRec = null;
 window.addEventListener('DOMContentLoaded', function(){
   try{
     if(!firebase.apps.length) firebase.initializeApp(FB_CFG);
-    db = firebase.database();
-    db.ref(SR_PATH+'/incoming').on('value', function(snap){
-      incomingData = snap.val() || {};
-      renderIncoming();
-      buildAutocomplete();
-    });
-    db.ref(SR_PATH+'/items').on('value', function(snap){
-      itemsData = snap.val() || {};
-      renderItems();
-      buildAutocomplete();
-    });
-    db.ref(SR_PATH+'/shipping').on('value', function(snap){
-      shpData = snap.val() || {};
-      renderShipping();
-      renderPacking();
-      renderProcess();
-      buildAutocomplete();
-    });
-    db.ref(SR_PATH+'/subcontractor').on('value', function(snap){
-      subData = snap.val() || {};
-      renderSubcontractor();
-    });
-    db.ref(SR_PATH+'/packing').on('value', function(snap){
-      pkgData = snap.val() || {};
-      renderPacking();
-    });
-    db.ref(SR_PATH+'/process').on('value', function(snap){
-      procData = snap.val() || {};
-      renderProcess();
-    });
-    db.ref(SR_PATH+'/payments').on('value', function(snap){
-      payData = snap.val() || {};
-      renderPayments();
+    db   = firebase.database();
+    auth = firebase.auth();
+    auth.onAuthStateChanged(function(user){
+      if(user){
+        if(!user.emailVerified){
+          document.getElementById('auth-verify-msg').textContent =
+            'A verification email was sent to '+user.email+'. Please check your inbox and click the link, then return here.';
+          authShow('verify');
+          document.getElementById('auth-overlay').style.display = 'flex';
+          document.getElementById('app-loading').style.display  = 'none';
+          return;
+        }
+        processAuthUser(user);
+      } else {
+        currentUser = null; isAdmin = false;
+        document.body.classList.remove('readonly-mode');
+        document.getElementById('auth-overlay').style.display = 'flex';
+        document.getElementById('app-loading').style.display  = 'none';
+        document.getElementById('user-bar').style.display     = 'none';
+      }
     });
   }catch(e){
     console.error('Firebase error:', e);
-    renderIncoming();
+    document.getElementById('app-loading').style.display = 'none';
   }
+});
+
+function processAuthUser(user){
+  currentUser = user;
+  isAdmin = ADMIN_EMAILS.indexOf(user.email.toLowerCase()) !== -1;
+  if(isAdmin){
+    document.body.classList.remove('readonly-mode');
+  } else {
+    document.body.classList.add('readonly-mode');
+  }
+  var bar = document.getElementById('user-bar');
+  bar.style.display = 'flex';
+  document.getElementById('user-bar-email').textContent = user.email;
+  var badge = document.getElementById('user-bar-badge');
+  badge.textContent = isAdmin ? 'Admin' : 'Viewer';
+  badge.className   = 'user-bar-badge' + (isAdmin ? ' admin' : '');
+  document.getElementById('auth-overlay').style.display = 'none';
+  document.getElementById('app-loading').style.display  = 'flex';
+  initDataListeners();
+}
+
+function initDataListeners(){
+  db.ref(SR_PATH+'/incoming').on('value', function(snap){
+    incomingData = snap.val() || {};
+    renderIncoming();
+    buildAutocomplete();
+  });
+  db.ref(SR_PATH+'/items').on('value', function(snap){
+    itemsData = snap.val() || {};
+    renderItems();
+    buildAutocomplete();
+  });
+  db.ref(SR_PATH+'/shipping').on('value', function(snap){
+    shpData = snap.val() || {};
+    renderShipping();
+    renderPacking();
+    renderProcess();
+    buildAutocomplete();
+  });
+  db.ref(SR_PATH+'/subcontractor').on('value', function(snap){
+    subData = snap.val() || {};
+    renderSubcontractor();
+  });
+  db.ref(SR_PATH+'/packing').on('value', function(snap){
+    pkgData = snap.val() || {};
+    renderPacking();
+  });
+  db.ref(SR_PATH+'/process').on('value', function(snap){
+    procData = snap.val() || {};
+    renderProcess();
+  });
+  db.ref(SR_PATH+'/payments').on('value', function(snap){
+    payData = snap.val() || {};
+    renderPayments();
+  });
   document.getElementById('app-loading').style.display = 'none';
   document.getElementById('inc-date').value = today();
+}
 
-});
+// ── AUTH HELPERS ──
+function authShow(screen){
+  document.querySelectorAll('.auth-screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('auth-'+screen).classList.add('active');
+  document.querySelectorAll('.auth-error').forEach(function(e){ e.style.display='none'; e.textContent=''; });
+}
+
+function authSetError(id, msg){
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function setAuthBtnLoading(id, loading, label){
+  var btn = document.getElementById(id);
+  if(!btn) return;
+  btn.disabled = loading;
+  btn.textContent = loading ? 'Please wait...' : label;
+}
+
+function doLogin(){
+  var email = document.getElementById('auth-login-email').value.trim();
+  var pass  = document.getElementById('auth-login-pass').value;
+  if(!email || !pass){ authSetError('auth-login-err','Please enter email and password.'); return; }
+  setAuthBtnLoading('auth-login-btn', true, 'Sign In');
+  auth.signInWithEmailAndPassword(email, pass)
+    .then(function(cred){
+      setAuthBtnLoading('auth-login-btn', false, 'Sign In');
+      if(!cred.user.emailVerified){
+        document.getElementById('auth-verify-msg').textContent =
+          'A verification email was sent to '+cred.user.email+'. Please check your inbox and click the link, then return here.';
+        authShow('verify');
+      }
+    })
+    .catch(function(err){
+      setAuthBtnLoading('auth-login-btn', false, 'Sign In');
+      var msg = err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'
+        ? 'Invalid email or password.' : err.message;
+      authSetError('auth-login-err', msg);
+    });
+}
+
+function doRegister(){
+  var email  = document.getElementById('auth-reg-email').value.trim();
+  var pass   = document.getElementById('auth-reg-pass').value;
+  var pass2  = document.getElementById('auth-reg-pass2').value;
+  if(!email || !pass){ authSetError('auth-reg-err','Please fill all fields.'); return; }
+  if(pass !== pass2){ authSetError('auth-reg-err','Passwords do not match.'); return; }
+  if(pass.length < 6){ authSetError('auth-reg-err','Password must be at least 6 characters.'); return; }
+  setAuthBtnLoading('auth-reg-btn', true, 'Create Account');
+  auth.createUserWithEmailAndPassword(email, pass)
+    .then(function(cred){
+      setAuthBtnLoading('auth-reg-btn', false, 'Create Account');
+      return cred.user.sendEmailVerification().then(function(){
+        document.getElementById('auth-verify-msg').textContent =
+          'A verification email was sent to '+cred.user.email+'. Please check your inbox and click the link, then return here.';
+        authShow('verify');
+      });
+    })
+    .catch(function(err){
+      setAuthBtnLoading('auth-reg-btn', false, 'Create Account');
+      var msg = err.code === 'auth/email-already-in-use'
+        ? 'This email is already registered. Please sign in.' : err.message;
+      authSetError('auth-reg-err', msg);
+    });
+}
+
+function doLogout(){
+  auth.signOut();
+}
+
+function doForgotPassword(){
+  var email = document.getElementById('auth-forgot-email').value.trim();
+  if(!email){ authSetError('auth-forgot-err','Please enter your email.'); return; }
+  auth.sendPasswordResetEmail(email)
+    .then(function(){
+      authSetError('auth-forgot-err','');
+      var el = document.getElementById('auth-forgot-err');
+      el.style.background = '#e3f2fd'; el.style.color = '#1565c0';
+      el.textContent = 'Password reset email sent! Check your inbox.';
+      el.style.display = 'block';
+    })
+    .catch(function(err){ authSetError('auth-forgot-err', err.message); });
+}
+
+function doResendVerification(){
+  if(auth.currentUser){
+    auth.currentUser.sendEmailVerification()
+      .then(function(){ authSetError('auth-verify-err',''); showToast('Verification email resent!'); })
+      .catch(function(err){ authSetError('auth-verify-err', err.message); });
+  }
+}
+
+function checkVerificationAndLogin(){
+  if(!auth.currentUser){ authShow('login'); return; }
+  auth.currentUser.reload().then(function(){
+    if(auth.currentUser.emailVerified){
+      processAuthUser(auth.currentUser);
+    } else {
+      authSetError('auth-verify-err','Email not yet verified. Please click the link in your inbox first.');
+    }
+  }).catch(function(err){ authSetError('auth-verify-err', err.message); });
+}
 
 function today(){
   return new Date().toISOString().split('T')[0];
@@ -1553,6 +1835,7 @@ function closeIncomingModal(){
 }
 
 function saveIncoming(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var formNum      = document.getElementById('inc-form-num').value.trim();
   var wo           = document.getElementById('inc-wo').value.trim();
   var prevWo       = document.getElementById('inc-prev-wo').value.trim();
@@ -1716,6 +1999,7 @@ function printItemWipLabel(i){
 }
 
 function deleteIncoming(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var key = document.getElementById('inc-edit-id').value;
   if(!key) return;
   if(!confirm('Delete this Incoming Form? This cannot be undone.')) return;
@@ -1920,6 +2204,7 @@ function openSubModal(key){
 function closeSubModal(){ document.getElementById('sub-modal').style.display='none'; }
 
 function saveSubcontractor(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var wo = document.getElementById('sub-wo').value.trim();
   if(!wo){ alert('Work Order # is required.'); return; }
   var matType  = document.getElementById('sub-material-type').value;
@@ -1955,6 +2240,7 @@ function saveSubcontractor(){
 }
 
 function deleteSubcontractor(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var key = document.getElementById('sub-edit-id').value;
   if(!key) return;
   if(!confirm('Delete this record? This cannot be undone.')) return;
@@ -2321,6 +2607,7 @@ function closeShipModal(){
 }
 
 function saveShipment(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   // Auto-commit any value still typed in the tag inputs (user didn't press Enter/Add)
   [{field:'so',id:'shp-so-input'},{field:'tr',id:'shp-tr-input'},{field:'wo',id:'shp-wo-input'}].forEach(function(t){
     var el = document.getElementById(t.id);
@@ -2370,6 +2657,7 @@ function saveShipment(){
 }
 
 function deleteShipment(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var key = document.getElementById('shp-edit-id').value;
   if(!key) return;
   if(!confirm('Delete this shipment? This cannot be undone.')) return;
@@ -2675,6 +2963,7 @@ function toggleItmReqbyOther(){
 }
 
 function saveItem(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var docNum = document.getElementById('itm-doc').value.trim();
   if(!docNum){ alert('Document # is required.'); return; }
   var lineItems = readLineItems();
@@ -2705,6 +2994,7 @@ function saveItem(){
 }
 
 function deleteItem(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var key = document.getElementById('itm-edit-id').value;
   if(!key) return;
   if(!confirm('Delete this document and all its items? This cannot be undone.')) return;
@@ -2943,6 +3233,7 @@ function printProcLabel(){
 }
 
 function saveProcRecord(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var receivedDate = document.getElementById('proc-received-date').value;
   if(!receivedDate){ alert('Shipping Area Received Date is required.'); return; }
   var record = {
@@ -2970,6 +3261,7 @@ function saveProcRecord(){
 }
 
 function deleteProcRecord(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var key = document.getElementById('proc-edit-id').value;
   if(!key) return;
   if(!confirm('Delete this record? This cannot be undone.')) return;
@@ -3132,6 +3424,7 @@ function openPackModal(key){
 function closePackModal(){ document.getElementById('pkg-modal').style.display = 'none'; }
 
 function savePackRecord(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var orderNum = document.getElementById('pkg-order').value.trim();
   if(!orderNum){ alert('Order Number is required.'); return; }
   var pickDate = document.getElementById('pkg-pick-date').value;
@@ -3158,6 +3451,7 @@ function savePackRecord(){
 }
 
 function deletePackRecord(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var key = document.getElementById('pkg-edit-id').value;
   if(!key) return;
   if(!confirm('Delete this packing record? This cannot be undone.')) return;
@@ -3284,15 +3578,32 @@ function renderPayments(){
 }
 
 function renderPayStats(rows){
-  var total   = rows.length;
-  var totalAmt= rows.reduce(function(s,r){ return s+(parseFloat(r.amount)||0); },0);
-  var cash    = rows.filter(function(r){ return r.method==='Cash'; }).reduce(function(s,r){ return s+(parseFloat(r.amount)||0); },0);
-  var card    = rows.filter(function(r){ return ['Visa','Mastercard','Debit'].includes(r.method); }).reduce(function(s,r){ return s+(parseFloat(r.amount)||0); },0);
+  var total    = rows.length;
+  var totalAmt = rows.reduce(function(s,r){ return s+(parseFloat(r.amount)||0); },0);
   document.getElementById('pay-stats').innerHTML =
     '<div class="stat-card"><div class="stat-val">'+total+'</div><div class="stat-lbl">Payments</div></div>'+
-    '<div class="stat-card"><div class="stat-val" style="color:#2e7d32;font-size:1.15rem">'+fmtMoney(totalAmt)+'</div><div class="stat-lbl">Total</div></div>'+
-    '<div class="stat-card"><div class="stat-val" style="font-size:1.15rem">'+fmtMoney(cash)+'</div><div class="stat-lbl">Cash</div></div>'+
-    '<div class="stat-card"><div class="stat-val" style="font-size:1.15rem">'+fmtMoney(card)+'</div><div class="stat-lbl">Card / Debit</div></div>';
+    '<div class="stat-card"><div class="stat-val" style="color:#2e7d32;font-size:1.15rem">'+fmtMoney(totalAmt)+'</div><div class="stat-lbl">Total Received</div></div>';
+
+  var methods = [
+    {key:'Cash',       color:'#2e7d32', icon:'💵'},
+    {key:'Cheque',     color:'#1565c0', icon:'📄'},
+    {key:'Visa',       color:'#1a237e', icon:'💳'},
+    {key:'Mastercard', color:'#b71c1c', icon:'💳'},
+    {key:'Debit',      color:'#e65100', icon:'💳'}
+  ];
+  var methodBar = document.getElementById('pay-method-stats');
+  if(methodBar){
+    methodBar.innerHTML = methods.map(function(m){
+      var amt = rows.filter(function(r){ return r.method===m.key; })
+                    .reduce(function(s,r){ return s+(parseFloat(r.amount)||0); },0);
+      var count = rows.filter(function(r){ return r.method===m.key; }).length;
+      return '<div class="stat-card">'+
+        '<div class="stat-val" style="color:'+m.color+';font-size:1.05rem">'+fmtMoney(amt)+'</div>'+
+        '<div class="stat-lbl">'+m.icon+' '+m.key+'</div>'+
+        (count?'<div style="font-size:.68rem;color:#9ca3af;margin-top:1px">'+count+' payment'+(count!==1?'s':'')+'</div>':'')
+      +'</div>';
+    }).join('');
+  }
 }
 
 function renderPayCharts(rows){
@@ -3415,6 +3726,7 @@ function openPayModal(key){
 function closePayModal(){ document.getElementById('pay-modal').style.display='none'; }
 
 function savePayment(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var date   = document.getElementById('pay-date').value;
   var amount = document.getElementById('pay-amount').value;
   var method = (document.querySelector('input[name="pay-method"]:checked')||{}).value;
@@ -3467,6 +3779,7 @@ function closePayEmailModal(){
 }
 
 function sendPayEmail(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var r = pendingPayEmailRec;
   if(!r) return;
 
@@ -3494,6 +3807,7 @@ function sendPayEmail(){
 }
 
 function deletePayment(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var key = document.getElementById('pay-edit-id').value;
   if(!key) return;
   if(!confirm('Delete this payment? This cannot be undone.')) return;
