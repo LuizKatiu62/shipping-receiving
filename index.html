@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shipping & Receiving</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;color:#1a1a2e;min-height:100vh}
+
+/* ── TOP BAR ── */
+.topbar{background:linear-gradient(135deg,#0f2027,#1a3a4a,#1565c0);color:#fff;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.3);position:sticky;top:0;z-index:100}
+.topbar-title{padding:14px 24px 0;font-size:1.1rem;font-weight:800;letter-spacing:.5px;opacity:.85;font-size:.8rem;text-transform:uppercase}
+.topbar-brand{padding:0 24px 0;font-size:1.45rem;font-weight:900;letter-spacing:-.3px}
+.topbar-brand span{color:#64b5f6}
+
+/* ── NAV TABS ── */
+.nav-tabs{display:flex;padding:0 16px;gap:2px;margin-top:8px;overflow-x:auto}
+.nav-tab{padding:10px 18px;font-size:.82rem;font-weight:700;color:rgba(255,255,255,.6);cursor:pointer;border-radius:8px 8px 0 0;border:none;background:none;white-space:nowrap;transition:all .18s;letter-spacing:.2px;font-family:inherit}
+.nav-tab:hover{color:#fff;background:rgba(255,255,255,.08)}
+.nav-tab.active{color:#fff;background:#1565c0;box-shadow:0 -2px 0 #64b5f6 inset}
+
+/* ── MAIN ── */
+.main{padding:24px;max-width:1400px;margin:0 auto}
+
+/* ── SECTION HEADER ── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+.section-title{font-size:1.2rem;font-weight:800;color:#0f2027}
+.section-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* ── SEARCH ── */
+.search-input{padding:8px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:.875rem;font-family:inherit;width:260px;outline:none;transition:border .18s}
+.search-input:focus{border-color:#1565c0}
+
+/* ── BUTTONS ── */
+.btn{border:none;border-radius:8px;padding:9px 18px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .18s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:#1565c0;color:#fff}
+.btn-primary:hover{background:#1976d2}
+.btn-secondary{background:#e3f2fd;color:#1565c0;border:1.5px solid #90caf9}
+.btn-secondary:hover{background:#bbdefb}
+.btn-danger{background:#ffebee;color:#c62828;border:1.5px solid #ef9a9a}
+.btn-danger:hover{background:#ffcdd2}
+.btn-sm{padding:5px 11px;font-size:.75rem}
+
+/* ── TABLE ── */
+.table-wrap{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden}
+.table-wrap table{width:100%;border-collapse:collapse;font-size:.83rem}
+.table-wrap th{background:#1565c0;color:#fff;padding:11px 14px;text-align:left;font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.table-wrap td{padding:10px 14px;border-bottom:1px solid #f0f2f5;vertical-align:middle}
+.table-wrap tr:last-child td{border-bottom:none}
+.table-wrap tr:hover td{background:#f8fbff}
+.table-wrap tr{cursor:pointer;transition:background .12s}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.7rem;font-weight:700;white-space:nowrap}
+.badge-electrical{background:#e3f2fd;color:#1565c0}
+.badge-mechanical{background:#e8f5e9;color:#2e7d32}
+.badge-aircompressor{background:#e0f7fa;color:#00695c}
+.badge-generator{background:#fff8e1;color:#f57f17}
+.badge-welding{background:#fce4ec;color:#c62828}
+
+/* ── EMPTY ── */
+.empty-state{text-align:center;padding:60px 20px;color:#9ca3af}
+.empty-icon{font-size:3rem;margin-bottom:12px}
+.empty-text{font-size:.9rem;font-weight:600}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0}
+.modal-title{font-size:1.05rem;font-weight:800;color:#0f2027}
+.modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;color:#9ca3af;line-height:1;padding:2px 6px;border-radius:6px}
+.modal-close:hover{background:#f3f4f6;color:#374151}
+.modal-body{padding:20px 24px 24px}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid .full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:.75rem;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.4px}
+.form-group input,.form-group select,.form-group textarea{padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:.875rem;font-family:inherit;outline:none;transition:border .18s;background:#fff}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#1565c0}
+.form-group textarea{resize:vertical;min-height:80px}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid #f0f2f5}
+
+/* ── STATS BAR ── */
+.stats-bar{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.stat-card{background:#fff;border-radius:10px;padding:12px 18px;box-shadow:0 1px 4px rgba(0,0,0,.07);min-width:120px;text-align:center}
+.stat-val{font-size:1.5rem;font-weight:900;color:#1565c0}
+.stat-lbl{font-size:.68rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+
+/* ── DETAIL PANEL ── */
+.detail-panel{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:24px;margin-bottom:16px;display:none}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:16px}
+.detail-field{display:flex;flex-direction:column;gap:3px}
+.detail-label{font-size:.68rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px}
+.detail-value{font-size:.9rem;font-weight:600;color:#1a1a2e}
+
+/* ── COMING SOON ── */
+.coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;color:#9ca3af;gap:12px}
+.coming-soon-icon{font-size:3.5rem}
+.coming-soon-title{font-size:1.1rem;font-weight:700;color:#6b7280}
+.coming-soon-sub{font-size:.85rem}
+
+/* ── LOADING ── */
+#app-loading{position:fixed;inset:0;background:#f0f2f5;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:12px}
+.spinner{width:36px;height:36px;border:4px solid #e0e7ff;border-top-color:#1565c0;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .form-grid{grid-template-columns:1fr}
+  .form-grid .full{grid-column:1}
+  .main{padding:14px}
+  .search-input{width:100%}
+  .section-actions{width:100%}
+  .search-input{flex:1}
+}
+</style>
+</head>
+<body>
+
+<div id="app-loading">
+  <div class="spinner"></div>
+  <div style="font-size:.85rem;color:#6b7280;font-weight:600">Loading...</div>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-title">Industrial Services</div>
+  <div class="topbar-brand">Shipping & <span>Receiving</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('incoming')">📋 Incoming Form</button>
+    <button class="nav-tab" onclick="showSection('items')">📦 Incoming Items</button>
+    <button class="nav-tab" onclick="showSection('shipping')">🚚 Shipping</button>
+    <button class="nav-tab" onclick="showSection('subcontractor')">🔧 Subcontractor</button>
+    <button class="nav-tab" onclick="showSection('packing')">📦 Packing & Hold</button>
+    <button class="nav-tab" onclick="showSection('process')">⏸ Process on Hold</button>
+    <button class="nav-tab" onclick="showSection('payments')">💰 Payments</button>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- ══ INCOMING FORM SECTION ══ -->
+  <div id="section-incoming">
+    <div class="stats-bar" id="inc-stats"></div>
+    <div class="section-header">
+      <div class="section-title">📋 Incoming Form</div>
+      <div class="section-actions">
+        <input class="search-input" type="text" id="inc-search" placeholder="Search form #, WO, equipment..." oninput="filterIncoming()">
+        <button class="btn btn-secondary" onclick="exportIncomingCSV()">⬇️ Export CSV</button>
+        <button class="btn btn-primary" onclick="openIncomingModal()">+ New Incoming</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Form #</th>
+            <th>Work Order</th>
+            <th>Date</th>
+            <th>Equipment Description</th>
+            <th>Area</th>
+            <th>What to Do</th>
+            <th>Delivery By</th>
+            <th>Received By</th>
+            <th style="width:90px">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="inc-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ OTHER SECTIONS (coming soon) ══ -->
+  <div id="section-items" style="display:none">
+    <div class="coming-soon"><div class="coming-soon-icon">📦</div><div class="coming-soon-title">Incoming Items</div><div class="coming-soon-sub">Coming soon — send fields to build this section</div></div>
+  </div>
+  <div id="section-shipping" style="display:none">
+    <div class="coming-soon"><div class="coming-soon-icon">🚚</div><div class="coming-soon-title">Shipping</div><div class="coming-soon-sub">Coming soon</div></div>
+  </div>
+  <div id="section-subcontractor" style="display:none">
+    <div class="coming-soon"><div class="coming-soon-icon">🔧</div><div class="coming-soon-title">Subcontractor</div><div class="coming-soon-sub">Coming soon</div></div>
+  </div>
+  <div id="section-packing" style="display:none">
+    <div class="coming-soon"><div class="coming-soon-icon">📦</div><div class="coming-soon-title">Packing & Hold</div><div class="coming-soon-sub">Coming soon</div></div>
+  </div>
+  <div id="section-process" style="display:none">
+    <div class="coming-soon"><div class="coming-soon-icon">⏸</div><div class="coming-soon-title">Process on Hold</div><div class="coming-soon-sub">Coming soon</div></div>
+  </div>
+  <div id="section-payments" style="display:none">
+    <div class="coming-soon"><div class="coming-soon-icon">💰</div><div class="coming-soon-title">Payments</div><div class="coming-soon-sub">Coming soon</div></div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ══ INCOMING FORM MODAL ══ -->
+<div class="modal-overlay" id="inc-modal" style="display:none" onclick="if(event.target===this)closeIncomingModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="inc-modal-title">New Incoming Form</div>
+      <button class="modal-close" onclick="closeIncomingModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="inc-edit-id">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Incoming Form #</label>
+          <input type="text" id="inc-form-num" placeholder="e.g. INC-2024-001">
+        </div>
+        <div class="form-group">
+          <label>Work Order #</label>
+          <input type="text" id="inc-wo" placeholder="e.g. WO-2024-100">
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="inc-date">
+        </div>
+        <div class="form-group">
+          <label>Area</label>
+          <select id="inc-area">
+            <option value="">— Select Area —</option>
+            <option>Electrical</option>
+            <option>Mechanical</option>
+            <option>Air Compressor</option>
+            <option>Generator</option>
+            <option>Welding</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Equipment Description</label>
+          <input type="text" id="inc-equip" placeholder="Describe the equipment...">
+        </div>
+        <div class="form-group">
+          <label>What to Do</label>
+          <select id="inc-whattodo">
+            <option value="">— Select Action —</option>
+            <option>Dismantle</option>
+            <option>Inspect and Estimate</option>
+            <option>Repair Unit and Return</option>
+            <option>Send to Subcontractor</option>
+            <option>Balancing</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Delivery By</label>
+          <select id="inc-delivery">
+            <option value="">— Select Carrier —</option>
+            <option>Midland Transport</option>
+            <option>Midland Courier</option>
+            <option>Kate Lynne</option>
+            <option>Day & Ross</option>
+            <option>Armour</option>
+            <option>Our Truck</option>
+            <option>Customer</option>
+            <option>Purolator</option>
+            <option>FedEx</option>
+            <option>UPS</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Received By</label>
+          <input type="text" id="inc-received" placeholder="Name of person">
+        </div>
+        <div class="form-group full">
+          <label>Notes</label>
+          <textarea id="inc-notes" placeholder="Additional notes..."></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-danger" id="inc-del-btn" style="display:none;margin-right:auto" onclick="deleteIncoming()">🗑 Delete</button>
+        <button class="btn btn-secondary" onclick="closeIncomingModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveIncoming()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+// ── FIREBASE CONFIG ──
+var FB_CFG = {
+  apiKey:            'AIzaSyAWD-KEgeIpaMU8z3sKmxKqs-BypQGbLjs',
+  authDomain:        'corrida-64k.firebaseapp.com',
+  databaseURL:       'https://corrida-64k-default-rtdb.firebaseio.com',
+  projectId:         'corrida-64k',
+  storageBucket:     'corrida-64k.firebasestorage.app',
+  messagingSenderId: '931451150684',
+  appId:             '1:931451150684:web:0112ba7eddb4c936776199'
+};
+
+var db = null;
+var SR_PATH = 'shipping_receiving';
+var incomingData = {};
+var incomingFiltered = [];
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', function(){
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FB_CFG);
+    db = firebase.database();
+    db.ref(SR_PATH+'/incoming').on('value', function(snap){
+      incomingData = snap.val() || {};
+      renderIncoming();
+    });
+  }catch(e){
+    console.error('Firebase error:', e);
+    renderIncoming();
+  }
+  document.getElementById('app-loading').style.display = 'none';
+  // Default today's date in form
+  document.getElementById('inc-date').value = today();
+});
+
+function today(){
+  return new Date().toISOString().split('T')[0];
+}
+
+// ── SECTION NAV ──
+function showSection(name){
+  document.querySelectorAll('[id^="section-"]').forEach(function(el){ el.style.display='none'; });
+  document.getElementById('section-'+name).style.display='block';
+  document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
+  event.currentTarget.classList.add('active');
+}
+
+// ── AREA BADGE ──
+function areaBadge(area){
+  var cls = {
+    'Electrical':'electrical','Mechanical':'mechanical',
+    'Air Compressor':'aircompressor','Generator':'generator','Welding':'welding'
+  }[area] || 'electrical';
+  return area ? '<span class="badge badge-'+cls+'">'+area+'</span>' : '—';
+}
+
+function fmtDate(d){
+  if(!d) return '—';
+  var parts = d.split('-');
+  if(parts.length!==3) return d;
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return months[parseInt(parts[1])-1]+' '+parseInt(parts[2])+', '+parts[0];
+}
+
+// ── RENDER TABLE ──
+function renderIncoming(){
+  var rows = Object.entries(incomingData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
+  rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  incomingFiltered = rows;
+
+  var q = (document.getElementById('inc-search').value||'').toLowerCase();
+  if(q) incomingFiltered = rows.filter(function(r){
+    return (r.formNum||'').toLowerCase().includes(q)
+      || (r.wo||'').toLowerCase().includes(q)
+      || (r.equipment||'').toLowerCase().includes(q)
+      || (r.receivedBy||'').toLowerCase().includes(q)
+      || (r.area||'').toLowerCase().includes(q);
+  });
+
+  var tbody = document.getElementById('inc-tbody');
+  if(!incomingFiltered.length){
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No incoming forms yet. Click "+ New Incoming" to add one.</div></div></td></tr>';
+    renderStats(rows);
+    return;
+  }
+
+  tbody.innerHTML = incomingFiltered.map(function(r){
+    return '<tr onclick="openIncomingModal(\''+r._key+'\')">'+
+      '<td><strong>'+escHtml(r.formNum||'—')+'</strong></td>'+
+      '<td>'+escHtml(r.wo||'—')+'</td>'+
+      '<td style="white-space:nowrap">'+fmtDate(r.date)+'</td>'+
+      '<td>'+escHtml(r.equipment||'—')+'</td>'+
+      '<td>'+areaBadge(r.area)+'</td>'+
+      '<td>'+escHtml(r.whatToDo||'—')+'</td>'+
+      '<td>'+escHtml(r.deliveryBy||'—')+'</td>'+
+      '<td>'+escHtml(r.receivedBy||'—')+'</td>'+
+      '<td onclick="event.stopPropagation()">'+
+        '<button class="btn btn-secondary btn-sm" onclick="openIncomingModal(\''+r._key+'\')">✏️ Edit</button>'+
+      '</td>'+
+    '</tr>';
+  }).join('');
+  renderStats(rows);
+}
+
+function renderStats(rows){
+  var byArea = {};
+  rows.forEach(function(r){ byArea[r.area||'—'] = (byArea[r.area||'—']||0)+1; });
+  var statsHtml = '<div class="stat-card"><div class="stat-val">'+rows.length+'</div><div class="stat-lbl">Total Forms</div></div>';
+  Object.entries(byArea).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){
+    statsHtml += '<div class="stat-card"><div class="stat-val">'+e[1]+'</div><div class="stat-lbl">'+e[0]+'</div></div>';
+  });
+  document.getElementById('inc-stats').innerHTML = statsHtml;
+}
+
+function filterIncoming(){ renderIncoming(); }
+
+function escHtml(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── MODAL ──
+function openIncomingModal(key){
+  var modal = document.getElementById('inc-modal');
+  var delBtn = document.getElementById('inc-del-btn');
+  document.getElementById('inc-edit-id').value = key||'';
+  document.getElementById('inc-date').value = today();
+
+  if(key && incomingData[key]){
+    var r = incomingData[key];
+    document.getElementById('inc-modal-title').textContent = 'Edit Incoming Form';
+    document.getElementById('inc-form-num').value  = r.formNum||'';
+    document.getElementById('inc-wo').value         = r.wo||'';
+    document.getElementById('inc-date').value       = r.date||today();
+    document.getElementById('inc-equip').value      = r.equipment||'';
+    document.getElementById('inc-area').value       = r.area||'';
+    document.getElementById('inc-whattodo').value   = r.whatToDo||'';
+    document.getElementById('inc-delivery').value   = r.deliveryBy||'';
+    document.getElementById('inc-received').value   = r.receivedBy||'';
+    document.getElementById('inc-notes').value      = r.notes||'';
+    delBtn.style.display = 'inline-flex';
+  } else {
+    document.getElementById('inc-modal-title').textContent = 'New Incoming Form';
+    document.getElementById('inc-form-num').value  = '';
+    document.getElementById('inc-wo').value         = '';
+    document.getElementById('inc-equip').value      = '';
+    document.getElementById('inc-area').value       = '';
+    document.getElementById('inc-whattodo').value   = '';
+    document.getElementById('inc-delivery').value   = '';
+    document.getElementById('inc-received').value   = '';
+    document.getElementById('inc-notes').value      = '';
+    delBtn.style.display = 'none';
+  }
+  modal.style.display = 'flex';
+}
+
+function closeIncomingModal(){
+  document.getElementById('inc-modal').style.display = 'none';
+}
+
+function saveIncoming(){
+  var formNum   = document.getElementById('inc-form-num').value.trim();
+  var wo        = document.getElementById('inc-wo').value.trim();
+  var date      = document.getElementById('inc-date').value;
+  var equipment = document.getElementById('inc-equip').value.trim();
+  var area      = document.getElementById('inc-area').value;
+  var whatToDo  = document.getElementById('inc-whattodo').value;
+  var deliveryBy= document.getElementById('inc-delivery').value;
+  var receivedBy= document.getElementById('inc-received').value.trim();
+  var notes     = document.getElementById('inc-notes').value.trim();
+
+  if(!formNum){ alert('Incoming Form # is required.'); return; }
+  if(!equipment){ alert('Equipment Description is required.'); return; }
+
+  var record = { formNum, wo, date, equipment, area, whatToDo, deliveryBy, receivedBy, notes, updatedAt: new Date().toISOString() };
+  var key = document.getElementById('inc-edit-id').value;
+
+  if(db){
+    var ref = key ? db.ref(SR_PATH+'/incoming/'+key) : db.ref(SR_PATH+'/incoming').push();
+    if(!key) record.createdAt = new Date().toISOString();
+    ref.set(record).catch(function(e){ alert('Error saving: '+e.message); });
+  } else {
+    // Local fallback (no Firebase)
+    var k = key || ('local_'+Date.now());
+    if(!key) record.createdAt = new Date().toISOString();
+    incomingData[k] = record;
+    renderIncoming();
+  }
+  closeIncomingModal();
+}
+
+function deleteIncoming(){
+  var key = document.getElementById('inc-edit-id').value;
+  if(!key) return;
+  if(!confirm('Delete this Incoming Form? This cannot be undone.')) return;
+  if(db){
+    db.ref(SR_PATH+'/incoming/'+key).remove().catch(function(e){ alert('Error: '+e.message); });
+  } else {
+    delete incomingData[key];
+    renderIncoming();
+  }
+  closeIncomingModal();
+}
+
+// ── EXPORT CSV ──
+function exportIncomingCSV(){
+  var rows = incomingFiltered.length ? incomingFiltered : Object.entries(incomingData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
+  if(!rows.length){ alert('No data to export.'); return; }
+  var headers = ['Form #','Work Order','Date','Equipment Description','Area','What to Do','Delivery By','Received By','Notes'];
+  var csv = headers.join(',') + '\n';
+  rows.forEach(function(r){
+    csv += [r.formNum,r.wo,r.date,r.equipment,r.area,r.whatToDo,r.deliveryBy,r.receivedBy,r.notes].map(function(v){
+      return '"'+(v||'').replace(/"/g,'""')+'"';
+    }).join(',') + '\n';
+  });
+  var blob = new Blob([csv], {type:'text/csv'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'incoming-forms-'+today()+'.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
