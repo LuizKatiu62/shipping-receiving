@@ -364,7 +364,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-title">📋 Incoming Form</div>
       <div class="section-actions">
         <input class="search-input" type="text" id="inc-search" placeholder="Search form #, WO, equipment..." oninput="filterIncoming()">
-        <button class="btn btn-secondary" onclick="exportIncomingCSV()">⬇️ Export CSV</button>
+        <button class="btn btn-secondary" onclick="exportIncomingCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openIncomingModal()">+ New Incoming</button>
       </div>
     </div>
@@ -398,7 +398,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-title">📦 Incoming Items</div>
       <div class="section-actions">
         <input class="search-input" type="text" id="itm-search" placeholder="Search doc #, PO, material..." oninput="filterItems()">
-        <button class="btn btn-secondary" onclick="exportItemsCSV()">⬇️ Export CSV</button>
+        <button class="btn btn-secondary" onclick="exportItemsCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openItemModal()">+ New Item</button>
       </div>
     </div>
@@ -427,7 +427,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-title">🚚 Shipping</div>
       <div class="section-actions">
         <input class="search-input" type="text" id="shp-search" placeholder="Search outgoing #, city, material..." oninput="filterShipping()">
-        <button class="btn btn-secondary" onclick="exportShippingCSV()">⬇️ Export CSV</button>
+        <button class="btn btn-secondary" onclick="exportShippingCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openShipModal()">+ New Shipment</button>
       </div>
     </div>
@@ -461,7 +461,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-title">🔧 Subcontractor</div>
       <div class="section-actions">
         <input class="search-input" type="text" id="sub-search" placeholder="Search WO, customer, subcontractor..." oninput="filterSubcontractor()">
-        <button class="btn btn-secondary" onclick="exportSubcontractorCSV()">⬇️ Export CSV</button>
+        <button class="btn btn-secondary" onclick="exportSubcontractorCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openSubModal()">+ New Record</button>
       </div>
     </div>
@@ -493,7 +493,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-title">📦 Packing &amp; Hold</div>
       <div class="section-actions">
         <input class="search-input" type="text" id="pkg-search" placeholder="Search order #, customer..." oninput="filterPacking()">
-        <button class="btn btn-secondary" onclick="exportPackingCSV()">⬇️ Export CSV</button>
+        <button class="btn btn-secondary" onclick="exportPackingCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openPackModal()">+ New Record</button>
       </div>
     </div>
@@ -520,7 +520,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-title">⏸ Process on Hold</div>
       <div class="section-actions">
         <input class="search-input" type="text" id="proc-search" placeholder="Search outgoing #, WO #, customer..." oninput="filterProcess()">
-        <button class="btn btn-secondary" onclick="exportProcessCSV()">⬇️ Export CSV</button>
+        <button class="btn btn-secondary" onclick="exportProcessCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openProcModal()">+ New Record</button>
       </div>
     </div>
@@ -552,7 +552,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-title">💰 Payments</div>
       <div class="section-actions">
         <input class="search-input" type="text" id="pay-search" placeholder="Search order #, customer, method..." oninput="filterPayments()">
-        <button class="btn btn-secondary" onclick="exportPaymentsCSV()">⬇️ Export CSV</button>
+        <button class="btn btn-secondary" onclick="exportPaymentsCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openPayModal()">+ New Payment</button>
       </div>
     </div>
@@ -2253,14 +2253,10 @@ function exportSubcontractorCSV(){
   var rows = subFiltered.length ? subFiltered : Object.entries(subData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   if(!rows.length){ alert('No data to export.'); return; }
   var headers = ['Work Order #','Incoming #','Customer','Material','Subcontractor','Outgoing #','Shipping Date','Tracking #','Return Date','Working Days'];
-  var csv = headers.join(',') + '\n';
-  rows.forEach(function(r){
-    csv += [r.wo,r.incomingNum,r.customer,r.material,r.subName,r.outgoing,r.shipDate,r.trackingNum,r.returnDate,calcWorkingDays(r.shipDate,r.returnDate)]
-      .map(function(v){ return '"'+(v==null?'':v).toString().replace(/"/g,'""')+'"'; }).join(',') + '\n';
+  var data = rows.map(function(r){
+    return [r.wo,r.incomingNum,r.customer,r.material,r.subName,r.outgoing,r.shipDate,r.trackingNum,r.returnDate,calcWorkingDays(r.shipDate,r.returnDate)];
   });
-  var blob=new Blob([csv],{type:'text/csv'});
-  var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='subcontractor-'+today()+'.csv'; a.click();
+  toXLS('subcontractor', headers, data);
 }
 
 // ── CITY → PROVINCE LOOKUP ──
@@ -2671,20 +2667,10 @@ function exportShippingCSV(){
   var rows = shpFiltered.length ? shpFiltered : Object.entries(shpData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   if(!rows.length){ alert('No data to export.'); return; }
   var headers = ['Outgoing #','Shipment Date','City','Province','Postal Code','Country','Material','Pc','Lb','Rl','Freight Type','Sales Orders','Transfer Numbers','Work Orders','Carrier','Carrier Other','Tracking #'];
-  var csv = headers.join(',') + '\n';
-  rows.forEach(function(r){
-    csv += [
-      r.outgoing, r.date, r.city, r.province, r.postalCode, r.country,
-      r.material, r.pc, r.lb, r.rl, r.freightType,
-      (r.salesOrders||[]).join(';'), (r.transferNums||[]).join(';'), (r.workOrders||[]).join(';'),
-      r.carrier, r.carrierOther, r.trackingNum
-    ].map(function(v){ return '"'+(v||'').toString().replace(/"/g,'""')+'"'; }).join(',') + '\n';
+  var data = rows.map(function(r){
+    return [r.outgoing,r.date,r.city,r.province,r.postalCode,r.country,r.material,r.pc,r.lb,r.rl,r.freightType,(r.salesOrders||[]).join('; '),(r.transferNums||[]).join('; '),(r.workOrders||[]).join('; '),r.carrier,r.carrierOther,r.trackingNum];
   });
-  var blob = new Blob([csv],{type:'text/csv'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'shipping-'+today()+'.csv';
-  a.click();
+  toXLS('shipping', headers, data);
 }
 
 // ══ INCOMING ITEMS ══
@@ -3008,22 +2994,14 @@ function exportItemsCSV(){
   var allRows = itemsFiltered.length ? itemsFiltered
     : Object.entries(itemsData).map(function(e){ return normalizeItemRecord(Object.assign({_key:e[0]},e[1])); });
   if(!allRows.length){ alert('No data to export.'); return; }
-  var headers = ['Doc #','PO #','Transfer #','Date','Supplier','Item','Material','Pc','Lb','Rl','Weight lb','Weight kg','BIN','Stock BIN','Application','SO #','WO #','Area','Customer','Requested By'];
-  var csv = headers.join(',') + '\n';
+  var headers = ['Doc #','PO #','Transfer #','Date','Supplier','Item #','Material','Pc','Lb','Rl','Weight lb','Weight kg','BIN','Stock BIN','Application','SO #','WO #','Area','Customer','Requested By'];
+  var data = [];
   allRows.forEach(function(r){
     (r.lineItems||[]).forEach(function(li,idx){
-      csv += [r.docNum,r.poNum,r.transferNum,r.date,r.supplier,idx+1,
-        li.material,li.pc,li.lb,li.rl,li.weightLb,li.weightKg,
-        li.binLocation,li.binStock,li.applicationType,
-        li.salesOrderNum,li.workOrderNum,li.area,li.customer,li.requestedBy]
-        .map(function(v){ return '"'+(v==null?'':String(v)).replace(/"/g,'""')+'"'; }).join(',') + '\n';
+      data.push([r.docNum,r.poNum,r.transferNum,r.date,r.supplier,idx+1,li.material,li.pc,li.lb,li.rl,li.weightLb,li.weightKg,li.binLocation,li.binStock,li.applicationType,li.salesOrderNum,li.workOrderNum,li.area,li.customer,li.requestedBy]);
     });
   });
-  var blob = new Blob([csv],{type:'text/csv'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'incoming-items-'+today()+'.csv';
-  a.click();
+  toXLS('incoming-items', headers, data);
 }
 
 // ══ PROCESS ON HOLD ══
@@ -3275,21 +3253,12 @@ function exportProcessCSV(){
   var rows = procFiltered.length ? procFiltered : Object.entries(procData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   if(!rows.length){ alert('No data to export.'); return; }
   var headers = ['Outgoing #','Work Order #','Sales Order #','Customer','Purchase Order','Material','Shipping Area Received','Current Date','Days On Hold','Status'];
-  var csv = headers.join(',') + '\n';
-  rows.forEach(function(r){
+  var data = rows.map(function(r){
     var sd = findProcShipDate(r);
     var frozen = !!sd;
-    csv += [r.outgoing,r.wo,r.so,r.customer,r.po,r.material,
-      r.receivedDate, frozen?sd:today(),
-      calcDaysOnHold(r.receivedDate, frozen?sd:today()),
-      frozen?'Shipped':'On Hold']
-      .map(function(v){ return '"'+(v==null?'':String(v)).replace(/"/g,'""')+'"'; }).join(',') + '\n';
+    return [r.outgoing,r.wo,r.so,r.customer,r.po,r.material,r.receivedDate,frozen?sd:today(),calcDaysOnHold(r.receivedDate,frozen?sd:today()),frozen?'Shipped':'On Hold'];
   });
-  var blob = new Blob([csv],{type:'text/csv'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'process-hold-'+today()+'.csv';
-  a.click();
+  toXLS('process-hold', headers, data);
 }
 
 // ══ PACKING & HOLD ══
@@ -3468,18 +3437,12 @@ function exportPackingCSV(){
   var rows = pkgFiltered.length ? pkgFiltered : Object.entries(pkgData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   if(!rows.length){ alert('No data to export.'); return; }
   var headers = ['Order #','Customer','Pick Date','Current Date','Days On Hold'];
-  var csv = headers.join(',') + '\n';
   var cur = today();
-  rows.forEach(function(r){
+  var data = rows.map(function(r){
     var days = calcDaysOnHold(r.pickDate);
-    csv += [r.orderNum, r.customer, r.pickDate, cur, days===null?'':days]
-      .map(function(v){ return '"'+(v==null?'':String(v)).replace(/"/g,'""')+'"'; }).join(',') + '\n';
+    return [r.orderNum,r.customer,r.pickDate,cur,days===null?'':days];
   });
-  var blob = new Blob([csv], {type:'text/csv'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'packing-hold-'+today()+'.csv';
-  a.click();
+  toXLS('packing-hold', headers, data);
 }
 
 // ══ PAYMENTS ══
@@ -3821,44 +3784,44 @@ function exportPaymentsCSV(){
   var rows = payFiltered.length ? payFiltered : Object.entries(payData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   if(!rows.length){ alert('No data to export.'); return; }
   var headers = ['Date','Order Type','Order #','Customer','Method','Cheque #','Amount','Notes'];
-  var csv = headers.join(',') + '\n';
-  rows.forEach(function(r){
-    csv += [r.date,r.orderType,r.orderNum,r.customer,r.method,r.chequeNum,r.amount,r.notes]
-      .map(function(v){ return '"'+(v==null?'':String(v)).replace(/"/g,'""')+'"'; }).join(',') + '\n';
+  var data = rows.map(function(r){
+    return [r.date,r.orderType,r.orderNum,r.customer,r.method,r.chequeNum,r.amount,r.notes];
   });
-  var blob = new Blob([csv],{type:'text/csv'});
+  toXLS('payments', headers, data);
+}
+
+// ── EXPORT TO EXCEL ──
+function toXLS(filename, headers, dataRows){
+  var style = 'font-family:Calibri,Arial,sans-serif;font-size:11pt;';
+  var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>'
+    + '<x:Name>Sheet1</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>'
+    + '</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>'
+    + '<body><table border="1" style="border-collapse:collapse;'+style+'">';
+  html += '<tr>' + headers.map(function(h){
+    return '<th style="background:#1565c0;color:#fff;font-weight:bold;padding:6px 10px;white-space:nowrap">'+h+'</th>';
+  }).join('') + '</tr>';
+  dataRows.forEach(function(row){
+    html += '<tr>' + row.map(function(v){
+      return '<td style="padding:5px 10px;vertical-align:top">'+(v==null?'':String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'))+'</td>';
+    }).join('') + '</tr>';
+  });
+  html += '</table></body></html>';
+  var blob = new Blob([html], {type:'application/vnd.ms-excel;charset=utf-8'});
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'payments-'+today()+'.csv';
+  a.download = filename+'-'+today()+'.xls';
   a.click();
 }
 
-// ── EXPORT CSV ──
 function exportIncomingCSV(){
   var rows = incomingFiltered.length ? incomingFiltered : Object.entries(incomingData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   if(!rows.length){ alert('No data to export.'); return; }
-  var headers = [
-    'Form #','Work Order','Date','Equipment Description','Area',
-    'Manufacturer','Model Number','Serial Number','Type/Size','HP','RPM','Frame','Customer Stock #','KW','Other Data',
-    'Designated Location','Bench Name',
-    'What to Do','Delivered By','Received By','Notes'
-  ];
-  var csv = headers.join(',') + '\n';
-  rows.forEach(function(r){
-    csv += [
-      r.formNum, r.wo, r.date, r.equipment, r.area,
-      r.manufacturer, r.modelNumber, r.serialNumber, r.typeSize, r.hp, r.rpm, r.frame, r.customerStockNumber, r.kw, r.otherData,
-      r.designatedLocation, r.benchName,
-      r.whatToDo, r.deliveryBy, r.receivedBy, r.notes
-    ].map(function(v){
-      return '"'+(v||'').replace(/"/g,'""')+'"';
-    }).join(',') + '\n';
+  var headers = ['Form #','Work Order','Date','Equipment Description','Area','Manufacturer','Model #','Serial #','Type/Size','HP','RPM','Frame','Customer Stock #','KW','Other Data','Location','Bench Name','What to Do','Delivered By','Received By','Notes'];
+  var data = rows.map(function(r){
+    return [r.formNum,r.wo,r.date,r.equipment,r.area,r.manufacturer,r.modelNumber,r.serialNumber,r.typeSize,r.hp,r.rpm,r.frame,r.customerStockNumber,r.kw,r.otherData,r.designatedLocation,r.benchName,r.whatToDo,r.deliveryBy,r.receivedBy,r.notes];
   });
-  var blob = new Blob([csv], {type:'text/csv'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'incoming-forms-'+today()+'.csv';
-  a.click();
+  toXLS('incoming-forms', headers, data);
 }
 </script>
 </body>
