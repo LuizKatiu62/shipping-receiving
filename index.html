@@ -457,7 +457,6 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
             <th>PO #</th>
             <th>Date</th>
             <th>Supplier</th>
-            <th>Requested By</th>
             <th style="text-align:center">Items</th>
             <th>Materials</th>
             <th style="width:90px">Actions</th>
@@ -2743,7 +2742,7 @@ function normalizeItemRecord(r){
     binLocation:r.binLocation||'', binStock:r.binStock||'',
     applicationType:r.applicationType||'',
     salesOrderNum:r.salesOrderNum||'', workOrderNum:r.workOrderNum||'',
-    area:r.area||'', customer:r.customer||'', requestedBy:r.requestedBy||''
+    area:r.area||'', customer:r.customer||''
   }]});
 }
 
@@ -2782,7 +2781,6 @@ function renderItems(){
       '<td>'+escHtml(r.poNum||'—')+'</td>'+
       '<td style="white-space:nowrap">'+fmtDate(r.date)+'</td>'+
       '<td>'+escHtml(r.supplier||'—')+'</td>'+
-      '<td>'+escHtml(r.requestedBy||'—')+'</td>'+
       '<td style="text-align:center"><span style="background:#e3f2fd;color:#1565c0;border-radius:20px;padding:2px 10px;font-weight:700;font-size:.75rem">'+lines.length+' item'+(lines.length!==1?'s':'')+'</span></td>'+
       '<td>'+summary+'</td>'+
       '<td onclick="event.stopPropagation()"><button class="btn btn-secondary btn-sm" onclick="openItemModal(\''+r._key+'\')">✏️ Edit</button></td>'+
@@ -2861,7 +2859,6 @@ function renderItmLines(){
             '<div class="form-group"><label>Work Order #</label><input type="text" id="itm-l'+i+'-wonum" placeholder="Work Order #" maxlength="7" oninput="enforceUpper(this)" value="'+escAttr(item.workOrderNum||'')+'"></div>',
             '<div class="form-group"><label>Area</label><select id="itm-l'+i+'-area"><option value="">— Area —</option>'+areaSel+'</select></div>',
             '<div class="form-group"><label>Customer</label><input type="text" id="itm-l'+i+'-cust" list="customer-suggestions" placeholder="Customer" oninput="enforceUpper(this)" value="'+escAttr(item.customer||'')+'"></div>',
-            '<div class="form-group"><label>Requested By</label><input type="text" id="itm-l'+i+'-reqby" placeholder="Requester" oninput="enforceUpper(this)" value="'+escAttr(item.requestedBy||'')+'"></div>',
           '</div>',
           '<div id="itm-l'+i+'-wipbtn" style="margin-top:10px;display:'+(item.binLocation==='WIP'?'flex':'none')+'">',
             '<button type="button" class="btn btn-secondary btn-sm" onclick="printItemWipLabel('+i+')" style="gap:6px">🏷️ Print WIP Label</button>',
@@ -2874,7 +2871,7 @@ function renderItmLines(){
 
 function addLineItem(){
   if(itmLines.length) itmLines = readLineItems();
-  itmLines.push({material:'',pc:'',lb:'',rl:'',weightLb:'',weightKg:'',binLocation:'',binStock:'',applicationType:'',salesOrderNum:'',workOrderNum:'',area:'',customer:'',requestedBy:''});
+  itmLines.push({material:'',pc:'',lb:'',rl:'',weightLb:'',weightKg:'',binLocation:'',binStock:'',applicationType:'',salesOrderNum:'',workOrderNum:'',area:'',customer:''});
   renderItmLines();
   var last = document.getElementById('itm-lines-container').lastElementChild;
   if(last) last.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -2909,7 +2906,6 @@ function toggleLineApp(i){
     document.getElementById('itm-l'+i+'-wonum').value='';
     document.getElementById('itm-l'+i+'-area').value='';
     document.getElementById('itm-l'+i+'-cust').value='';
-    document.getElementById('itm-l'+i+'-reqby').value='';
   }
 }
 
@@ -2942,8 +2938,7 @@ function readLineItems(){
       salesOrderNum: document.getElementById('itm-l'+i+'-sonum').value.trim(),
       workOrderNum:  document.getElementById('itm-l'+i+'-wonum').value.trim(),
       area:          document.getElementById('itm-l'+i+'-area').value,
-      customer:      document.getElementById('itm-l'+i+'-cust').value.trim(),
-      requestedBy:   document.getElementById('itm-l'+i+'-reqby').value.trim()
+      customer:      document.getElementById('itm-l'+i+'-cust').value.trim()
     };
   });
 }
@@ -2978,7 +2973,7 @@ function openItemModal(key){
     document.getElementById('itm-reqby').value = '';
     document.getElementById('itm-reqby-other').value = '';
     document.getElementById('itm-reqby-other-group').style.display = 'none';
-    itmLines = [{material:'',pc:'',lb:'',rl:'',weightLb:'',weightKg:'',binLocation:'',binStock:'',applicationType:'',salesOrderNum:'',workOrderNum:'',area:'',customer:'',requestedBy:''}];
+    itmLines = [{material:'',pc:'',lb:'',rl:'',weightLb:'',weightKg:'',binLocation:'',binStock:'',applicationType:'',salesOrderNum:'',workOrderNum:'',area:'',customer:''}];
     document.getElementById('itm-del-btn').style.display='none';
   }
   renderItmLines();
