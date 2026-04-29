@@ -1090,12 +1090,12 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
 <div class="modal-overlay" id="wip-email-modal" style="display:none">
   <div class="modal" style="max-width:520px">
     <div class="modal-header">
-      <div class="modal-title">📧 Send WIP Notification?</div>
+      <div class="modal-title" id="wip-email-title">📧 Send WIP Notification?</div>
       <button class="modal-close" onclick="closeWipEmailModal()">✕</button>
     </div>
     <div class="modal-body">
       <p style="font-size:.85rem;color:#6b7280;margin-bottom:12px">
-        Send WIP material details to <strong>gould.haward@sourceatlantic.ca</strong>?
+        Send WIP material details to <strong id="wip-email-to-display"></strong>?
       </p>
       <div style="background:#f0f7ff;border:1.5px solid #e3f2fd;border-radius:10px;padding:14px;margin-bottom:18px;font-size:.84rem;line-height:1.8;color:#1a1a2e" id="wip-email-preview"></div>
       <div class="form-actions" style="margin-top:0;padding-top:0;border-top:none;justify-content:flex-end;gap:10px">
@@ -1472,6 +1472,7 @@ var payMonthlyChart    = null;
 var payMethodChart     = null;
 var pendingPayEmailRec = null;
 var pendingWipEmailRec = null;
+var wipEmailQueue     = [];
 var PAGE_SIZE = 100;
 var shpPage   = 0;
 var itmPage   = 0;
@@ -3085,10 +3086,26 @@ function saveItem(){
     itemsData[k]=record; renderItems();
   }
   closeItemModal();
-  var wipItems = lineItems.filter(function(li){
-    return li.binLocation === 'WIP' && (li.area === 'Electrical' || li.area === 'Mechanical');
+  wipEmailQueue = [];
+  var wipEM = lineItems.filter(function(li){
+    return li.binLocation==='WIP' && (li.area==='Electrical' || li.area==='Mechanical');
   });
-  if(wipItems.length) setTimeout(function(){ openWipEmailModal(record, wipItems); }, 80);
+  var wipAC = lineItems.filter(function(li){
+    return li.binLocation==='WIP' && li.area==='Air Compressor';
+  });
+  if(wipEM.length) wipEmailQueue.push({
+    items: wipEM,
+    to: 'gould.haward@sourceatlantic.ca',
+    toDisplay: 'Howard Gould',
+    greeting: 'Dear Howard,'
+  });
+  if(wipAC.length) wipEmailQueue.push({
+    items: wipAC,
+    to: 'Northrup.mark@sourceatlantic.ca,northrup.logan@sourceatlantic.ca,templeton.sara@sourceatlantic.ca',
+    toDisplay: 'Mark Northrup, Logan Northrup, Sara Templeton',
+    greeting: 'Dear Team,'
+  });
+  if(wipEmailQueue.length) setTimeout(function(){ showNextWipEmail(record); }, 80);
 }
 
 function deleteItem(){
@@ -3881,8 +3898,11 @@ function sendPayEmail(){
   closePayEmailModal();
 }
 
-function openWipEmailModal(record, wipItems){
-  pendingWipEmailRec = {record: record, wipItems: wipItems};
+function showNextWipEmail(record){
+  if(!wipEmailQueue.length) return;
+  var notif = wipEmailQueue.shift();
+  pendingWipEmailRec = {record: record, notif: notif};
+
   var lines = [
     '<strong>Receipt #:</strong> '+escHtml(record.docNum||'—'),
     '<strong>Date:</strong> '     +fmtDate(record.date),
@@ -3891,32 +3911,37 @@ function openWipEmailModal(record, wipItems){
   if(record.poNum)       lines.push('<strong>PO #:</strong> '+escHtml(record.poNum));
   if(record.transferNum) lines.push('<strong>Transfer #:</strong> '+escHtml(record.transferNum));
   lines.push('<hr style="border:none;border-top:1px solid #e3f2fd;margin:6px 0">');
-  wipItems.forEach(function(li, i){
+  notif.items.forEach(function(li, i){
     lines.push('<strong>WIP Item '+(i+1)+':</strong> '+escHtml(li.material||'—'));
     if(li.workOrderNum) lines.push('&nbsp;&nbsp;<strong>Work Order #:</strong> '+escHtml(li.workOrderNum));
     if(li.area)         lines.push('&nbsp;&nbsp;<strong>Area:</strong> '+escHtml(li.area));
     if(li.customer)     lines.push('&nbsp;&nbsp;<strong>Customer:</strong> '+escHtml(li.customer));
     if(li.pc)           lines.push('&nbsp;&nbsp;<strong>Qty:</strong> '+escHtml(li.pc)+' pc');
-    if(i < wipItems.length-1) lines.push('<hr style="border:none;border-top:1px dashed #e3f2fd;margin:4px 0">');
+    if(i < notif.items.length-1) lines.push('<hr style="border:none;border-top:1px dashed #e3f2fd;margin:4px 0">');
   });
+
+  document.getElementById('wip-email-title').textContent = '📧 WIP Notification — '+notif.items[0].area;
+  document.getElementById('wip-email-to-display').textContent = notif.toDisplay;
   document.getElementById('wip-email-preview').innerHTML = lines.join('<br>');
   document.getElementById('wip-email-modal').style.display = 'flex';
 }
 
 function closeWipEmailModal(){
   document.getElementById('wip-email-modal').style.display = 'none';
+  var rec = pendingWipEmailRec ? pendingWipEmailRec.record : null;
   pendingWipEmailRec = null;
+  if(wipEmailQueue.length && rec) setTimeout(function(){ showNextWipEmail(rec); }, 80);
 }
 
 function sendWipEmail(){
   if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   if(!pendingWipEmailRec) return;
-  var record   = pendingWipEmailRec.record;
-  var wipItems = pendingWipEmailRec.wipItems;
+  var record = pendingWipEmailRec.record;
+  var notif  = pendingWipEmailRec.notif;
 
-  var subject = 'WIP Material Received — Receipt #' + (record.docNum||'') + ' — ' + (record.date||'');
+  var subject = 'WIP Material Received — '+notif.items[0].area+' — Receipt #'+(record.docNum||'')+' — '+(record.date||'');
 
-  var body = 'Dear Howard,\n\n';
+  var body = notif.greeting + '\n\n';
   body += 'The following WIP material has been received:\n\n';
   body += 'Receipt #:  ' + (record.docNum||'—') + '\n';
   body += 'Date:       ' + (record.date||'—') + '\n';
@@ -3925,7 +3950,7 @@ function sendWipEmail(){
   if(record.transferNum) body += 'Transfer #: ' + record.transferNum + '\n';
   body += '\n';
 
-  wipItems.forEach(function(li, i){
+  notif.items.forEach(function(li, i){
     body += '--- WIP Item ' + (i+1) + ' ---\n';
     body += 'Material:     ' + (li.material||'—') + '\n';
     if(li.workOrderNum) body += 'Work Order #: ' + li.workOrderNum + '\n';
@@ -3938,12 +3963,16 @@ function sendWipEmail(){
 
   body += '—\nSource Atlantic — Shipping & Receiving System';
 
-  var mailto = 'mailto:gould.haward@sourceatlantic.ca'
+  var mailto = 'mailto:' + notif.to
     + '?subject=' + encodeURIComponent(subject)
     + '&body='    + encodeURIComponent(body);
 
   window.location.href = mailto;
-  closeWipEmailModal();
+  // closeWipEmailModal advances to next in queue
+  var rec = pendingWipEmailRec.record;
+  pendingWipEmailRec = null;
+  document.getElementById('wip-email-modal').style.display = 'none';
+  if(wipEmailQueue.length) setTimeout(function(){ showNextWipEmail(rec); }, 400);
 }
 
 function deletePayment(){
