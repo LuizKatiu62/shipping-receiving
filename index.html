@@ -133,27 +133,27 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .modal-title{font-size:1rem;font-weight:800;color:var(--text-primary);letter-spacing:-.2px}
 .modal-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-muted);line-height:1;padding:6px;border-radius:var(--radius-sm);transition:all .15s;display:flex;align-items:center;justify-content:center}
 .modal-close:hover{background:#f1f5f9;color:var(--text-primary)}
-.modal-body{padding:24px 28px 28px}
+.modal-body{padding:16px 24px 20px}
 
 /* ── FORM ── */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .form-grid .full{grid-column:1/-1}
-.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group{display:flex;flex-direction:column;gap:3px}
 .form-group label{font-size:.68rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.6px}
-.form-group input,.form-group select,.form-group textarea{padding:9px 13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.86rem;font-family:'Inter',inherit;outline:none;transition:all .18s;background:var(--surface);color:var(--text-primary)}
+.form-group input,.form-group select,.form-group textarea{padding:7px 11px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.86rem;font-family:'Inter',inherit;outline:none;transition:all .18s;background:var(--surface);color:var(--text-primary)}
 .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(21,101,192,.1)}
 .form-group textarea{resize:vertical;min-height:80px}
 .form-group input::placeholder,.form-group textarea::placeholder{color:var(--text-muted)}
-.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;padding-top:18px;border-top:1px solid var(--border)}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
 
 /* ── FORM SECTION DIVIDER ── */
-.form-section-header{grid-column:1/-1;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--blue-600);padding:12px 0 4px;border-top:1.5px solid var(--blue-100);margin-top:6px;display:flex;align-items:center;gap:8px}
+.form-section-header{grid-column:1/-1;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--blue-600);padding:7px 0 2px;border-top:1.5px solid var(--blue-100);margin-top:3px;display:flex;align-items:center;gap:8px}
 .form-section-header::before{content:'';display:inline-block;width:3px;height:12px;background:var(--blue-500);border-radius:2px}
 .form-section-header:first-child{border-top:none;margin-top:0;padding-top:0}
 .form-section-header:first-child::before{display:none}
 
 /* ── 3-COLUMN SUB-GRID ── */
-.form-subgrid{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.form-subgrid{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 
 /* ── STATS BAR ── */
 .stats-bar{display:flex;gap:14px;margin-bottom:22px;flex-wrap:wrap}
