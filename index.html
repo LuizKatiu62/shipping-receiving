@@ -1702,6 +1702,11 @@ function doRegister(){
   if(!email || !pass){ authSetError('auth-reg-err','Please fill all fields.'); return; }
   if(pass !== pass2){ authSetError('auth-reg-err','Passwords do not match.'); return; }
   if(pass.length < 6){ authSetError('auth-reg-err','Password must be at least 6 characters.'); return; }
+  var isAdmin = ADMIN_EMAILS.map(function(e){return e.toLowerCase();}).indexOf(email.toLowerCase()) !== -1;
+  if(!isAdmin && !email.toLowerCase().endsWith('@sourceatlantic.ca')){
+    authSetError('auth-reg-err','Registration is restricted to @sourceatlantic.ca email addresses.');
+    return;
+  }
   setAuthBtnLoading('auth-reg-btn', true, 'Create Account');
   auth.createUserWithEmailAndPassword(email, pass)
     .then(function(cred){
