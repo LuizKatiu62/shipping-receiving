@@ -3320,6 +3320,13 @@ function renderProcess(){
   var mo = (document.getElementById('proc-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.receivedDate||'').startsWith(yr); });
   if(mo) rows = rows.filter(function(r){ return (r.receivedDate||'').slice(5,7)===mo; });
+  if(!yr && !mo){
+    var curYM = today().slice(0,7);
+    rows = rows.filter(function(r){
+      var sd = findProcShipDate(r);
+      return !sd || sd.slice(0,7) >= curYM;
+    });
+  }
   procFiltered = rows;
   var q = (document.getElementById('proc-search').value||'').toLowerCase();
   if(q) procFiltered = rows.filter(function(r){
@@ -3554,6 +3561,13 @@ function renderPacking(){
   var mo = (document.getElementById('pkg-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.pickDate||'').startsWith(yr); });
   if(mo) rows = rows.filter(function(r){ return (r.pickDate||'').slice(5,7)===mo; });
+  if(!yr && !mo){
+    var curYM = today().slice(0,7);
+    rows = rows.filter(function(r){
+      var sd = findPkgShipDate(r.orderNum);
+      return !sd || sd.slice(0,7) >= curYM;
+    });
+  }
   pkgFiltered = rows;
   var q = (document.getElementById('pkg-search').value||'').toLowerCase();
   if(q) pkgFiltered = rows.filter(function(r){
