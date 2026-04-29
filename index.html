@@ -864,6 +864,10 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
           <label>Notes</label>
           <textarea id="inc-notes" placeholder="Additional notes..."></textarea>
         </div>
+        <div class="form-group full">
+          <label>Photos Link (OneDrive)</label>
+          <input type="url" id="inc-photos-link" placeholder="Paste OneDrive folder link here...">
+        </div>
 
       </div>
       <div class="form-actions">
@@ -1376,6 +1380,10 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
         <div class="form-group full">
           <label>Tracking Number</label>
           <input type="text" id="shp-tracking" placeholder="Tracking #">
+        </div>
+        <div class="form-group full">
+          <label>Photos Link (OneDrive)</label>
+          <input type="url" id="shp-photos-link" placeholder="Paste OneDrive folder link here...">
         </div>
 
       </div>
@@ -1892,6 +1900,7 @@ function renderIncoming(){
       '<td>'+escHtml(r.deliveryBy||'—')+'</td>'+
       '<td>'+escHtml(r.receivedBy||'—')+'</td>'+
       '<td onclick="event.stopPropagation()">'+
+        (r.photosLink ? '<a href="'+escAttr(r.photosLink)+'" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none;margin-right:4px">📷 Photos</a>' : '')+
         '<button class="btn btn-secondary btn-sm" onclick="openIncomingModal(\''+r._key+'\')">✏️ Edit</button>'+
       '</td>'+
     '</tr>';
@@ -1961,13 +1970,14 @@ function openIncomingModal(key){
     document.getElementById('inc-delivery').value     = r.deliveryBy||'';
     document.getElementById('inc-received').value     = r.receivedBy||'';
     document.getElementById('inc-notes').value        = r.notes||'';
+    document.getElementById('inc-photos-link').value  = r.photosLink||'';
     delBtn.style.display = 'inline-flex';
   } else {
     document.getElementById('inc-modal-title').textContent = 'New Incoming Form';
     ['inc-form-num','inc-wo','inc-prev-wo','inc-customer',
      'inc-manufacturer','inc-model','inc-serial','inc-typesize',
      'inc-hp','inc-rpm','inc-frame','inc-custstock','inc-kw','inc-otherdata',
-     'inc-equip-other','inc-bench-name','inc-notes'].forEach(function(id){
+     'inc-equip-other','inc-bench-name','inc-notes','inc-photos-link'].forEach(function(id){
       document.getElementById(id).value = '';
     });
     document.getElementById('inc-received').value = 'Luiz Silva';
@@ -2021,6 +2031,7 @@ function saveIncoming(){
   var deliveryBy = document.getElementById('inc-delivery').value;
   var receivedBy = document.getElementById('inc-received').value.trim();
   var notes      = document.getElementById('inc-notes').value.trim();
+  var photosLink = document.getElementById('inc-photos-link').value.trim();
 
   if(!formNum){ alert('Incoming Form # is required.'); return; }
   if(!equipment){ alert('Equipment Description is required.'); return; }
@@ -2029,7 +2040,7 @@ function saveIncoming(){
     formNum, wo, prevWo, date, customer, equipment, equipmentType, area,
     manufacturer, modelNumber, serialNumber, typeSize, hp, rpm, frame, customerStockNumber, kw, otherData,
     designatedLocation, benchName, picsQty, picsTime,
-    whatToDo, deliveryBy, receivedBy, notes,
+    whatToDo, deliveryBy, receivedBy, notes, photosLink,
     updatedAt: new Date().toISOString()
   };
   var key = document.getElementById('inc-edit-id').value;
@@ -2714,6 +2725,7 @@ function renderShipping(){
       '<td>'+escHtml(carrierDisplay)+'</td>'+
       '<td>'+escHtml(r.trackingNum||'—')+'</td>'+
       '<td onclick="event.stopPropagation()">'+
+        (r.photosLink ? '<a href="'+escAttr(r.photosLink)+'" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none;margin-right:4px">📷 Photos</a>' : '')+
         '<button class="btn btn-secondary btn-sm" onclick="openShipModal(\''+r._key+'\')">✏️ Edit</button>'+
       '</td>'+
     '</tr>';
@@ -2771,10 +2783,11 @@ function openShipModal(key){
     document.getElementById('shp-carrier-other').value = r.carrierOther||'';
     document.getElementById('shp-carrier-other-group').style.display = r.carrier==='Other' ? 'flex' : 'none';
     document.getElementById('shp-tracking').value = r.trackingNum||'';
+    document.getElementById('shp-photos-link').value = r.photosLink||'';
     document.getElementById('shp-del-btn').style.display = 'inline-flex';
   } else {
     document.getElementById('shp-modal-title').textContent = 'New Shipment';
-    ['shp-customer','shp-outgoing','shp-city','shp-province','shp-postal','shp-material-other','shp-carrier-other','shp-tracking'].forEach(function(id){ document.getElementById(id).value=''; });
+    ['shp-customer','shp-outgoing','shp-city','shp-province','shp-postal','shp-material-other','shp-carrier-other','shp-tracking','shp-photos-link'].forEach(function(id){ document.getElementById(id).value=''; });
     document.getElementById('shp-material-type').value = '';
     document.getElementById('shp-material-other-group').style.display = 'none';
     ['shp-pc','shp-lb','shp-rl','shp-weight-lb','shp-weight-kg'].forEach(function(id){ document.getElementById(id).value=''; });
@@ -2827,6 +2840,7 @@ function saveShipment(){
     carrier,
     carrierOther: carrier==='Other' ? document.getElementById('shp-carrier-other').value.trim() : '',
     trackingNum:  document.getElementById('shp-tracking').value.trim(),
+    photosLink:   document.getElementById('shp-photos-link').value.trim(),
     updatedAt: new Date().toISOString()
   };
   var key = document.getElementById('shp-edit-id').value;
