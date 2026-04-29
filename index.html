@@ -249,8 +249,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 }
 
 /* ── AUTH OVERLAY ── */
-#auth-overlay{position:fixed;inset:0;background:linear-gradient(160deg,var(--blue-950) 0%,var(--blue-900) 50%,var(--blue-800) 100%);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px}
-.auth-box{background:var(--surface);border-radius:var(--radius-xl);width:100%;max-width:420px;box-shadow:var(--shadow-xl);overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+#auth-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;background:url('warehouse-bg.jpg') center center/cover no-repeat}
+#auth-overlay::before{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(10,25,60,.82) 0%,rgba(15,40,90,.75) 50%,rgba(20,55,110,.70) 100%);backdrop-filter:blur(2px)}
+.auth-box{position:relative;z-index:1;background:var(--surface);border-radius:var(--radius-xl);width:100%;max-width:420px;box-shadow:var(--shadow-xl);overflow:hidden;border:1px solid rgba(255,255,255,.06)}
 .auth-box-header{background:linear-gradient(160deg,var(--blue-950),var(--blue-700));padding:30px 28px 22px;text-align:center}
 .auth-box-logo{display:flex;align-items:center;justify-content:center;margin-bottom:12px}
 .auth-box-title{color:#fff;font-size:1.05rem;font-weight:800;letter-spacing:-.2px}
