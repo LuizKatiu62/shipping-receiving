@@ -84,7 +84,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .btn-sm{padding:6px 12px;font-size:.73rem}
 
 /* ── TABLE ── */
-.table-wrap{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);overflow:hidden;border:1px solid var(--border)}
+.table-wrap{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);overflow-x:auto;border:1px solid var(--border)}
 .table-wrap table{width:100%;border-collapse:collapse;font-size:.82rem}
 .table-wrap th{background:linear-gradient(180deg,var(--blue-600),var(--blue-500));color:#fff;padding:12px 16px;text-align:left;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
 .table-wrap th:first-child{padding-left:20px}
@@ -95,6 +95,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .table-wrap tbody tr{transition:background .12s}
 .table-wrap tbody tr:nth-child(even) td{background:#fafcff}
 .table-wrap tbody tr:nth-child(even):hover td{background:#f0f7ff}
+
+/* ── INCOMING FORM TABLE ── */
+#section-incoming .table-wrap table{min-width:1080px}
+#section-incoming .table-wrap td{white-space:normal;word-break:break-word}
 
 /* ── YEAR FILTER ── */
 .year-select{padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.82rem;font-family:'Inter',inherit;background:var(--surface);color:var(--text-primary);outline:none;cursor:pointer;min-width:105px;transition:border-color .18s}
