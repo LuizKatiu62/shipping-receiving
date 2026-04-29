@@ -107,9 +107,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 #section-incoming .table-wrap tr:hover td:last-child{background:#f0f7ff}
 #section-incoming .table-wrap th:last-child{background:linear-gradient(180deg,var(--blue-600),var(--blue-500))}
 #section-shipping .table-wrap{overflow-x:auto}
-#section-shipping .table-wrap table{width:max-content;min-width:100%}
-#section-shipping .table-wrap td{white-space:nowrap}
-#section-shipping .table-wrap th{white-space:nowrap}
+#section-shipping .table-wrap table{width:100%;min-width:900px}
+#section-shipping .table-wrap td{white-space:nowrap;font-size:.78rem;padding:8px 10px}
+#section-shipping .table-wrap th{white-space:nowrap;padding:10px 10px;font-size:.66rem}
 #section-shipping .table-wrap td:last-child,
 #section-shipping .table-wrap th:last-child{position:sticky;right:0;z-index:2;background:#fff;box-shadow:-3px 0 6px rgba(0,0,0,.06)}
 #section-shipping .table-wrap tr:nth-child(even) td:last-child{background:#fafcff}
@@ -521,16 +521,12 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
         <thead>
           <tr>
             <th>Outgoing #</th>
-            <th>Shipment Date</th>
+            <th>Date</th>
             <th>Customer</th>
             <th>Sales Order</th>
             <th>Transfer #</th>
             <th>Work Order</th>
             <th>Material</th>
-            <th>Destination</th>
-            <th>Pc</th>
-            <th>Lb</th>
-            <th>Rl</th>
             <th>Freight</th>
             <th>Carrier</th>
             <th>Tracking #</th>
@@ -2711,16 +2707,12 @@ function renderShipping(){
     var carrierDisplay = r.carrier === 'Other' ? (r.carrierOther||'Other') : (r.carrier||'—');
     return '<tr onclick="openShipModal(\''+r._key+'\')">'+
       '<td><strong>'+escHtml(r.outgoing||'—')+'</strong></td>'+
-      '<td style="white-space:nowrap">'+fmtDate(r.date)+'</td>'+
+      '<td>'+fmtDate(r.date)+'</td>'+
       '<td>'+escHtml(r.customer||'—')+'</td>'+
       '<td>'+escHtml((r.salesOrders&&r.salesOrders.length)?r.salesOrders.join(', '):'—')+'</td>'+
       '<td>'+escHtml((r.transferNums&&r.transferNums.length)?r.transferNums.join(', '):'—')+'</td>'+
       '<td>'+escHtml((r.workOrders&&r.workOrders.length)?r.workOrders.join(', '):'—')+'</td>'+
       '<td>'+escHtml(r.material||'—')+'</td>'+
-      '<td>'+dest+'</td>'+
-      '<td style="text-align:center">'+escHtml(r.pc||'—')+'</td>'+
-      '<td style="text-align:center">'+escHtml(r.lb||'—')+'</td>'+
-      '<td style="text-align:center">'+escHtml(r.rl||'—')+'</td>'+
       '<td>'+freightBadge+'</td>'+
       '<td>'+escHtml(carrierDisplay)+'</td>'+
       '<td>'+escHtml(r.trackingNum||'—')+'</td>'+
