@@ -1498,25 +1498,6 @@ var currentUser = null;
 var isAdmin = false;
 var ADMIN_EMAILS = ['dasilva.luiz@sourceatlantic.ca', 'lcdsilva@hotmail.com'];
 var SR_PATH = 'shipping_receiving';
-var PHOTOS_BASE_INC = 'C:\\Users\\ldasilva\\OneDrive - Lawson Products Canada\\INCOMING FORM PDF\\Pictures';
-var PHOTOS_BASE_OUT = 'C:\\Users\\ldasilva\\OneDrive - Lawson Products Canada\\Outgoing Form\\Pictures';
-
-function buildPhotosPath(basePath, date, wo){
-  if(!date || !wo) return '';
-  var year  = date.slice(0,4);
-  var month = date.slice(5,7);
-  var day   = date.slice(8,10);
-  var woNum = wo.replace(/^WO#/i,'');
-  return basePath+'\\'+year+'\\'+month+'\\'+day+'\\WO#'+woNum;
-}
-
-function openPhotos(path){
-  navigator.clipboard.writeText(path).then(function(){
-    showToast('📋 Caminho copiado! Abra o Windows Explorer, clique na barra de endereço e cole (Ctrl+V)');
-  }).catch(function(){
-    prompt('Copie o caminho abaixo e cole no Windows Explorer:', path);
-  });
-}
 var incomingData = {};
 var incomingFiltered = [];
 var itemsData = {};
@@ -1919,7 +1900,7 @@ function renderIncoming(){
       '<td>'+escHtml(r.deliveryBy||'—')+'</td>'+
       '<td>'+escHtml(r.receivedBy||'—')+'</td>'+
       '<td onclick="event.stopPropagation()">'+
-        (function(){ var p=r.photosLink||buildPhotosPath(PHOTOS_BASE_INC,r.date,r.wo); return p?'<button class="btn btn-secondary btn-sm" style="margin-right:4px" onclick="event.stopPropagation();openPhotos(\''+escAttr(p)+'\')">📷 Photos</button>':''; })()+
+        (r.photosLink?'<a href="'+escAttr(r.photosLink)+'" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none;margin-right:4px" onclick="event.stopPropagation()">📷 Photos</a>':'')+
         '<button class="btn btn-secondary btn-sm" onclick="openIncomingModal(\''+r._key+'\')">✏️ Edit</button>'+
       '</td>'+
     '</tr>';
@@ -2744,7 +2725,7 @@ function renderShipping(){
       '<td>'+escHtml(carrierDisplay)+'</td>'+
       '<td>'+escHtml(r.trackingNum||'—')+'</td>'+
       '<td onclick="event.stopPropagation()">'+
-        (function(){ var wo=(r.workOrders&&r.workOrders[0])||''; var p=r.photosLink||buildPhotosPath(PHOTOS_BASE_OUT,r.date,wo); return p?'<button class="btn btn-secondary btn-sm" style="margin-right:4px" onclick="event.stopPropagation();openPhotos(\''+escAttr(p)+'\')">📷 Photos</button>':''; })()+
+        (r.photosLink?'<a href="'+escAttr(r.photosLink)+'" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none;margin-right:4px" onclick="event.stopPropagation()">📷 Photos</a>':'')+
         '<button class="btn btn-secondary btn-sm" onclick="openShipModal(\''+r._key+'\')">✏️ Edit</button>'+
       '</td>'+
     '</tr>';
