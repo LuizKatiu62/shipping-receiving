@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Year-over-Year Dashboard — Source Atlantic SR</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#f0f4f8;color:#1a1a2e;min-height:100vh}
+/* ── Top bar ── */
+.topbar{background:linear-gradient(135deg,#1565c0,#1976d2);padding:0;box-shadow:0 2px 12px rgba(21,101,192,.35)}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;flex-wrap:wrap;gap:10px}
+.topbar-title{font-size:1.05rem;font-weight:800;color:#fff;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
+.topbar-back{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;text-decoration:none;transition:background .18s}
+.topbar-back:hover{background:rgba(255,255,255,.25)}
+/* ── Controls ── */
+.controls{background:#fff;border-bottom:1px solid #e2e8f0;padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.ctrl-label{font-size:.78rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px}
+.year-sel{padding:8px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:.84rem;font-weight:600;color:#1a1a2e;background:#fff;cursor:pointer;outline:none;transition:border-color .18s;font-family:inherit}
+.year-sel:focus{border-color:#1565c0}
+.vs-badge{background:#f0f4f8;border:1px solid #d1d5db;border-radius:6px;padding:5px 12px;font-size:.78rem;font-weight:700;color:#64748b}
+.ytd-note{font-size:.75rem;color:#94a3b8;margin-left:auto}
+/* ── Summary cards ── */
+.summary{display:flex;gap:14px;padding:20px 28px 0;flex-wrap:wrap}
+.s-card{background:#fff;border-radius:12px;padding:16px 22px;flex:1;min-width:180px;box-shadow:0 1px 4px rgba(0,0,0,.07);border:1px solid #e2e8f0;display:flex;flex-direction:column;gap:4px}
+.s-card-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b}
+.s-card-row{display:flex;align-items:baseline;gap:8px}
+.s-card-curr{font-size:1.6rem;font-weight:800;color:#1565c0}
+.s-card-prev{font-size:.82rem;color:#94a3b8;font-weight:500}
+.s-card-pct{font-size:.9rem;font-weight:700;padding:2px 10px;border-radius:20px}
+.pct-up{background:#dcfce7;color:#16a34a}
+.pct-dn{background:#fee2e2;color:#dc2626}
+.pct-eq{background:#f1f5f9;color:#64748b}
+/* ── Charts ── */
+.charts-grid{display:flex;gap:16px;padding:20px 28px;flex-wrap:wrap}
+.chart-card{background:#fff;border-radius:12px;padding:18px 20px;flex:1;min-width:260px;box-shadow:0 1px 4px rgba(0,0,0,.07);border:1px solid #e2e8f0}
+.chart-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;margin-bottom:12px}
+.chart-canvas-wrap{position:relative;height:180px}
+/* ── Table ── */
+.table-section{padding:20px 28px 32px}
+.table-card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.07);border:1px solid #e2e8f0;overflow:hidden}
+.table-header{padding:14px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:10px}
+.table-title{font-size:.82rem;font-weight:700;color:#1a1a2e}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+thead tr{background:linear-gradient(180deg,#1565c0,#1976d2)}
+thead th{color:#fff;padding:10px 12px;font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right;white-space:nowrap}
+thead th:first-child{text-align:left;width:80px}
+thead th.group-start{border-left:2px solid rgba(255,255,255,.2)}
+thead .cat-header{text-align:center;font-size:.7rem;letter-spacing:.3px}
+tbody tr{border-bottom:1px solid #f1f5f9;transition:background .12s;cursor:default}
+tbody tr:hover{background:#f8faff}
+tbody tr.future{opacity:.4}
+tbody tr.total-row{background:#f0f4f8;font-weight:700;border-top:2px solid #d1d5db}
+tbody tr.total-row:hover{background:#e8f0fe}
+td{padding:9px 12px;text-align:right;white-space:nowrap}
+td:first-child{text-align:left;font-weight:600;color:#1565c0;font-size:.77rem}
+td.group-start{border-left:2px solid #e2e8f0}
+td.count{color:#1a1a2e;font-variant-numeric:tabular-nums}
+td.pct{font-weight:700;font-size:.73rem}
+td.pct-up{color:#16a34a}
+td.pct-dn{color:#dc2626}
+td.pct-eq{color:#94a3b8}
+td.prev{color:#94a3b8}
+.dot-curr{display:inline-block;width:8px;height:8px;border-radius:50%;background:#1565c0;margin-right:4px}
+.dot-prev{display:inline-block;width:8px;height:8px;border-radius:50%;background:#93c5fd;margin-right:4px}
+.legend{display:flex;align-items:center;gap:16px;font-size:.73rem;color:#64748b;margin-left:auto}
+.loading{text-align:center;padding:40px;color:#94a3b8;font-size:.88rem}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-title">📊 Year-over-Year Dashboard</div>
+    <a class="topbar-back" href="index.html">← Back to App</a>
+  </div>
+</div>
+
+<div class="controls">
+  <span class="ctrl-label">Compare</span>
+  <select class="year-sel" id="sel-curr" onchange="render()">
+    <option value="2026">2026</option>
+    <option value="2025">2025</option>
+    <option value="2024">2024</option>
+  </select>
+  <span class="vs-badge">vs</span>
+  <select class="year-sel" id="sel-prev" onchange="render()">
+    <option value="2025">2025</option>
+    <option value="2024">2024</option>
+    <option value="2026">2026</option>
+  </select>
+  <span class="ytd-note" id="ytd-note"></span>
+</div>
+
+<div class="summary" id="summary">
+  <div class="loading">Loading data…</div>
+</div>
+
+<div class="charts-grid" id="charts-grid"></div>
+
+<div class="table-section">
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-title">Month-by-Month Breakdown</span>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th rowspan="2">Month</th>
+            <th colspan="3" class="cat-header group-start">Incoming Form</th>
+            <th colspan="3" class="cat-header group-start">Incoming Items</th>
+            <th colspan="3" class="cat-header group-start">Shipping</th>
+          </tr>
+          <tr id="sub-header"></tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+var firebaseConfig = {
+  apiKey:            'AIzaSyBuS3afVcx3W-zfgZfDYIutNltuEfP8Fhc',
+  authDomain:        'source-atlantic-sr.firebaseapp.com',
+  databaseURL:       'https://source-atlantic-sr-default-rtdb.firebaseio.com',
+  projectId:         'source-atlantic-sr',
+  storageBucket:     'source-atlantic-sr.firebasestorage.app',
+  messagingSenderId: '953329380095',
+  appId:             '1:953329380095:web:f7865dda88a33ff9457aca'
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
+
+var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var allData = { incoming: {}, items: {}, shipping: {} };
+var loaded = 0;
+
+function onLoad(){
+  loaded++;
+  if(loaded === 3) render();
+}
+
+db.ref('shipping_receiving/incoming').on('value', function(s){
+  allData.incoming = s.val() || {};
+  onLoad();
+});
+db.ref('shipping_receiving/items').on('value', function(s){
+  allData.items = s.val() || {};
+  onLoad();
+});
+db.ref('shipping_receiving/shipping').on('value', function(s){
+  allData.shipping = s.val() || {};
+  onLoad();
+});
+
+var charts = {};
+
+function countByMonth(dataObj, year){
+  var counts = new Array(12).fill(0);
+  Object.values(dataObj).forEach(function(r){
+    var d = r.date || '';
+    if(d.startsWith(year)){
+      var mo = parseInt(d.slice(5,7), 10) - 1;
+      if(mo >= 0 && mo < 12) counts[mo]++;
+    }
+  });
+  return counts;
+}
+
+function pct(curr, prev){
+  if(prev === 0 && curr === 0) return null;
+  if(prev === 0) return null;
+  return Math.round((curr - prev) / prev * 100);
+}
+
+function pctCell(p){
+  if(p === null) return '<td class="pct pct-eq">—</td>';
+  var arrow = p > 0 ? '▲' : p < 0 ? '▼' : '●';
+  var cls = p > 0 ? 'pct-up' : p < 0 ? 'pct-dn' : 'pct-eq';
+  return '<td class="pct '+cls+'">'+arrow+' '+Math.abs(p)+'%</td>';
+}
+
+function render(){
+  if(loaded < 3) return;
+  var currYr = document.getElementById('sel-curr').value;
+  var prevYr = document.getElementById('sel-prev').value;
+
+  var today = new Date();
+  var todayYr = today.getFullYear().toString();
+  var todayMo = today.getMonth(); // 0-based
+
+  var isCurrYrCurrent = (currYr === todayYr);
+  var lastMo = isCurrYrCurrent ? todayMo : 11; // for YTD note
+
+  // Update YTD note
+  var ytdEl = document.getElementById('ytd-note');
+  if(isCurrYrCurrent){
+    ytdEl.textContent = '* YTD through ' + MONTHS[lastMo];
+  } else {
+    ytdEl.textContent = '';
+  }
+
+  // Count data
+  var cats = [
+    { key: 'incoming', label: 'Incoming Form', color: '#1565c0', light: '#93c5fd' },
+    { key: 'items',    label: 'Incoming Items', color: '#0891b2', light: '#67e8f9' },
+    { key: 'shipping', label: 'Shipping',        color: '#7c3aed', light: '#c4b5fd' }
+  ];
+
+  cats.forEach(function(c){
+    c.curr = countByMonth(allData[c.key], currYr);
+    c.prev = countByMonth(allData[c.key], prevYr);
+  });
+
+  // ── Summary cards ──
+  var sumHtml = '';
+  cats.forEach(function(c){
+    var totalCurr = c.curr.slice(0, lastMo + 1).reduce(function(a,b){ return a+b; }, 0);
+    var totalPrev = c.prev.slice(0, lastMo + 1).reduce(function(a,b){ return a+b; }, 0);
+    var p = pct(totalCurr, totalPrev);
+    var pLabel = p === null ? '<span class="s-card-pct pct-eq">—</span>'
+      : '<span class="s-card-pct '+(p>0?'pct-up':p<0?'pct-dn':'pct-eq')+'">'+(p>0?'▲ ':'▼ ')+Math.abs(p)+'%</span>';
+    sumHtml += '<div class="s-card">'+
+      '<div class="s-card-label">'+c.label+'</div>'+
+      '<div class="s-card-row">'+
+        '<span class="s-card-curr">'+totalCurr+'</span>'+
+        '<span class="s-card-prev">'+prevYr+': '+totalPrev+'</span>'+
+        pLabel+
+      '</div>'+
+      '<div style="font-size:.68rem;color:#94a3b8;margin-top:2px">'+currYr+(isCurrYrCurrent?' YTD':'')+'</div>'+
+    '</div>';
+  });
+  document.getElementById('summary').innerHTML = sumHtml;
+
+  // ── Legend ──
+  document.getElementById('legend').innerHTML =
+    '<span><span class="dot-curr"></span>'+currYr+'</span>'+
+    '<span><span class="dot-prev"></span>'+prevYr+'</span>';
+
+  // ── Sub-header ──
+  var subHdr = '';
+  cats.forEach(function(c, i){
+    var cls = i === 0 ? ' class="group-start"' : '';
+    subHdr += '<th'+cls+'>'+prevYr+'</th><th>'+currYr+'</th><th>Δ %</th>';
+  });
+  document.getElementById('sub-header').innerHTML = subHdr;
+
+  // ── Table rows ──
+  var tbodyHtml = '';
+  for(var m = 0; m < 12; m++){
+    var isFuture = isCurrYrCurrent && m > lastMo;
+    var isTotal = false;
+    var rowCls = isFuture ? ' class="future"' : '';
+    var moLabel = MONTHS[m];
+    tbodyHtml += '<tr'+rowCls+'>'+
+      '<td>'+moLabel+'</td>';
+    cats.forEach(function(c, i){
+      var cls = i === 0 ? ' class="group-start count"' : ' class="count"';
+      var pv = c.prev[m];
+      var cu = c.curr[m];
+      var p = pct(cu, pv);
+      tbodyHtml += '<td'+cls+'>'+
+        '<span style="color:#94a3b8">'+pv+'</span></td>'+
+        '<td class="count"><strong style="color:#1565c0">'+cu+'</strong></td>'+
+        pctCell(p);
+    });
+    tbodyHtml += '</tr>';
+  }
+
+  // Total row
+  tbodyHtml += '<tr class="total-row"><td>Total</td>';
+  cats.forEach(function(c, i){
+    var cls = i === 0 ? ' class="group-start count"' : ' class="count"';
+    var totalPrev = c.prev.reduce(function(a,b){ return a+b; }, 0);
+    var totalCurr = c.curr.reduce(function(a,b){ return a+b; }, 0);
+    var p = pct(totalCurr, totalPrev);
+    tbodyHtml += '<td'+cls+'>'+totalPrev+'</td>'+
+      '<td class="count">'+totalCurr+'</td>'+
+      pctCell(p);
+  });
+  tbodyHtml += '</tr>';
+
+  // YTD row (only if current year)
+  if(isCurrYrCurrent){
+    tbodyHtml += '<tr class="total-row" style="background:#e8f0fe"><td>YTD *</td>';
+    cats.forEach(function(c, i){
+      var cls = i === 0 ? ' class="group-start count"' : ' class="count"';
+      var ytdPrev = c.prev.slice(0, lastMo + 1).reduce(function(a,b){ return a+b; }, 0);
+      var ytdCurr = c.curr.slice(0, lastMo + 1).reduce(function(a,b){ return a+b; }, 0);
+      var p = pct(ytdCurr, ytdPrev);
+      tbodyHtml += '<td'+cls+'>'+ytdPrev+'</td>'+
+        '<td class="count">'+ytdCurr+'</td>'+
+        pctCell(p);
+    });
+    tbodyHtml += '</tr>';
+  }
+
+  document.getElementById('tbody').innerHTML = tbodyHtml;
+
+  // ── Charts ──
+  var chartsHtml = '';
+  cats.forEach(function(c){
+    chartsHtml += '<div class="chart-card">'+
+      '<div class="chart-title">'+c.label+'</div>'+
+      '<div class="chart-canvas-wrap"><canvas id="chart-'+c.key+'"></canvas></div>'+
+    '</div>';
+  });
+  document.getElementById('charts-grid').innerHTML = chartsHtml;
+
+  cats.forEach(function(c){
+    if(charts[c.key]) charts[c.key].destroy();
+    var ctx = document.getElementById('chart-'+c.key).getContext('2d');
+    charts[c.key] = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: MONTHS,
+        datasets: [
+          {
+            label: prevYr,
+            data: c.prev,
+            backgroundColor: c.light+'aa',
+            borderColor: c.light,
+            borderWidth: 1,
+            borderRadius: 3
+          },
+          {
+            label: currYr,
+            data: c.curr,
+            backgroundColor: c.color+'cc',
+            borderColor: c.color,
+            borderWidth: 1,
+            borderRadius: 3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { font: { size: 11, family: 'Inter,system-ui,sans-serif' }, boxWidth: 12, padding: 10 }
+          },
+          tooltip: {
+            callbacks: {
+              afterLabel: function(ctx2){
+                var ds = ctx2.chart.data.datasets;
+                var mo = ctx2.dataIndex;
+                var prev = ds[0].data[mo];
+                var curr = ds[1].data[mo];
+                if(ctx2.datasetIndex === 1){
+                  var p = pct(curr, prev);
+                  if(p !== null) return (p >= 0 ? '▲ +' : '▼ ') + p + '% vs ' + prevYr;
+                }
+                return '';
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+          y: { beginAtZero: true, grid: { color: '#f0f4f8' }, ticks: { font: { size: 10 }, stepSize: 1 } }
+        }
+      }
+    });
+  });
+}
+</script>
+</body>
+</html>
