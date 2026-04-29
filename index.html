@@ -1498,6 +1498,18 @@ var currentUser = null;
 var isAdmin = false;
 var ADMIN_EMAILS = ['dasilva.luiz@sourceatlantic.ca', 'lcdsilva@hotmail.com'];
 var SR_PATH = 'shipping_receiving';
+var PHOTOS_BASE_INC = 'C:/Users/ldasilva/OneDrive - Lawson Products Canada/INCOMING FORM PDF/Pictures';
+var PHOTOS_BASE_OUT = 'C:/Users/ldasilva/OneDrive - Lawson Products Canada/Outgoing Form/Pictures';
+
+function buildPhotosUrl(basePath, date, wo){
+  if(!date || !wo) return '';
+  var year  = date.slice(0,4);
+  var month = date.slice(5,7);
+  var day   = date.slice(8,10);
+  var woNum = wo.replace(/^WO#/i,'');
+  var path  = basePath+'/'+year+'/'+month+'/'+day+'/WO%23'+woNum;
+  return 'file:///'+path.replace(/ /g,'%20');
+}
 var incomingData = {};
 var incomingFiltered = [];
 var itemsData = {};
@@ -1900,7 +1912,7 @@ function renderIncoming(){
       '<td>'+escHtml(r.deliveryBy||'—')+'</td>'+
       '<td>'+escHtml(r.receivedBy||'—')+'</td>'+
       '<td onclick="event.stopPropagation()">'+
-        (r.photosLink ? '<a href="'+escAttr(r.photosLink)+'" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none;margin-right:4px">📷 Photos</a>' : '')+
+        (function(){ var url=r.photosLink||buildPhotosUrl(PHOTOS_BASE_INC,r.date,r.wo); return url?'<a href="'+escAttr(url)+'" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none;margin-right:4px">📷 Photos</a>':''; })()+
         '<button class="btn btn-secondary btn-sm" onclick="openIncomingModal(\''+r._key+'\')">✏️ Edit</button>'+
       '</td>'+
     '</tr>';
@@ -2725,7 +2737,7 @@ function renderShipping(){
       '<td>'+escHtml(carrierDisplay)+'</td>'+
       '<td>'+escHtml(r.trackingNum||'—')+'</td>'+
       '<td onclick="event.stopPropagation()">'+
-        (r.photosLink ? '<a href="'+escAttr(r.photosLink)+'" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none;margin-right:4px">📷 Photos</a>' : '')+
+        (function(){ var wo=(r.workOrders&&r.workOrders[0])||''; var url=r.photosLink||buildPhotosUrl(PHOTOS_BASE_OUT,r.date,wo); return url?'<a href="'+escAttr(url)+'" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none;margin-right:4px">📷 Photos</a>':''; })()+
         '<button class="btn btn-secondary btn-sm" onclick="openShipModal(\''+r._key+'\')">✏️ Edit</button>'+
       '</td>'+
     '</tr>';
