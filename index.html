@@ -96,6 +96,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .table-wrap tbody tr:nth-child(even) td{background:#fafcff}
 .table-wrap tbody tr:nth-child(even):hover td{background:#f0f7ff}
 
+/* ── PAGINATION ── */
+.pagination-bar{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px 20px;border-top:1px solid var(--border);background:var(--surface-alt);font-size:.82rem;color:var(--text-secondary)}
+.pagination-bar .pg-info{font-weight:600;color:var(--text-primary)}
+.pagination-bar .pg-btn{padding:5px 13px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);border-radius:var(--radius-md);cursor:pointer;font-size:.8rem;font-family:'Inter',inherit;font-weight:600;transition:all .15s}
+.pagination-bar .pg-btn:hover:not(:disabled){background:#dbeafe;border-color:var(--blue-500);color:var(--blue-500)}
+.pagination-bar .pg-btn:disabled{opacity:.38;cursor:default}
+.pagination-bar .pg-cur{font-weight:800;color:var(--blue-600);min-width:60px;text-align:center}
+
 /* ── BADGES ── */
 .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:.67rem;font-weight:700;white-space:nowrap;letter-spacing:.2px}
 .badge-electrical{background:#dbeafe;color:#1e40af}
@@ -464,6 +472,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
         </thead>
         <tbody id="itm-tbody"></tbody>
       </table>
+      <div class="pagination-bar" id="itm-pagination"></div>
     </div>
   </div>
   <!-- ══ SHIPPING SECTION ══ -->
@@ -498,6 +507,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
         </thead>
         <tbody id="shp-tbody"></tbody>
       </table>
+      <div class="pagination-bar" id="shp-pagination"></div>
     </div>
   </div>
   <!-- ══ SUBCONTRACTOR SECTION ══ -->
@@ -1441,6 +1451,9 @@ var payFiltered = [];
 var payMonthlyChart    = null;
 var payMethodChart     = null;
 var pendingPayEmailRec = null;
+var PAGE_SIZE = 100;
+var shpPage   = 0;
+var itmPage   = 0;
 
 // ── INIT ──
 window.addEventListener('DOMContentLoaded', function(){
@@ -2516,6 +2529,27 @@ function removeShpTag(field, i){
   renderShpTags(field);
 }
 
+// ── PAGINATION HELPERS ──
+function renderPagination(prefix, page, totalPages, total){
+  var el = document.getElementById(prefix+'-pagination');
+  if(!el) return;
+  if(totalPages <= 1){ el.innerHTML = ''; return; }
+  var start = page * PAGE_SIZE + 1;
+  var end   = Math.min((page + 1) * PAGE_SIZE, total);
+  el.innerHTML =
+    '<span class="pg-info">'+start+'–'+end+' of '+total+'</span>'+
+    '<button class="pg-btn" onclick="changePage(\''+prefix+'\',-1)" '+(page===0?'disabled':'')+'>◀ Prev</button>'+
+    '<span class="pg-cur">Page '+(page+1)+' / '+totalPages+'</span>'+
+    '<button class="pg-btn" onclick="changePage(\''+prefix+'\',1)" '+(page===totalPages-1?'disabled':'')+'>Next ▶</button>';
+}
+function changePage(prefix, dir){
+  if(prefix==='shp'){ shpPage += dir; renderShipping(); }
+  else if(prefix==='itm'){ itmPage += dir; renderItems(); }
+  var sectionId = prefix==='shp' ? 'section-shipping' : 'section-items';
+  var el = document.getElementById(sectionId);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
 function renderShpTags(field){
   var containerId = {so:'shp-so-tags', tr:'shp-tr-tags', wo:'shp-wo-tags'}[field];
   document.getElementById(containerId).innerHTML = shpTags[field].map(function(v, i){
@@ -2542,12 +2576,17 @@ function renderShipping(){
 
   var tbody = document.getElementById('shp-tbody');
   if(!shpFiltered.length){
-    tbody.innerHTML = '<tr><td colspan="12"><div class="empty-state"><div class="empty-icon">🚚</div><div class="empty-text">No shipments yet. Click "+ New Shipment" to add one.</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="13"><div class="empty-state"><div class="empty-icon">🚚</div><div class="empty-text">No shipments yet. Click "+ New Shipment" to add one.</div></div></td></tr>';
+    document.getElementById('shp-pagination').innerHTML = '';
     renderShipStats(rows);
     return;
   }
 
-  tbody.innerHTML = shpFiltered.map(function(r){
+  var totalPages = Math.ceil(shpFiltered.length / PAGE_SIZE);
+  if(shpPage >= totalPages) shpPage = totalPages - 1;
+  var pageRows = shpFiltered.slice(shpPage * PAGE_SIZE, (shpPage + 1) * PAGE_SIZE);
+
+  tbody.innerHTML = pageRows.map(function(r){
     var dest = [r.city, r.province].filter(Boolean).map(escHtml).join(', ') || '—';
     var freightBadge = r.freightType
       ? '<span class="badge '+(r.freightType==='Collect'?'badge-generator':'badge-electrical')+'">'+r.freightType+'</span>'
@@ -2576,6 +2615,7 @@ function renderShipping(){
     '</tr>';
   }).join('');
   renderShipStats(rows);
+  renderPagination('shp', shpPage, totalPages, shpFiltered.length);
 }
 
 function renderShipStats(rows){
@@ -2587,7 +2627,7 @@ function renderShipStats(rows){
     '<div class="stat-card"><div class="stat-val">'+prepaid+'</div><div class="stat-lbl">Prepaid</div></div>';
 }
 
-function filterShipping(){ renderShipping(); }
+function filterShipping(){ shpPage = 0; renderShipping(); }
 
 function openShipModal(key){
   shpTags = {so:[], tr:[], wo:[]};
@@ -2770,9 +2810,13 @@ function renderItems(){
   var tbody = document.getElementById('itm-tbody');
   if(!itemsFiltered.length){
     tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">No items yet. Click "+ New Item" to add one.</div></div></td></tr>';
+    document.getElementById('itm-pagination').innerHTML = '';
     renderItemStats(rows); return;
   }
-  tbody.innerHTML = itemsFiltered.map(function(r){
+  var totalPages = Math.ceil(itemsFiltered.length / PAGE_SIZE);
+  if(itmPage >= totalPages) itmPage = totalPages - 1;
+  var pageRows = itemsFiltered.slice(itmPage * PAGE_SIZE, (itmPage + 1) * PAGE_SIZE);
+  tbody.innerHTML = pageRows.map(function(r){
     var lines = r.lineItems||[];
     var summary = lines.slice(0,3).map(function(li){ return escHtml(li.material||''); }).filter(Boolean).join(', ')
       +(lines.length>3?' <span style="color:#9ca3af;font-size:.75rem">+' + (lines.length-3)+' more</span>':'');
@@ -2787,6 +2831,7 @@ function renderItems(){
     '</tr>';
   }).join('');
   renderItemStats(rows);
+  renderPagination('itm', itmPage, totalPages, itemsFiltered.length);
 }
 
 function renderItemStats(rows){
@@ -2801,7 +2846,7 @@ function renderItemStats(rows){
     '<div class="stat-card"><div class="stat-val">'+woCount+'</div><div class="stat-lbl">Work Orders</div></div>';
 }
 
-function filterItems(){ renderItems(); }
+function filterItems(){ itmPage = 0; renderItems(); }
 
 // ── Line item card renderer ──
 function renderItmLines(){
