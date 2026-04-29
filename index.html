@@ -846,7 +846,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="form-actions">
         <button class="btn btn-danger" id="inc-del-btn" style="display:none;margin-right:auto" onclick="deleteIncoming()">🗑 Delete</button>
         <button class="btn btn-secondary" onclick="closeIncomingModal()">Cancel</button>
-        <button class="btn btn-secondary" id="inc-print-btn" style="display:none" onclick="printIncomingLabel()">🏷️ Print Label</button>
+        <button class="btn btn-secondary" onclick="printIncomingLabel()">🏷️ Print Label</button>
         <button class="btn btn-primary" onclick="saveIncoming()">💾 Save</button>
       </div>
     </div>
@@ -1920,7 +1920,6 @@ function openIncomingModal(key){
     document.getElementById('bench-name-group').style.display = r.designatedLocation === 'Bench' ? 'flex' : 'none';
     document.getElementById('inc-pics-qty').value     = r.picsQty||'';
     document.getElementById('inc-pics-time').value    = r.picsTime||'';
-    document.getElementById('inc-print-btn').style.display = 'inline-flex';
     // Work info
     document.getElementById('inc-whattodo').value     = r.whatToDo||'';
     document.getElementById('inc-delivery').value     = r.deliveryBy||'';
@@ -1945,7 +1944,6 @@ function openIncomingModal(key){
     document.getElementById('bench-name-group').style.display = 'none';
     document.getElementById('inc-pics-qty').value  = '';
     document.getElementById('inc-pics-time').value = '';
-    document.getElementById('inc-print-btn').style.display = 'none';
     delBtn.style.display = 'none';
   }
   modal.style.display = 'flex';
