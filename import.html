@@ -243,7 +243,22 @@ var SVC={'SALES ORDER':'Sales Order','SERVICE ORDER':'Work Order','WORK ORDER':'
 function mapSvc(s){var v=SVC[(s||'').toUpperCase()];return v!==undefined?v:(s||'');}
 
 // ── BUILD FUNCTIONS ──
+function diagRows(rows, dateCol, sectionPath){
+  if(!rows.length){log('  ⚠ CSV empty — 0 rows parsed','er');return;}
+  var cols = Object.keys(rows[0]);
+  log('  Columns: '+cols.join(' | '),'in');
+  var samples = rows.slice(0,3).map(function(r){
+    var raw = r[dateCol]||'(empty)';
+    var iso = toISO(r[dateCol]||'');
+    return raw+' → '+iso;
+  });
+  log('  Date col "'+dateCol+'": '+samples.join('  |  '),'in');
+  var m = sectionMode[sectionPath];
+  log('  Filter range: '+(m ? m.from+' to '+m.to : '2024-01-01 to today'),'in');
+}
+
 function buildIncoming(rows){
+  diagRows(rows,'Incoming Date','incoming');
   var res={},skip=0;
   rows.forEach(function(r){
     var dt=toISO(r['Incoming Date']);if(!dateInRange(dt,'incoming')){skip++;return;}
@@ -263,6 +278,7 @@ function buildIncoming(rows){
 }
 
 function buildItems(rows){
+  diagRows(rows,'Receipt','items');
   var groups={},skip=0;
   rows.forEach(function(r){
     var dt=toISO(r['Receipt']);if(!dateInRange(dt,'items')){skip++;return;}
