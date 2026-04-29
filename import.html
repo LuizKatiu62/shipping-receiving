@@ -38,6 +38,8 @@ input[type="file"]::-webkit-file-upload-button{background:#1565c0;color:#fff;bor
 #login-card{margin-bottom:16px}
 #import-card{display:none}
 .user-line{font-size:.82rem;color:#166534;font-weight:700;padding:8px 0}
+.btn-add{padding:4px 11px;background:#fff7ed;color:#c2410c;border:1.5px solid #fed7aa;border-radius:8px;font-size:.74rem;font-weight:800;cursor:pointer;white-space:nowrap;transition:all .15s}
+.btn-add:hover{background:#ffedd5;border-color:#c2410c}
 </style>
 </head>
 <body>
@@ -68,11 +70,13 @@ input[type="file"]::-webkit-file-upload-button{background:#1565c0;color:#fff;bor
       <span class="file-label">📋 Incoming Form</span>
       <input type="file" id="f-incoming" accept=".csv">
       <span class="badge badge-wait" id="b-incoming">Waiting</span>
+      <button class="btn-add" id="add-incoming" style="display:none" onclick="unlockSection('incoming')">➕ Add 2024</button>
     </div>
     <div class="file-row">
       <span class="file-label">📦 Incoming Items</span>
       <input type="file" id="f-items" accept=".csv">
       <span class="badge badge-wait" id="b-items">Waiting</span>
+      <button class="btn-add" id="add-items" style="display:none" onclick="unlockSection('items')">➕ Add 2024–2025</button>
     </div>
     <div class="file-row">
       <span class="file-label">🚚 Shipment Freight</span>
@@ -83,13 +87,6 @@ input[type="file"]::-webkit-file-upload-button{background:#1565c0;color:#fff;bor
       <span class="file-label">💰 Daily Cash</span>
       <input type="file" id="f-payments" accept=".csv">
       <span class="badge badge-wait" id="b-payments">Waiting</span>
-    </div>
-
-    <div style="margin:14px 0 4px;padding:14px;background:#fefce8;border:1.5px solid #fde68a;border-radius:10px">
-      <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:.83rem;font-weight:700;color:#78350f">
-        <input type="checkbox" id="chk-2024" style="width:16px;height:16px;margin-top:1px;flex-shrink:0;accent-color:#1565c0" onchange="toggle2024Mode()">
-        <span>Import 2024 data only — unlock Incoming Form &amp; Incoming Items to add 2024 records without duplicating 2025+ data already imported</span>
-      </label>
     </div>
 
     <div class="progress-wrap"><div class="progress-bar" id="prog"></div></div>
@@ -145,14 +142,18 @@ function doLogin(){
     });
 }
 
+// ── PER-SECTION DATE RANGE OVERRIDES ──
+// 'incoming' → only 2024 missing (has 2025+)
+// 'items'    → 2024 and 2025 missing (has 2026 only)
+var sectionMode = {};  // path → {from, to} when unlocked for missing years
+
 // ── CHECK EACH SECTION FOR EXISTING IMPORTED DATA ──
-// Only lock a section if it has 50+ records (clearly a previous import, not manual entries)
 function checkLock(){
   var sections=[
-    {path:'incoming', fid:'f-incoming', bid:'b-incoming'},
-    {path:'items',    fid:'f-items',    bid:'b-items'},
-    {path:'shipping', fid:'f-shipping', bid:'b-shipping'},
-    {path:'payments', fid:'f-payments', bid:'b-payments'}
+    {path:'incoming', fid:'f-incoming', bid:'b-incoming', addBtn:'add-incoming'},
+    {path:'items',    fid:'f-items',    bid:'b-items',    addBtn:'add-items'},
+    {path:'shipping', fid:'f-shipping', bid:'b-shipping', addBtn:null},
+    {path:'payments', fid:'f-payments', bid:'b-payments', addBtn:null}
   ];
   sections.forEach(function(s){
     db.ref(SR+'/'+s.path).limitToFirst(50).once('value').then(function(snap){
@@ -162,9 +163,26 @@ function checkLock(){
         var b = document.getElementById(s.bid);
         b.className = 'badge badge-done';
         b.textContent = '✓ Already imported';
+        if(s.addBtn) document.getElementById(s.addBtn).style.display = 'inline-block';
       }
     });
   });
+}
+
+function unlockSection(path){
+  // Define which date range is missing per section
+  var ranges = {
+    'incoming': {from:'2024-01-01', to:'2024-12-31', label:'+ 2024 only'},
+    'items':    {from:'2024-01-01', to:'2025-12-31', label:'+ 2024–2025'}
+  };
+  var r = ranges[path];
+  if(!r) return;
+  sectionMode[path] = r;
+  document.getElementById('f-'+path).disabled = false;
+  var b = document.getElementById('b-'+path);
+  b.className = 'badge badge-ok';
+  b.textContent = r.label;
+  document.getElementById('add-'+path).style.display = 'none';
 }
 
 // ── CSV PARSER ──
@@ -202,36 +220,12 @@ function toISO(d){
   if(!d)return'';var p=d.split('/');if(p.length!==3)return'';
   return p[2].padStart(4,'0')+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0');
 }
-var mode2024 = false;
-function inRange(dt){ return mode2024 ? (dt>='2024-01-01'&&dt<'2025-01-01') : dt>='2024-01-01'; }
 function money(s){return parseFloat((s||'').replace(/[$,\s]/g,''))||0;}
 
-function toggle2024Mode(){
-  mode2024 = document.getElementById('chk-2024').checked;
-  var sections2024 = ['incoming','items'];
-  sections2024.forEach(function(id){
-    var inp = document.getElementById('f-'+id);
-    var bdg = document.getElementById('b-'+id);
-    if(mode2024){
-      inp.disabled = false;
-      bdg.className = 'badge badge-ok';
-      bdg.textContent = '2024 only';
-    } else {
-      // re-run lock check to restore correct state
-      db.ref(SR+'/'+id).limitToFirst(50).once('value').then(function(snap){
-        var count = snap.val() ? Object.keys(snap.val()).length : 0;
-        if(count >= 50){
-          inp.disabled = true;
-          bdg.className = 'badge badge-done';
-          bdg.textContent = '✓ Already imported';
-        } else {
-          inp.disabled = false;
-          bdg.className = 'badge badge-wait';
-          bdg.textContent = 'Waiting';
-        }
-      });
-    }
-  });
+function dateInRange(dt, path){
+  var m = sectionMode[path];
+  if(m) return dt >= m.from && dt <= m.to;
+  return dt >= '2024-01-01';
 }
 
 var AREA={'WELDING':'Welding','ELECTRICAL':'Electrical','MECHANICAL':'Mechanical',
@@ -252,7 +246,7 @@ function mapSvc(s){var v=SVC[(s||'').toUpperCase()];return v!==undefined?v:(s||'
 function buildIncoming(rows){
   var res={},skip=0;
   rows.forEach(function(r){
-    var dt=toISO(r['Incoming Date']);if(!inRange(dt)){skip++;return;}
+    var dt=toISO(r['Incoming Date']);if(!dateInRange(dt,'incoming')){skip++;return;}
     var k=db.ref(SR+'/incoming').push().key;
     res[k]={formNum:r['Incoming Number']||'',customer:r['Customer']||'',
       wo:r['Work Order #']||'',prevWo:r['Previous Work Order #']||'',date:dt,
@@ -271,7 +265,7 @@ function buildIncoming(rows){
 function buildItems(rows){
   var groups={},skip=0;
   rows.forEach(function(r){
-    var dt=toISO(r['Receipt']);if(!inRange(dt)){skip++;return;}
+    var dt=toISO(r['Receipt']);if(!dateInRange(dt,'items')){skip++;return;}
     var doc=r['Receipt #'];if(!doc)return;
     if(!groups[doc])groups[doc]={date:dt,docNum:doc,poNum:r['PO Number']||'',
       transferNum:r['Transfer Number']||'',supplier:r['Supply Name']||'',lineItems:[],_imported:true};
@@ -290,7 +284,7 @@ function buildItems(rows){
 function buildPayments(rows){
   var res={},skip=0;
   rows.forEach(function(r){
-    var dt=toISO(r['Prepared date']);if(!dt||!inRange(dt)){skip++;return;}
+    var dt=toISO(r['Prepared date']);if(!dt||!dateInRange(dt,'payments')){skip++;return;}
     [['Cash','Cash'],['Cheque','Cheque'],['Visa','Visa'],['Mastercard','Mastercard'],['Debit','Debit']].forEach(function(m){
       var amt=money(r[m[1]]);if(amt<=0)return;
       var k=db.ref(SR+'/payments').push().key;
@@ -306,7 +300,7 @@ function buildPayments(rows){
 function buildShipping(rows){
   var res={},skip=0;
   rows.forEach(function(r){
-    var dt=toISO(r['Date']);if(!dt||!inRange(dt)){skip++;return;}
+    var dt=toISO(r['Date']);if(!dt||!dateInRange(dt,'shipping')){skip++;return;}
     var p=function(k){return(r[k]||'').trim();};
     var wos=['Work Order #','Work Order #2','Work Order #3','Work Order #4','Work Order #5'].map(p).filter(Boolean);
     var sos=['Sales Order #','Sales Order #2','Sales Order #3','Sales Order #4','Sales Order #5'].map(p).filter(Boolean);
@@ -386,8 +380,9 @@ async function startImport(){
       var rows=parseCSV(text);
       var built=s.build(rows);
       var count=Object.keys(built.res).length;
-      var rangeLabel = mode2024 ? 'pre-2024 or post-2024' : 'pre-2024';
-      log('  Parsed: '+count+' records ('+built.skip+' skipped '+rangeLabel+')','in');
+      var m = sectionMode[s.path];
+      var rangeStr = m ? (m.from.slice(0,4)+' to '+m.to.slice(0,4)) : '2024+';
+      log('  Parsed: '+count+' records in range ['+rangeStr+'] ('+built.skip+' skipped outside range)','in');
       if(count>0){
         setBadge(s.id,'ok','Uploading...');
         log('  Uploading '+s.label+'...','in');
@@ -395,7 +390,7 @@ async function startImport(){
         log('  ✓ '+s.label+': '+count+' records imported','ok');
         setBadge(s.id,'done','✓ '+count+' imported');
       } else {
-        log('  ⚠ '+s.label+': no records found in range','in');
+        log('  ⚠ '+s.label+': no records found in range ['+rangeStr+']','in');
         setBadge(s.id,'done','No records');
       }
     } catch(e){
