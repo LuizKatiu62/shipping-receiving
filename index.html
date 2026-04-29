@@ -97,10 +97,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .table-wrap tbody tr:nth-child(even):hover td{background:#f0f7ff}
 
 /* ── WIDE SECTION TABLES ── */
-#section-incoming .table-wrap table{min-width:1300px}
+#section-incoming .table-wrap{overflow-x:auto}
+#section-incoming .table-wrap table{width:max-content;min-width:100%}
 #section-incoming .table-wrap td{white-space:nowrap}
-#section-shipping .table-wrap table{min-width:1400px}
+#section-incoming .table-wrap th{white-space:nowrap}
+#section-shipping .table-wrap{overflow-x:auto}
+#section-shipping .table-wrap table{width:max-content;min-width:100%}
 #section-shipping .table-wrap td{white-space:nowrap}
+#section-shipping .table-wrap th{white-space:nowrap}
 
 /* ── YEAR FILTER ── */
 .year-select{padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.82rem;font-family:'Inter',inherit;background:var(--surface);color:var(--text-primary);outline:none;cursor:pointer;min-width:105px;transition:border-color .18s}
