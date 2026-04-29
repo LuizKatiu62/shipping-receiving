@@ -443,6 +443,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-title">📋 Incoming Form</div>
       <div class="section-actions">
         <select class="year-select" id="inc-year" onchange="filterIncoming()"><option value="">All Years</option></select>
+        <select class="year-select" id="inc-month" onchange="filterIncoming()"><option value="">All Months</option></select>
         <input class="search-input" type="text" id="inc-search" placeholder="Search form #, WO, equipment..." oninput="filterIncoming()">
         <button class="btn btn-secondary" onclick="exportIncomingCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openIncomingModal()">+ New Incoming</button>
@@ -478,6 +479,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-title">📦 Incoming Items</div>
       <div class="section-actions">
         <select class="year-select" id="itm-year" onchange="filterItems()"><option value="">All Years</option></select>
+        <select class="year-select" id="itm-month" onchange="filterItems()"><option value="">All Months</option></select>
         <input class="search-input" type="text" id="itm-search" placeholder="Search doc #, PO, material..." oninput="filterItems()">
         <button class="btn btn-secondary" onclick="exportItemsCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openItemModal()">+ New Item</button>
@@ -508,6 +510,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-title">🚚 Shipping</div>
       <div class="section-actions">
         <select class="year-select" id="shp-year" onchange="filterShipping()"><option value="">All Years</option></select>
+        <select class="year-select" id="shp-month" onchange="filterShipping()"><option value="">All Months</option></select>
         <input class="search-input" type="text" id="shp-search" placeholder="Search outgoing #, city, material..." oninput="filterShipping()">
         <button class="btn btn-secondary" onclick="exportShippingCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openShipModal()">+ New Shipment</button>
@@ -544,6 +547,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-title">🔧 Subcontractor</div>
       <div class="section-actions">
         <select class="year-select" id="sub-year" onchange="filterSubcontractor()"><option value="">All Years</option></select>
+        <select class="year-select" id="sub-month" onchange="filterSubcontractor()"><option value="">All Months</option></select>
         <input class="search-input" type="text" id="sub-search" placeholder="Search WO, customer, subcontractor..." oninput="filterSubcontractor()">
         <button class="btn btn-secondary" onclick="exportSubcontractorCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openSubModal()">+ New Record</button>
@@ -577,6 +581,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-title">📦 Packing &amp; Hold</div>
       <div class="section-actions">
         <select class="year-select" id="pkg-year" onchange="filterPacking()"><option value="">All Years</option></select>
+        <select class="year-select" id="pkg-month" onchange="filterPacking()"><option value="">All Months</option></select>
         <input class="search-input" type="text" id="pkg-search" placeholder="Search order #, customer..." oninput="filterPacking()">
         <button class="btn btn-secondary" onclick="exportPackingCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openPackModal()">+ New Record</button>
@@ -605,6 +610,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-title">⏸ Process on Hold</div>
       <div class="section-actions">
         <select class="year-select" id="proc-year" onchange="filterProcess()"><option value="">All Years</option></select>
+        <select class="year-select" id="proc-month" onchange="filterProcess()"><option value="">All Months</option></select>
         <input class="search-input" type="text" id="proc-search" placeholder="Search outgoing #, WO #, customer..." oninput="filterProcess()">
         <button class="btn btn-secondary" onclick="exportProcessCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openProcModal()">+ New Record</button>
@@ -638,6 +644,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
       <div class="section-title">💰 Payments</div>
       <div class="section-actions">
         <select class="year-select" id="pay-year" onchange="filterPayments()"><option value="">All Years</option></select>
+        <select class="year-select" id="pay-month" onchange="filterPayments()"><option value="">All Months</option></select>
         <input class="search-input" type="text" id="pay-search" placeholder="Search order #, customer, method..." oninput="filterPayments()">
         <button class="btn btn-secondary" onclick="exportPaymentsCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openPayModal()">+ New Payment</button>
@@ -1510,6 +1517,7 @@ var itmPage   = 0;
 
 // ── INIT ──
 window.addEventListener('DOMContentLoaded', function(){
+  buildMonthSelects();
   try{
     if(!firebase.apps.length) firebase.initializeApp(FB_CFG);
     db   = firebase.database();
@@ -1556,6 +1564,16 @@ function processAuthUser(user){
   document.getElementById('auth-overlay').style.display = 'none';
   document.getElementById('app-loading').style.display  = 'flex';
   initDataListeners();
+}
+
+function buildMonthSelects(){
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var opts = '<option value="">All Months</option>';
+  months.forEach(function(m,i){ opts += '<option value="'+(i<9?'0':'')+(i+1)+'">'+m+'</option>'; });
+  ['inc-month','itm-month','shp-month','sub-month','pkg-month','proc-month','pay-month'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.innerHTML = opts;
+  });
 }
 
 function populateYearSelect(selectId, dataObj, dateField){
@@ -1837,7 +1855,9 @@ function renderIncoming(){
   var rows = Object.entries(incomingData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
   var yr = (document.getElementById('inc-year')||{}).value||'';
+  var mo = (document.getElementById('inc-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.date||'').startsWith(yr); });
+  if(mo) rows = rows.filter(function(r){ return (r.date||'').slice(5,7)===mo; });
   incomingFiltered = rows;
 
   var q = (document.getElementById('inc-search').value||'').toLowerCase();
@@ -2244,7 +2264,9 @@ function renderSubcontractor(){
   var rows = Object.entries(subData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   rows.sort(function(a,b){ return (b.shipDate||'').localeCompare(a.shipDate||''); });
   var yr = (document.getElementById('sub-year')||{}).value||'';
+  var mo = (document.getElementById('sub-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.shipDate||'').startsWith(yr); });
+  if(mo) rows = rows.filter(function(r){ return (r.shipDate||'').slice(5,7)===mo; });
   subFiltered = rows;
   var q = (document.getElementById('sub-search').value||'').toLowerCase();
   if(q) subFiltered = rows.filter(function(r){
@@ -2640,7 +2662,9 @@ function renderShipping(){
   var rows = Object.entries(shpData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
   var yr = (document.getElementById('shp-year')||{}).value||'';
+  var mo = (document.getElementById('shp-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.date||'').startsWith(yr); });
+  if(mo) rows = rows.filter(function(r){ return (r.date||'').slice(5,7)===mo; });
   shpFiltered = rows;
 
   var q = (document.getElementById('shp-search').value||'').toLowerCase();
@@ -2872,7 +2896,9 @@ function renderItems(){
   });
   rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
   var yr = (document.getElementById('itm-year')||{}).value||'';
+  var mo = (document.getElementById('itm-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.date||'').startsWith(yr); });
+  if(mo) rows = rows.filter(function(r){ return (r.date||'').slice(5,7)===mo; });
   itemsFiltered = rows;
   var q = (document.getElementById('itm-search').value||'').toLowerCase();
   if(q) itemsFiltered = rows.filter(function(r){
@@ -3284,7 +3310,9 @@ function renderProcess(){
   var rows = Object.entries(procData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   rows.sort(function(a,b){ return (a.receivedDate||'').localeCompare(b.receivedDate||''); });
   var yr = (document.getElementById('proc-year')||{}).value||'';
+  var mo = (document.getElementById('proc-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.receivedDate||'').startsWith(yr); });
+  if(mo) rows = rows.filter(function(r){ return (r.receivedDate||'').slice(5,7)===mo; });
   procFiltered = rows;
   var q = (document.getElementById('proc-search').value||'').toLowerCase();
   if(q) procFiltered = rows.filter(function(r){
@@ -3516,7 +3544,9 @@ function renderPacking(){
   var rows = Object.entries(pkgData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   rows.sort(function(a,b){ return (a.pickDate||'').localeCompare(b.pickDate||''); });
   var yr = (document.getElementById('pkg-year')||{}).value||'';
+  var mo = (document.getElementById('pkg-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.pickDate||'').startsWith(yr); });
+  if(mo) rows = rows.filter(function(r){ return (r.pickDate||'').slice(5,7)===mo; });
   pkgFiltered = rows;
   var q = (document.getElementById('pkg-search').value||'').toLowerCase();
   if(q) pkgFiltered = rows.filter(function(r){
@@ -3722,7 +3752,9 @@ function renderPayments(){
   var rows = Object.entries(payData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
   var yr = (document.getElementById('pay-year')||{}).value||'';
+  var mo = (document.getElementById('pay-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.date||'').startsWith(yr); });
+  if(mo) rows = rows.filter(function(r){ return (r.date||'').slice(5,7)===mo; });
   payFiltered = rows;
   var q = (document.getElementById('pay-search').value||'').toLowerCase();
   if(q) payFiltered = rows.filter(function(r){
