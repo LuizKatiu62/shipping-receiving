@@ -529,7 +529,9 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
             <th>Lb</th>
             <th>Rl</th>
             <th>Freight</th>
-            <th>Orders</th>
+            <th>Sales Order</th>
+            <th>Transfer #</th>
+            <th>Work Order</th>
             <th>Carrier</th>
             <th>Tracking #</th>
             <th style="width:90px">Actions</th>
@@ -2706,10 +2708,6 @@ function renderShipping(){
     var freightBadge = r.freightType
       ? '<span class="badge '+(r.freightType==='Collect'?'badge-generator':'badge-electrical')+'">'+r.freightType+'</span>'
       : '—';
-    var orders = [];
-    if(r.salesOrders&&r.salesOrders.length) orders.push('SO: '+r.salesOrders.join(', '));
-    if(r.transferNums&&r.transferNums.length) orders.push('TR: '+r.transferNums.join(', '));
-    if(r.workOrders&&r.workOrders.length) orders.push('WO: '+r.workOrders.join(', '));
     var carrierDisplay = r.carrier === 'Other' ? (r.carrierOther||'Other') : (r.carrier||'—');
     return '<tr onclick="openShipModal(\''+r._key+'\')">'+
       '<td><strong>'+escHtml(r.outgoing||'—')+'</strong></td>'+
@@ -2721,7 +2719,9 @@ function renderShipping(){
       '<td style="text-align:center">'+escHtml(r.lb||'—')+'</td>'+
       '<td style="text-align:center">'+escHtml(r.rl||'—')+'</td>'+
       '<td>'+freightBadge+'</td>'+
-      '<td style="font-size:.75rem">'+escHtml(orders.join(' | ')||'—')+'</td>'+
+      '<td>'+escHtml((r.salesOrders&&r.salesOrders.length)?r.salesOrders.join(', '):'—')+'</td>'+
+      '<td>'+escHtml((r.transferNums&&r.transferNums.length)?r.transferNums.join(', '):'—')+'</td>'+
+      '<td>'+escHtml((r.workOrders&&r.workOrders.length)?r.workOrders.join(', '):'—')+'</td>'+
       '<td>'+escHtml(carrierDisplay)+'</td>'+
       '<td>'+escHtml(r.trackingNum||'—')+'</td>'+
       '<td onclick="event.stopPropagation()">'+
