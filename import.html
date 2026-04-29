@@ -170,19 +170,21 @@ function checkLock(){
 }
 
 function unlockSection(path){
-  // Define which date range is missing per section
   var ranges = {
-    'incoming': {from:'2024-01-01', to:'2024-12-31', label:'+ 2024 only'},
-    'items':    {from:'2024-01-01', to:'2025-12-31', label:'+ 2024–2025'}
+    'incoming': {from:'2024-01-01', to:'2024-12-31', label:'✔ 2024 unlocked'},
+    'items':    {from:'2024-01-01', to:'2025-12-31', label:'✔ 2024–2025 unlocked'}
   };
   var r = ranges[path];
   if(!r) return;
   sectionMode[path] = r;
-  document.getElementById('f-'+path).disabled = false;
+  var inp = document.getElementById('f-'+path);
+  inp.disabled = false;
   var b = document.getElementById('b-'+path);
   b.className = 'badge badge-ok';
   b.textContent = r.label;
   document.getElementById('add-'+path).style.display = 'none';
+  // Automatically open the file picker so the user selects the CSV right away
+  inp.click();
 }
 
 // ── CSV PARSER ──
@@ -245,16 +247,22 @@ function mapSvc(s){var v=SVC[(s||'').toUpperCase()];return v!==undefined?v:(s||'
 // ── BUILD FUNCTIONS ──
 function diagRows(rows, dateCol, sectionPath){
   if(!rows.length){log('  ⚠ CSV empty — 0 rows parsed','er');return;}
+  log('  Total rows in CSV: '+rows.length,'in');
   var cols = Object.keys(rows[0]);
-  log('  Columns: '+cols.join(' | '),'in');
+  log('  Columns found: '+cols.join(' | '),'in');
   var samples = rows.slice(0,3).map(function(r){
     var raw = r[dateCol]||'(empty)';
     var iso = toISO(r[dateCol]||'');
-    return raw+' → '+iso;
+    return '"'+raw+'" → '+iso;
   });
-  log('  Date col "'+dateCol+'": '+samples.join('  |  '),'in');
+  log('  Date column "'+dateCol+'" (first 3): '+samples.join(' | '),'in');
   var m = sectionMode[sectionPath];
-  log('  Filter range: '+(m ? m.from+' to '+m.to : '2024-01-01 to today'),'in');
+  log('  Importing range: '+(m ? m.from+' to '+m.to : '2024-01-01 onwards'),'in');
+  // Count how many rows fall in range
+  var inCount = rows.filter(function(r){return dateInRange(toISO(r[dateCol]||''),sectionPath);}).length;
+  log('  Rows matching range: '+inCount+' of '+rows.length,'in');
+  if(inCount===0) log('  ⚠ No rows match the date range — CSV may not contain '+
+    (m ? m.from.slice(0,4)+'-'+m.to.slice(0,4) : '2024+')+' data','er');
 }
 
 function buildIncoming(rows){
