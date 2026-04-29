@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Operations Dashboard — Source Atlantic SR</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
@@ -370,6 +371,7 @@ function render(){
   dc('yoy');
   CH['yoy'] = new Chart(document.getElementById('c-yoy').getContext('2d'),{
     type:'bar',
+    plugins:[ChartDataLabels],
     data:{labels:MO,datasets:[
       {label:pYr, data:totP, backgroundColor:'#bfdbfe', borderColor:'#93c5fd', borderWidth:1, borderRadius:4},
       {label:cYr, data:totC, backgroundColor:'#1e40afcc', borderColor:'#1e40af', borderWidth:1, borderRadius:4}
@@ -377,7 +379,16 @@ function render(){
     options:{
       responsive:true, maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
-      plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:14,padding:10}}},
+      layout:{padding:{top:16}},
+      plugins:{
+        legend:{position:'top',labels:{font:{size:11},boxWidth:14,padding:10}},
+        datalabels:{
+          anchor:'end', align:'end',
+          font:{size:9,weight:'700'},
+          color:function(ctx){return ctx.datasetIndex===0?'#3b82f6':'#1e40af';},
+          formatter:function(v){return v>0?v:'';}
+        }
+      },
       scales:{
         x:{grid:{display:false},ticks:{font:{size:10}}},
         y:{beginAtZero:true,grid:{color:'#f0f4f8'},ticks:{font:{size:10},stepSize:1}}
@@ -390,6 +401,7 @@ function render(){
   if(top.length){
     CH['cust'] = new Chart(document.getElementById('c-cust').getContext('2d'),{
       type:'bar',
+      plugins:[ChartDataLabels],
       data:{
         labels:top.map(function(e){return e[0];}),
         datasets:[{
@@ -401,7 +413,17 @@ function render(){
       },
       options:{
         indexAxis:'y', responsive:true, maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ' '+ctx.parsed.x+' shipments';}}}},
+        layout:{padding:{right:24}},
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:function(ctx){return ' '+ctx.parsed.x+' shipments';}}},
+          datalabels:{
+            anchor:'end', align:'end',
+            font:{size:10,weight:'700'},
+            color:'#1e40af',
+            formatter:function(v){return v>0?v:'';}
+          }
+        },
         scales:{
           x:{beginAtZero:true,grid:{color:'#f0f4f8'},ticks:{font:{size:10},stepSize:1}},
           y:{grid:{display:false},ticks:{font:{size:10.5}}}
@@ -420,6 +442,7 @@ function render(){
   if(topCarriers.length){
     CH['fr'] = new Chart(document.getElementById('c-fr').getContext('2d'),{
       type:'bar',
+      plugins:[ChartDataLabels],
       data:{
         labels:topCarriers.map(function(e){return e[0];}),
         datasets:[{
@@ -431,7 +454,17 @@ function render(){
       },
       options:{
         indexAxis:'y', responsive:true, maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ' '+ctx.parsed.x+' shipments';}}}},
+        layout:{padding:{right:24}},
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:function(ctx){return ' '+ctx.parsed.x+' shipments';}}},
+          datalabels:{
+            anchor:'end', align:'end',
+            font:{size:10,weight:'700'},
+            color:'#1e40af',
+            formatter:function(v){return v>0?v:'';}
+          }
+        },
         scales:{
           x:{beginAtZero:true,grid:{color:'#f0f4f8'},ticks:{font:{size:10},stepSize:1}},
           y:{grid:{display:false},ticks:{font:{size:10.5}}}
