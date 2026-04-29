@@ -2956,10 +2956,10 @@ function renderItmLines(){
         '<div class="form-group" style="margin-bottom:6px">',
           '<label>Application</label>',
           '<div style="display:flex;gap:20px;margin-top:4px">',
-            '<label style="display:flex;align-items:center;gap:6px;font-size:.875rem;font-weight:600;text-transform:none;letter-spacing:0;cursor:pointer">',
+            '<label id="itm-l'+i+'-so-rdlbl" style="display:'+(isWO?'none':'flex')+';align-items:center;gap:6px;font-size:.875rem;font-weight:600;text-transform:none;letter-spacing:0;cursor:pointer">',
               '<input type="radio" name="itm-l'+i+'-app" value="Sales Order"'+(isSO?' checked':'')+' onchange="toggleLineApp('+i+')" style="width:15px;height:15px;accent-color:#1565c0"> Sales Order',
             '</label>',
-            '<label style="display:flex;align-items:center;gap:6px;font-size:.875rem;font-weight:600;text-transform:none;letter-spacing:0;cursor:pointer">',
+            '<label id="itm-l'+i+'-wo-rdlbl" style="display:'+(isSO?'none':'flex')+';align-items:center;gap:6px;font-size:.875rem;font-weight:600;text-transform:none;letter-spacing:0;cursor:pointer">',
               '<input type="radio" name="itm-l'+i+'-app" value="Work Order"'+(isWO?' checked':'')+' onchange="toggleLineApp('+i+')" style="width:15px;height:15px;accent-color:#1565c0"> Work Order',
             '</label>',
           '</div>',
@@ -3014,6 +3014,10 @@ function toggleLineApp(i){
   var isWO = radio&&radio.value==='Work Order';
   document.getElementById('itm-l'+i+'-sogrp').style.display = isSO?'block':'none';
   document.getElementById('itm-l'+i+'-wogrp').style.display = isWO?'block':'none';
+  var soLbl = document.getElementById('itm-l'+i+'-so-rdlbl');
+  var woLbl = document.getElementById('itm-l'+i+'-wo-rdlbl');
+  if(soLbl) soLbl.style.display = isWO?'none':'flex';
+  if(woLbl) woLbl.style.display = isSO?'none':'flex';
   if(!isSO) document.getElementById('itm-l'+i+'-sonum').value='';
   if(!isWO){
     document.getElementById('itm-l'+i+'-wonum').value='';
