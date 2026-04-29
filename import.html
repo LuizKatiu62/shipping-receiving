@@ -94,6 +94,18 @@ input[type="file"]::-webkit-file-upload-button{background:#1565c0;color:#fff;bor
     <div class="log" id="log" style="display:none"></div>
   </div>
 
+  <!-- FIX FREIGHT CARD -->
+  <div class="card" id="fix-freight-card" style="display:none">
+    <h2>🔧 Fix Collect / Prepaid on Existing Records</h2>
+    <p style="font-size:.82rem;color:#6b7280;margin-bottom:14px">The 3900+ imported shipping records have wrong freight type (was reading "Services" column instead of "Billing"). Select the <strong>Shipment Freight.csv</strong> to patch all existing records with the correct Collect / Prepaid value — no data is deleted, only the freight type field is updated.</p>
+    <div class="file-row">
+      <span class="file-label">🚚 Shipment Freight</span>
+      <input type="file" id="f-fix-freight" accept=".csv">
+    </div>
+    <button class="btn" id="btn-fix-freight" onclick="runFixFreight()" style="background:linear-gradient(135deg,#c2410c,#ea580c)">🔧 Fix Freight Types Now</button>
+    <div class="log" id="log-fix" style="display:none"></div>
+  </div>
+
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -119,11 +131,13 @@ auth.onAuthStateChanged(function(user){
   if(user){
     document.getElementById('login-card').style.display = 'none';
     document.getElementById('import-card').style.display = 'block';
+    document.getElementById('fix-freight-card').style.display = 'block';
     document.getElementById('user-line').textContent = '✓ Signed in as ' + user.email;
     checkLock();
   } else {
     document.getElementById('login-card').style.display = 'block';
     document.getElementById('import-card').style.display = 'none';
+    document.getElementById('fix-freight-card').style.display = 'none';
   }
 });
 
@@ -243,6 +257,12 @@ function mapBin(b){
 }
 var SVC={'SALES ORDER':'Sales Order','SERVICE ORDER':'Work Order','WORK ORDER':'Work Order','FOR STOCK':''};
 function mapSvc(s){var v=SVC[(s||'').toUpperCase()];return v!==undefined?v:(s||'');}
+function mapFreight(s){
+  var u=(s||'').toUpperCase().trim();
+  if(u.includes('COLLECT'))return'Collect';
+  if(u.includes('PREPAID'))return'Prepaid';
+  return'';
+}
 
 // ── BUILD FUNCTIONS ──
 function diagRows(rows, dateCol, sectionPath){
@@ -332,7 +352,7 @@ function buildShipping(rows){
     var k=db.ref(SR+'/shipping').push().key;
     res[k]={date:dt,outgoing:p('Outgoing Form'),city:p('City'),province:p('Province'),
       postalCode:p('Postal Code'),country:p('Country'),pc:p('Pieces'),lb:p('Weight'),
-      material:p('Description'),freightType:p('Services'),workOrders:wos,salesOrders:sos,
+      material:p('Description'),freightType:mapFreight(p('Billing')),workOrders:wos,salesOrders:sos,
       transferNums:trs,carrier:p('Transportation Name'),carrierOther:'',
       trackingNum:p('Airbill Number'),notes:p('Comments'),customer:p('Consignee'),_imported:true};
   });
@@ -428,8 +448,81 @@ async function startImport(){
   btn.textContent='✅ Import Complete';
   btn.style.background='#16a34a';
   btn.disabled=false;
-  // Re-check which sections now have data and lock them
   setTimeout(function(){ checkLock(); }, 1000);
+}
+
+// ── FIX FREIGHT TYPES ON EXISTING RECORDS ──
+function logFix(msg,type){
+  var el=document.getElementById('log-fix');
+  el.style.display='block';
+  var s=document.createElement('span');
+  s.className=type||'in';s.textContent=msg+'\n';
+  el.appendChild(s);el.scrollTop=el.scrollHeight;
+}
+
+async function runFixFreight(){
+  var inp=document.getElementById('f-fix-freight');
+  if(!inp.files||!inp.files[0]){alert('Please select Shipment Freight.csv first.');return;}
+  var btn=document.getElementById('btn-fix-freight');
+  btn.disabled=true;btn.textContent='Fixing...';
+  document.getElementById('log-fix').innerHTML='';
+
+  try{
+    logFix('Reading CSV...','in');
+    var text=await readFile(inp.files[0]);
+    var rows=parseCSV(text);
+    logFix('  CSV rows: '+rows.length,'in');
+
+    // Build lookup: outgoing form# → correct freightType
+    var lookup={};
+    rows.forEach(function(r){
+      var out=(r['Outgoing Form']||'').trim();
+      var ft=mapFreight(r['Billing']||'');
+      if(out&&ft) lookup[out]=ft;
+    });
+    logFix('  Outgoing forms with Collect/Prepaid: '+Object.keys(lookup).length,'in');
+
+    // Read all Firebase shipping records
+    logFix('Reading Firebase shipping records...','in');
+    var snap=await db.ref(SR+'/shipping').once('value');
+    var shpData=snap.val()||{};
+    var allKeys=Object.keys(shpData);
+    logFix('  Firebase records: '+allKeys.length,'in');
+
+    // Build patch updates
+    var updates={};
+    var matched=0,alreadyOk=0,noMatch=0;
+    allKeys.forEach(function(k){
+      var rec=shpData[k];
+      var out=(rec.outgoing||'').trim();
+      if(out&&lookup[out]){
+        if(rec.freightType===lookup[out]){alreadyOk++;return;}
+        updates[k+'/freightType']=lookup[out];
+        matched++;
+      } else {
+        noMatch++;
+      }
+    });
+    logFix('  To update: '+matched+' | Already correct: '+alreadyOk+' | No CSV match: '+noMatch,'in');
+
+    if(matched===0){
+      logFix('  Nothing to update.','in');
+    } else {
+      logFix('Applying '+matched+' updates to Firebase...','in');
+      // Send in chunks of 500
+      var uKeys=Object.keys(updates);
+      for(var i=0;i<uKeys.length;i+=500){
+        var chunk={};
+        uKeys.slice(i,i+500).forEach(function(k){chunk[k]=updates[k];});
+        await db.ref(SR+'/shipping').update(chunk);
+        logFix('  Sent '+(Math.min(i+500,uKeys.length))+' / '+uKeys.length,'in');
+      }
+      logFix('✅ Done! '+matched+' records updated with correct Collect / Prepaid.','ok');
+    }
+  }catch(e){
+    logFix('✗ Error: '+e.message,'er');
+  }
+  btn.disabled=false;btn.textContent='🔧 Fix Freight Types Now';
 }
 </script>
 </body>
