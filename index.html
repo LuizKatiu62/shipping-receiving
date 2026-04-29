@@ -3085,7 +3085,9 @@ function saveItem(){
     itemsData[k]=record; renderItems();
   }
   closeItemModal();
-  var wipItems = lineItems.filter(function(li){ return li.binLocation === 'WIP'; });
+  var wipItems = lineItems.filter(function(li){
+    return li.binLocation === 'WIP' && (li.area === 'Electrical' || li.area === 'Mechanical');
+  });
   if(wipItems.length) setTimeout(function(){ openWipEmailModal(record, wipItems); }, 80);
 }
 
