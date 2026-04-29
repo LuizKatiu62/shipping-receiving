@@ -96,9 +96,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .table-wrap tbody tr:nth-child(even) td{background:#fafcff}
 .table-wrap tbody tr:nth-child(even):hover td{background:#f0f7ff}
 
-/* ── INCOMING FORM TABLE ── */
-#section-incoming .table-wrap table{min-width:1080px}
-#section-incoming .table-wrap td{white-space:normal;word-break:break-word}
+/* ── WIDE SECTION TABLES ── */
+#section-incoming .table-wrap table{min-width:1300px}
+#section-incoming .table-wrap td{white-space:nowrap}
+#section-shipping .table-wrap table{min-width:1400px}
+#section-shipping .table-wrap td{white-space:nowrap}
 
 /* ── YEAR FILTER ── */
 .year-select{padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.82rem;font-family:'Inter',inherit;background:var(--surface);color:var(--text-primary);outline:none;cursor:pointer;min-width:105px;transition:border-color .18s}
