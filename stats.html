@@ -244,14 +244,14 @@ function render(){
     c.moP  = c.prev[lastMo];
   });
 
-  // freight
-  var fr = {col:0,pre:0,non:0};
+  // carrier counts
+  var carrierCount = {};
   Object.values(allData.shipping).forEach(function(r){
     if(!(r.date||'').startsWith(cYr)) return;
-    if(r.freightType==='Collect') fr.col++;
-    else if(r.freightType==='Prepaid') fr.pre++;
-    else fr.non++;
+    var name = r.carrier==='Other' ? (r.carrierOther||'Other') : (r.carrier||'Not Set');
+    carrierCount[name] = (carrierCount[name]||0)+1;
   });
+  var topCarriers = Object.entries(carrierCount).sort(function(a,b){return b[1]-a[1];});
 
   // top customers
   var cc = {};
@@ -307,10 +307,9 @@ function render(){
       '<div class="cb"><div class="cw" style="height:'+Math.max(180, top.length*34)+'px"><canvas id="c-cust"></canvas></div></div>'+
     '</div>'+
     '<div class="card">'+
-      '<div class="ch"><div><div class="ct">Freight Type</div><div class="cs">'+cYr+'</div></div></div>'+
+      '<div class="ch"><div><div class="ct">Carrier</div><div class="cs">By number of shipments · '+cYr+'</div></div></div>'+
       '<div class="cb">'+
-        '<div class="cw" style="height:170px"><canvas id="c-fr"></canvas></div>'+
-        '<div class="fstats" id="fstats"></div>'+
+        '<div class="cw" style="height:'+(Math.max(160, topCarriers.length*34))+'px"><canvas id="c-fr"></canvas></div>'+
       '</div>'+
     '</div>'+
   '</div>';
@@ -340,15 +339,6 @@ function render(){
   yh += '</div>';
   document.getElementById('yoy-panel').innerHTML = yh;
 
-  /* Freight stats */
-  var ft = fr.col+fr.pre+fr.non||1;
-  document.getElementById('fstats').innerHTML =
-    '<div class="fstat"><div class="fstat-num" style="color:var(--cyan)">'+fr.col+'</div>'+
-      '<div class="fstat-lbl">Collect ('+Math.round(fr.col/ft*100)+'%)</div></div>'+
-    '<div class="fstat"><div class="fstat-num" style="color:var(--blue)">'+fr.pre+'</div>'+
-      '<div class="fstat-lbl">Prepaid ('+Math.round(fr.pre/ft*100)+'%)</div></div>'+
-    (fr.non?'<div class="fstat"><div class="fstat-num" style="color:var(--light)">'+fr.non+'</div>'+
-      '<div class="fstat-lbl">Not set</div></div>':'');
 
   /* ── CHARTS ── */
 
@@ -424,18 +414,35 @@ function render(){
       '<div style="display:flex;align-items:center;justify-content:center;height:180px;color:#94a3b8;font-size:.8rem">No shipping data for '+cYr+'</div>';
   }
 
-  // Freight donut
+  // Carrier horizontal bar
   dc('fr');
-  var fLabels=['Collect','Prepaid']; var fVals=[fr.col,fr.pre];
-  if(fr.non){fLabels.push('Not set'); fVals.push(fr.non);}
-  CH['fr'] = new Chart(document.getElementById('c-fr').getContext('2d'),{
-    type:'doughnut',
-    data:{labels:fLabels, datasets:[{data:fVals, backgroundColor:['#0891b2','#1e40af','#94a3b8'], borderWidth:0, hoverOffset:4}]},
-    options:{
-      responsive:true, maintainAspectRatio:false, cutout:'68%',
-      plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:12,boxWidth:12}}}
-    }
-  });
+  var carrierColors=['#1e40af','#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#dbeafe','#eff6ff'];
+  if(topCarriers.length){
+    CH['fr'] = new Chart(document.getElementById('c-fr').getContext('2d'),{
+      type:'bar',
+      data:{
+        labels:topCarriers.map(function(e){return e[0];}),
+        datasets:[{
+          label:'Shipments',
+          data:topCarriers.map(function(e){return e[1];}),
+          backgroundColor:topCarriers.map(function(_,i){return carrierColors[i%carrierColors.length];}),
+          borderRadius:4, borderWidth:0
+        }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ' '+ctx.parsed.x+' shipments';}}}},
+        scales:{
+          x:{beginAtZero:true,grid:{color:'#f0f4f8'},ticks:{font:{size:10},stepSize:1}},
+          y:{grid:{display:false},ticks:{font:{size:10.5}}}
+        }
+      }
+    });
+  } else {
+    var elFr = document.getElementById('c-fr');
+    if(elFr) elFr.parentElement.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:center;height:160px;color:#94a3b8;font-size:.8rem">No carrier data for '+cYr+'</div>';
+  }
 }
 
 function buildTable(cats, cYr, pYr, lastMo, live){
