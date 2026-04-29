@@ -101,10 +101,20 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 #section-incoming .table-wrap table{width:max-content;min-width:100%}
 #section-incoming .table-wrap td{white-space:nowrap}
 #section-incoming .table-wrap th{white-space:nowrap}
+#section-incoming .table-wrap td:last-child,
+#section-incoming .table-wrap th:last-child{position:sticky;right:0;z-index:2;background:#fff;box-shadow:-3px 0 6px rgba(0,0,0,.06)}
+#section-incoming .table-wrap tr:nth-child(even) td:last-child{background:#fafcff}
+#section-incoming .table-wrap tr:hover td:last-child{background:#f0f7ff}
+#section-incoming .table-wrap th:last-child{background:linear-gradient(180deg,var(--blue-600),var(--blue-500))}
 #section-shipping .table-wrap{overflow-x:auto}
 #section-shipping .table-wrap table{width:max-content;min-width:100%}
 #section-shipping .table-wrap td{white-space:nowrap}
 #section-shipping .table-wrap th{white-space:nowrap}
+#section-shipping .table-wrap td:last-child,
+#section-shipping .table-wrap th:last-child{position:sticky;right:0;z-index:2;background:#fff;box-shadow:-3px 0 6px rgba(0,0,0,.06)}
+#section-shipping .table-wrap tr:nth-child(even) td:last-child{background:#fafcff}
+#section-shipping .table-wrap tr:hover td:last-child{background:#f0f7ff}
+#section-shipping .table-wrap th:last-child{background:linear-gradient(180deg,var(--blue-600),var(--blue-500))}
 
 /* ── YEAR FILTER ── */
 .year-select{padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.82rem;font-family:'Inter',inherit;background:var(--surface);color:var(--text-primary);outline:none;cursor:pointer;min-width:105px;transition:border-color .18s}
