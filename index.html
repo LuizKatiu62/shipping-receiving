@@ -2969,7 +2969,7 @@ function renderItmLines(){
         '</div>',
         '<div id="itm-l'+i+'-wogrp" style="display:'+(isWO?'block':'none')+'">',
           '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px">',
-            '<div class="form-group"><label>Work Order #</label><input type="text" id="itm-l'+i+'-wonum" placeholder="Work Order #" maxlength="7" oninput="enforceUpper(this)" value="'+escAttr(item.workOrderNum||'')+'"></div>',
+            '<div class="form-group"><label>Work Order #</label><input type="text" id="itm-l'+i+'-wonum" placeholder="Work Order #" maxlength="7" oninput="enforceUpper(this);autoFillWoData('+i+')" value="'+escAttr(item.workOrderNum||'')+'"></div>',
             '<div class="form-group"><label>Area</label><select id="itm-l'+i+'-area"><option value="">— Area —</option>'+areaSel+'</select></div>',
             '<div class="form-group"><label>Customer</label><input type="text" id="itm-l'+i+'-cust" list="customer-suggestions" placeholder="Customer" oninput="enforceUpper(this)" value="'+escAttr(item.customer||'')+'"></div>',
           '</div>',
@@ -3023,6 +3023,24 @@ function toggleLineApp(i){
     document.getElementById('itm-l'+i+'-wonum').value='';
     document.getElementById('itm-l'+i+'-area').value='';
     document.getElementById('itm-l'+i+'-cust').value='';
+  }
+}
+
+function autoFillWoData(i){
+  var woVal = (document.getElementById('itm-l'+i+'-wonum').value||'').trim();
+  if(!woVal) return;
+  var count = document.querySelectorAll('[id^="itm-l"][id$="-wonum"]').length;
+  for(var j=0; j<count; j++){
+    if(j===i) continue;
+    var otherWo = document.getElementById('itm-l'+j+'-wonum');
+    if(!otherWo || otherWo.value.trim()!==woVal) continue;
+    var areaEl = document.getElementById('itm-l'+i+'-area');
+    var custEl = document.getElementById('itm-l'+i+'-cust');
+    var srcArea = document.getElementById('itm-l'+j+'-area');
+    var srcCust = document.getElementById('itm-l'+j+'-cust');
+    if(areaEl && srcArea && !areaEl.value) areaEl.value = srcArea.value;
+    if(custEl && srcCust && !custEl.value) custEl.value = srcCust.value;
+    break;
   }
 }
 
