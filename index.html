@@ -523,15 +523,15 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
             <th>Outgoing #</th>
             <th>Shipment Date</th>
             <th>Customer</th>
-            <th>Destination</th>
+            <th>Sales Order</th>
+            <th>Transfer #</th>
+            <th>Work Order</th>
             <th>Material</th>
+            <th>Destination</th>
             <th>Pc</th>
             <th>Lb</th>
             <th>Rl</th>
             <th>Freight</th>
-            <th>Sales Order</th>
-            <th>Transfer #</th>
-            <th>Work Order</th>
             <th>Carrier</th>
             <th>Tracking #</th>
             <th style="width:90px">Actions</th>
@@ -2713,15 +2713,15 @@ function renderShipping(){
       '<td><strong>'+escHtml(r.outgoing||'—')+'</strong></td>'+
       '<td style="white-space:nowrap">'+fmtDate(r.date)+'</td>'+
       '<td>'+escHtml(r.customer||'—')+'</td>'+
-      '<td>'+dest+'</td>'+
+      '<td>'+escHtml((r.salesOrders&&r.salesOrders.length)?r.salesOrders.join(', '):'—')+'</td>'+
+      '<td>'+escHtml((r.transferNums&&r.transferNums.length)?r.transferNums.join(', '):'—')+'</td>'+
+      '<td>'+escHtml((r.workOrders&&r.workOrders.length)?r.workOrders.join(', '):'—')+'</td>'+
       '<td>'+escHtml(r.material||'—')+'</td>'+
+      '<td>'+dest+'</td>'+
       '<td style="text-align:center">'+escHtml(r.pc||'—')+'</td>'+
       '<td style="text-align:center">'+escHtml(r.lb||'—')+'</td>'+
       '<td style="text-align:center">'+escHtml(r.rl||'—')+'</td>'+
       '<td>'+freightBadge+'</td>'+
-      '<td>'+escHtml((r.salesOrders&&r.salesOrders.length)?r.salesOrders.join(', '):'—')+'</td>'+
-      '<td>'+escHtml((r.transferNums&&r.transferNums.length)?r.transferNums.join(', '):'—')+'</td>'+
-      '<td>'+escHtml((r.workOrders&&r.workOrders.length)?r.workOrders.join(', '):'—')+'</td>'+
       '<td>'+escHtml(carrierDisplay)+'</td>'+
       '<td>'+escHtml(r.trackingNum||'—')+'</td>'+
       '<td onclick="event.stopPropagation()">'+
