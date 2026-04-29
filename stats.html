@@ -3,126 +3,173 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Year-over-Year Dashboard — Source Atlantic SR</title>
+<title>Operations Dashboard — Source Atlantic SR</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
+:root{
+  --bg:#f0f4f8;--card:#fff;--border:#e2e8f0;
+  --text:#0f172a;--muted:#64748b;--light:#94a3b8;
+  --blue:#1e40af;--blue2:#2563eb;--blue3:#3b82f6;--blue4:#bfdbfe;
+  --cyan:#0891b2;--cyan2:#22d3ee;
+  --purple:#7c3aed;--purple2:#a78bfa;
+  --green:#059669;--red:#dc2626;
+  --shadow:0 1px 3px rgba(0,0,0,.09),0 1px 2px rgba(0,0,0,.06);
+  --r:12px;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',system-ui,sans-serif;background:#f0f4f8;color:#1a1a2e;min-height:100vh}
-/* ── Top bar ── */
-.topbar{background:linear-gradient(135deg,#1565c0,#1976d2);padding:0;box-shadow:0 2px 12px rgba(21,101,192,.35)}
-.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;flex-wrap:wrap;gap:10px}
-.topbar-title{font-size:1.05rem;font-weight:800;color:#fff;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
-.topbar-back{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;text-decoration:none;transition:background .18s}
-.topbar-back:hover{background:rgba(255,255,255,.25)}
-/* ── Controls ── */
-.controls{background:#fff;border-bottom:1px solid #e2e8f0;padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.ctrl-label{font-size:.78rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px}
-.year-sel{padding:8px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:.84rem;font-weight:600;color:#1a1a2e;background:#fff;cursor:pointer;outline:none;transition:border-color .18s;font-family:inherit}
-.year-sel:focus{border-color:#1565c0}
-.vs-badge{background:#f0f4f8;border:1px solid #d1d5db;border-radius:6px;padding:5px 12px;font-size:.78rem;font-weight:700;color:#64748b}
-.ytd-note{font-size:.75rem;color:#94a3b8;margin-left:auto}
-/* ── Summary cards ── */
-.summary{display:flex;gap:14px;padding:20px 28px 0;flex-wrap:wrap}
-.s-card{background:#fff;border-radius:12px;padding:16px 22px;flex:1;min-width:180px;box-shadow:0 1px 4px rgba(0,0,0,.07);border:1px solid #e2e8f0;display:flex;flex-direction:column;gap:4px}
-.s-card-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b}
-.s-card-row{display:flex;align-items:baseline;gap:8px}
-.s-card-curr{font-size:1.6rem;font-weight:800;color:#1565c0}
-.s-card-prev{font-size:.82rem;color:#94a3b8;font-weight:500}
-.s-card-pct{font-size:.9rem;font-weight:700;padding:2px 10px;border-radius:20px}
-.pct-up{background:#dcfce7;color:#16a34a}
-.pct-dn{background:#fee2e2;color:#dc2626}
-.pct-eq{background:#f1f5f9;color:#64748b}
-/* ── Charts ── */
-.charts-grid{display:flex;gap:16px;padding:20px 28px;flex-wrap:wrap}
-.chart-card{background:#fff;border-radius:12px;padding:18px 20px;flex:1;min-width:260px;box-shadow:0 1px 4px rgba(0,0,0,.07);border:1px solid #e2e8f0}
-.chart-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;margin-bottom:12px}
-.chart-canvas-wrap{position:relative;height:180px}
-/* ── Table ── */
-.table-section{padding:20px 28px 32px}
-.table-card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.07);border:1px solid #e2e8f0;overflow:hidden}
-.table-header{padding:14px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:10px}
-.table-title{font-size:.82rem;font-weight:700;color:#1a1a2e}
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:.78rem}
-thead tr{background:linear-gradient(180deg,#1565c0,#1976d2)}
-thead th{color:#fff;padding:10px 12px;font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:right;white-space:nowrap}
-thead th:first-child{text-align:left;width:80px}
-thead th.group-start{border-left:2px solid rgba(255,255,255,.2)}
-thead .cat-header{text-align:center;font-size:.7rem;letter-spacing:.3px}
-tbody tr{border-bottom:1px solid #f1f5f9;transition:background .12s;cursor:default}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── HEADER ── */
+.hdr{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-bottom:1px solid rgba(255,255,255,.08)}
+.hdr-inner{max-width:1420px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:16px 28px;gap:12px;flex-wrap:wrap}
+.hdr-logo{width:38px;height:38px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;color:#fff;letter-spacing:-.5px;flex-shrink:0}
+.hdr-title{font-size:.98rem;font-weight:700;color:#fff;line-height:1.2}
+.hdr-sub{font-size:.67rem;color:rgba(255,255,255,.4);margin-top:1px}
+.hdr-date{font-size:.7rem;color:rgba(255,255,255,.4)}
+.btn-back{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8);padding:7px 14px;border-radius:8px;font-size:.74rem;font-weight:600;cursor:pointer;text-decoration:none;font-family:inherit;transition:all .18s}
+.btn-back:hover{background:rgba(255,255,255,.2);color:#fff}
+
+/* ── FILTER BAR ── */
+.fbar{background:var(--card);border-bottom:1px solid var(--border);padding:11px 28px}
+.fbar-inner{max-width:1420px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.flabel{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.fsel{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;font-weight:600;color:var(--text);background:var(--card);cursor:pointer;outline:none;font-family:inherit;transition:border-color .18s}
+.fsel:focus{border-color:var(--blue3)}
+.vs-chip{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:.7rem;font-weight:700;color:var(--muted)}
+.fnote{font-size:.68rem;color:var(--light);margin-left:auto}
+
+/* ── BODY ── */
+.body{max-width:1420px;margin:0 auto;padding:22px 28px 44px}
+
+/* ── KPI CARDS ── */
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px}
+.kpi{background:var(--card);border-radius:var(--r);padding:20px 22px 16px;box-shadow:var(--shadow);border:1px solid var(--border);position:relative;overflow:hidden;display:flex;flex-direction:column;gap:10px}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.blue::before{background:linear-gradient(90deg,var(--blue),var(--blue3))}
+.kpi.cyan::before{background:linear-gradient(90deg,var(--cyan),var(--cyan2))}
+.kpi.purple::before{background:linear-gradient(90deg,var(--purple),var(--purple2))}
+.kpi-top{display:flex;align-items:center;justify-content:space-between}
+.kpi-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.kpi-icon{font-size:1.25rem;opacity:.75}
+.kpi-num{font-size:2.6rem;font-weight:800;line-height:1;letter-spacing:-1.5px}
+.kpi.blue .kpi-num{color:var(--blue)}
+.kpi.cyan .kpi-num{color:var(--cyan)}
+.kpi.purple .kpi-num{color:var(--purple)}
+.kpi-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.kbadge{display:inline-flex;align-items:center;gap:2px;padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:700}
+.kbadge.up{background:#dcfce7;color:#16a34a}
+.kbadge.dn{background:#fee2e2;color:#dc2626}
+.kbadge.eq{background:#f1f5f9;color:var(--muted)}
+.kpi-vs{font-size:.69rem;color:var(--light)}
+.kpi-months{display:flex;gap:18px;border-top:1px solid var(--border);padding-top:10px;margin-top:2px}
+.kmo{display:flex;flex-direction:column;gap:1px}
+.kmo-val{font-size:.88rem;font-weight:700}
+.kmo-lbl{font-size:.6rem;color:var(--light);text-transform:uppercase;letter-spacing:.3px}
+
+/* ── CARD ── */
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--border)}
+.ch{padding:14px 20px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ct{font-size:.77rem;font-weight:700;color:var(--text)}
+.cs{font-size:.66rem;color:var(--light);margin-top:2px}
+.cb{padding:14px 20px 18px}
+.cw{position:relative}
+
+/* ── ROWS ── */
+.r1{margin-bottom:18px}
+.r2{display:grid;gap:16px;margin-bottom:18px}
+.r2.g6040{grid-template-columns:3fr 2fr}
+.r2.g5545{grid-template-columns:55fr 45fr}
+
+/* ── YOY PANEL ── */
+.yoy-list{display:flex;flex-direction:column;gap:16px;padding:4px 0}
+.yitem-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.yitem-lbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+.yitem-nums{display:flex;justify-content:space-between;font-size:.71rem;color:var(--light);margin-bottom:5px}
+.ytrack{height:7px;background:#f1f5f9;border-radius:4px;overflow:hidden}
+.yfill{height:100%;border-radius:4px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.yfill.blue{background:linear-gradient(90deg,var(--blue),var(--blue3))}
+.yfill.cyan{background:linear-gradient(90deg,var(--cyan),var(--cyan2))}
+.yfill.purple{background:linear-gradient(90deg,var(--purple),var(--purple2))}
+
+/* ── FREIGHT STATS ── */
+.fstats{display:flex;gap:24px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.fstat{text-align:center}
+.fstat-num{font-size:1.4rem;font-weight:800}
+.fstat-lbl{font-size:.62rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-top:1px}
+
+/* ── TABLE ── */
+.twrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.76rem}
+thead tr{background:linear-gradient(180deg,#1e3a8a,#2563eb)}
+thead th{color:rgba(255,255,255,.9);padding:9px 11px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:right;white-space:nowrap}
+thead th:first-child{text-align:left;width:72px}
+thead th.gs{border-left:1px solid rgba(255,255,255,.2)}
+.cspan{text-align:center}
+tbody tr{border-bottom:1px solid #f1f5f9;transition:background .1s}
 tbody tr:hover{background:#f8faff}
-tbody tr.future{opacity:.4}
-tbody tr.total-row{background:#f0f4f8;font-weight:700;border-top:2px solid #d1d5db}
-tbody tr.total-row:hover{background:#e8f0fe}
-td{padding:9px 12px;text-align:right;white-space:nowrap}
-td:first-child{text-align:left;font-weight:600;color:#1565c0;font-size:.77rem}
-td.group-start{border-left:2px solid #e2e8f0}
-td.count{color:#1a1a2e;font-variant-numeric:tabular-nums}
-td.pct{font-weight:700;font-size:.73rem}
-td.pct-up{color:#16a34a}
-td.pct-dn{color:#dc2626}
-td.pct-eq{color:#94a3b8}
-td.prev{color:#94a3b8}
-.dot-curr{display:inline-block;width:8px;height:8px;border-radius:50%;background:#1565c0;margin-right:4px}
-.dot-prev{display:inline-block;width:8px;height:8px;border-radius:50%;background:#93c5fd;margin-right:4px}
-.legend{display:flex;align-items:center;gap:16px;font-size:.73rem;color:#64748b;margin-left:auto}
-.loading{text-align:center;padding:40px;color:#94a3b8;font-size:.88rem}
+tbody tr.dim{opacity:.3}
+tbody tr.tot{background:#f0f4f8;font-weight:700;border-top:2px solid #d1d5db}
+tbody tr.ytd-row{background:#eff6ff;font-weight:700}
+td{padding:8px 11px;text-align:right;white-space:nowrap}
+td:first-child{text-align:left;font-weight:600;font-size:.74rem;color:#334155}
+td.gs{border-left:1px solid #f1f5f9}
+td.cur{font-weight:700;color:var(--blue)}
+td.pv{color:#94a3b8}
+td.dlt{font-weight:700;font-size:.69rem}
+td.dlt.up{color:#16a34a}
+td.dlt.dn{color:#dc2626}
+td.dlt.eq{color:#94a3b8}
+
+/* ── LOADING ── */
+.loading{text-align:center;padding:70px;color:var(--light);font-size:.85rem}
+
+@media(max-width:960px){
+  .kpi-row{grid-template-columns:1fr}
+  .r2.g6040,.r2.g5545{grid-template-columns:1fr}
+  .body{padding:14px 16px 32px}
+}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="topbar-inner">
-    <div class="topbar-title">📊 Year-over-Year Dashboard</div>
-    <a class="topbar-back" href="index.html">← Back to App</a>
+<div class="hdr">
+  <div class="hdr-inner">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="hdr-logo">SA</div>
+      <div>
+        <div class="hdr-title">Operations Dashboard</div>
+        <div class="hdr-sub">Source Atlantic — Industrial Services</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="hdr-date" id="hdr-date"></span>
+      <a class="btn-back" href="index.html">← Back to App</a>
+    </div>
   </div>
 </div>
 
-<div class="controls">
-  <span class="ctrl-label">Compare</span>
-  <select class="year-sel" id="sel-curr" onchange="render()">
-    <option value="2026">2026</option>
-    <option value="2025">2025</option>
-    <option value="2024">2024</option>
-  </select>
-  <span class="vs-badge">vs</span>
-  <select class="year-sel" id="sel-prev" onchange="render()">
-    <option value="2025">2025</option>
-    <option value="2024">2024</option>
-    <option value="2026">2026</option>
-  </select>
-  <span class="ytd-note" id="ytd-note"></span>
+<div class="fbar">
+  <div class="fbar-inner">
+    <span class="flabel">Compare</span>
+    <select class="fsel" id="sel-curr" onchange="render()">
+      <option value="2026">2026</option>
+      <option value="2025">2025</option>
+      <option value="2024">2024</option>
+    </select>
+    <span class="vs-chip">vs</span>
+    <select class="fsel" id="sel-prev" onchange="render()">
+      <option value="2025">2025</option>
+      <option value="2024">2024</option>
+      <option value="2026">2026</option>
+    </select>
+    <span class="fnote" id="fnote"></span>
+  </div>
 </div>
 
-<div class="summary" id="summary">
+<div class="body" id="body">
   <div class="loading">Loading data…</div>
-</div>
-
-<div class="charts-grid" id="charts-grid"></div>
-
-<div class="table-section">
-  <div class="table-card">
-    <div class="table-header">
-      <span class="table-title">Month-by-Month Breakdown</span>
-      <div class="legend" id="legend"></div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th rowspan="2">Month</th>
-            <th colspan="3" class="cat-header group-start">Incoming Form</th>
-            <th colspan="3" class="cat-header group-start">Incoming Items</th>
-            <th colspan="3" class="cat-header group-start">Shipping</th>
-          </tr>
-          <tr id="sub-header"></tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -138,239 +185,298 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var db = firebase.database();
 
-var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-var allData = { incoming: {}, items: {}, shipping: {} };
+var MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var allData = {incoming:{}, items:{}, shipping:{}};
 var loaded = 0;
+var CH = {};
 
-function onLoad(){
-  loaded++;
-  if(loaded === 3) render();
+var now = new Date();
+document.getElementById('hdr-date').textContent =
+  'As of ' + now.toLocaleDateString('en-CA',{year:'numeric',month:'long',day:'numeric'});
+
+function onLoad(){ loaded++; if(loaded>=3) render(); }
+db.ref('shipping_receiving/incoming').on('value',function(s){ allData.incoming=s.val()||{}; onLoad(); });
+db.ref('shipping_receiving/items').on('value',function(s){ allData.items=s.val()||{}; onLoad(); });
+db.ref('shipping_receiving/shipping').on('value',function(s){ allData.shipping=s.val()||{}; onLoad(); });
+
+function byMonth(data, yr){
+  var c = new Array(12).fill(0);
+  Object.values(data).forEach(function(r){
+    var d = r.date||''; if(!d.startsWith(yr)) return;
+    var m = parseInt(d.slice(5,7),10)-1; if(m>=0&&m<12) c[m]++;
+  }); return c;
 }
-
-db.ref('shipping_receiving/incoming').on('value', function(s){
-  allData.incoming = s.val() || {};
-  onLoad();
-});
-db.ref('shipping_receiving/items').on('value', function(s){
-  allData.items = s.val() || {};
-  onLoad();
-});
-db.ref('shipping_receiving/shipping').on('value', function(s){
-  allData.shipping = s.val() || {};
-  onLoad();
-});
-
-var charts = {};
-
-function countByMonth(dataObj, year){
-  var counts = new Array(12).fill(0);
-  Object.values(dataObj).forEach(function(r){
-    var d = r.date || '';
-    if(d.startsWith(year)){
-      var mo = parseInt(d.slice(5,7), 10) - 1;
-      if(mo >= 0 && mo < 12) counts[mo]++;
-    }
-  });
-  return counts;
+function sum(arr,from,to){ return arr.slice(from,to+1).reduce(function(a,b){return a+b;},0); }
+function pct(cu,pv){ if(!pv) return null; return Math.round((cu-pv)/pv*100); }
+function badge(p){
+  if(p===null) return '<span class="kbadge eq">—</span>';
+  return '<span class="kbadge '+(p>0?'up':p<0?'dn':'eq')+'">'+(p>0?'▲ ':'▼ ')+Math.abs(p)+'%</span>';
 }
-
-function pct(curr, prev){
-  if(prev === 0 && curr === 0) return null;
-  if(prev === 0) return null;
-  return Math.round((curr - prev) / prev * 100);
+function dlt(p){
+  if(p===null) return '<td class="dlt eq">—</td>';
+  return '<td class="dlt '+(p>0?'up':p<0?'dn':'eq')+'">'+(p>0?'▲ ':'▼ ')+Math.abs(p)+'%</td>';
 }
-
-function pctCell(p){
-  if(p === null) return '<td class="pct pct-eq">—</td>';
-  var arrow = p > 0 ? '▲' : p < 0 ? '▼' : '●';
-  var cls = p > 0 ? 'pct-up' : p < 0 ? 'pct-dn' : 'pct-eq';
-  return '<td class="pct '+cls+'">'+arrow+' '+Math.abs(p)+'%</td>';
-}
+function dc(id){ if(CH[id]){ CH[id].destroy(); delete CH[id]; } }
 
 function render(){
-  if(loaded < 3) return;
-  var currYr = document.getElementById('sel-curr').value;
-  var prevYr = document.getElementById('sel-prev').value;
+  if(loaded<3) return;
+  var cYr = document.getElementById('sel-curr').value;
+  var pYr = document.getElementById('sel-prev').value;
+  var todayYr = now.getFullYear().toString();
+  var todayMo = now.getMonth();
+  var live = (cYr===todayYr);
+  var lastMo = live ? todayMo : 11;
+  document.getElementById('fnote').textContent = live ? '★ YTD through '+MO[lastMo] : '';
 
-  var today = new Date();
-  var todayYr = today.getFullYear().toString();
-  var todayMo = today.getMonth(); // 0-based
-
-  var isCurrYrCurrent = (currYr === todayYr);
-  var lastMo = isCurrYrCurrent ? todayMo : 11; // for YTD note
-
-  // Update YTD note
-  var ytdEl = document.getElementById('ytd-note');
-  if(isCurrYrCurrent){
-    ytdEl.textContent = '* YTD through ' + MONTHS[lastMo];
-  } else {
-    ytdEl.textContent = '';
-  }
-
-  // Count data
   var cats = [
-    { key: 'incoming', label: 'Incoming Form', color: '#1565c0', light: '#93c5fd' },
-    { key: 'items',    label: 'Incoming Items', color: '#0891b2', light: '#67e8f9' },
-    { key: 'shipping', label: 'Shipping',        color: '#7c3aed', light: '#c4b5fd' }
+    {key:'incoming', lbl:'Incoming Form',  col:'#1e40af', lt:'#3b82f6', cls:'blue',   icon:'📋'},
+    {key:'items',    lbl:'Incoming Items', col:'#0891b2', lt:'#22d3ee', cls:'cyan',   icon:'📦'},
+    {key:'shipping', lbl:'Shipping',        col:'#7c3aed', lt:'#a78bfa', cls:'purple', icon:'🚚'}
   ];
-
   cats.forEach(function(c){
-    c.curr = countByMonth(allData[c.key], currYr);
-    c.prev = countByMonth(allData[c.key], prevYr);
+    c.curr = byMonth(allData[c.key], cYr);
+    c.prev = byMonth(allData[c.key], pYr);
+    c.ytdC = sum(c.curr,0,lastMo);
+    c.ytdP = sum(c.prev,0,lastMo);
+    c.totC = sum(c.curr,0,11);
+    c.totP = sum(c.prev,0,11);
+    c.moC  = c.curr[lastMo];
+    c.moP  = c.prev[lastMo];
   });
 
-  // ── Summary cards ──
-  var sumHtml = '';
+  // freight
+  var fr = {col:0,pre:0,non:0};
+  Object.values(allData.shipping).forEach(function(r){
+    if(!(r.date||'').startsWith(cYr)) return;
+    if(r.freightType==='Collect') fr.col++;
+    else if(r.freightType==='Prepaid') fr.pre++;
+    else fr.non++;
+  });
+
+  // top customers
+  var cc = {};
+  Object.values(allData.shipping).forEach(function(r){
+    if((r.date||'').startsWith(cYr) && r.customer)
+      cc[r.customer] = (cc[r.customer]||0)+1;
+  });
+  var top = Object.entries(cc).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
+
+  /* ── BUILD HTML ── */
+  var h = '';
+
+  /* KPI row */
+  h += '<div class="kpi-row">';
   cats.forEach(function(c){
-    var totalCurr = c.curr.slice(0, lastMo + 1).reduce(function(a,b){ return a+b; }, 0);
-    var totalPrev = c.prev.slice(0, lastMo + 1).reduce(function(a,b){ return a+b; }, 0);
-    var p = pct(totalCurr, totalPrev);
-    var pLabel = p === null ? '<span class="s-card-pct pct-eq">—</span>'
-      : '<span class="s-card-pct '+(p>0?'pct-up':p<0?'pct-dn':'pct-eq')+'">'+(p>0?'▲ ':'▼ ')+Math.abs(p)+'%</span>';
-    sumHtml += '<div class="s-card">'+
-      '<div class="s-card-label">'+c.label+'</div>'+
-      '<div class="s-card-row">'+
-        '<span class="s-card-curr">'+totalCurr+'</span>'+
-        '<span class="s-card-prev">'+prevYr+': '+totalPrev+'</span>'+
-        pLabel+
+    var p = pct(c.ytdC, c.ytdP);
+    var mp = pct(c.moC, c.moP);
+    h += '<div class="kpi '+c.cls+'">'+
+      '<div class="kpi-top"><div class="kpi-label">'+c.lbl+'</div><div class="kpi-icon">'+c.icon+'</div></div>'+
+      '<div class="kpi-num">'+c.ytdC+'</div>'+
+      '<div class="kpi-foot">'+badge(p)+'<span class="kpi-vs">vs '+pYr+(live?' YTD':'')+' ('+c.ytdP+')</span></div>'+
+      '<div class="kpi-months">'+
+        '<div class="kmo"><div class="kmo-val">'+c.moC+'</div><div class="kmo-lbl">'+MO[lastMo]+' '+cYr+'</div></div>'+
+        '<div class="kmo"><div class="kmo-val" style="color:var(--light)">'+c.moP+'</div><div class="kmo-lbl">'+MO[lastMo]+' '+pYr+'</div></div>'+
+        (mp!==null?'<div class="kmo"><div class="kmo-val" style="color:'+(mp>=0?'#059669':'#dc2626')+'">'+(mp>=0?'▲ ':'▼ ')+Math.abs(mp)+'%</div><div class="kmo-lbl">Month Δ</div></div>':'')+
       '</div>'+
-      '<div style="font-size:.68rem;color:#94a3b8;margin-top:2px">'+currYr+(isCurrYrCurrent?' YTD':'')+'</div>'+
     '</div>';
   });
-  document.getElementById('summary').innerHTML = sumHtml;
+  h += '</div>';
 
-  // ── Legend ──
-  document.getElementById('legend').innerHTML =
-    '<span><span class="dot-curr"></span>'+currYr+'</span>'+
-    '<span><span class="dot-prev"></span>'+prevYr+'</span>';
+  /* Trend line (full width) */
+  h += '<div class="r1"><div class="card">'+
+    '<div class="ch"><div><div class="ct">Monthly Volume Trend</div><div class="cs">Solid — '+cYr+' &nbsp;|&nbsp; Dashed — '+pYr+'</div></div></div>'+
+    '<div class="cb"><div class="cw" style="height:230px"><canvas id="c-trend"></canvas></div></div>'+
+  '</div></div>';
 
-  // ── Sub-header ──
-  var subHdr = '';
-  cats.forEach(function(c, i){
-    var cls = i === 0 ? ' class="group-start"' : '';
-    subHdr += '<th'+cls+'>'+prevYr+'</th><th>'+currYr+'</th><th>Δ %</th>';
-  });
-  document.getElementById('sub-header').innerHTML = subHdr;
+  /* YoY bar + summary */
+  h += '<div class="r2 g6040">'+
+    '<div class="card">'+
+      '<div class="ch"><div><div class="ct">Year-over-Year — Total Activity</div><div class="cs">All categories combined &nbsp;·&nbsp; '+cYr+' vs '+pYr+'</div></div></div>'+
+      '<div class="cb"><div class="cw" style="height:210px"><canvas id="c-yoy"></canvas></div></div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="ch"><div><div class="ct">Performance Summary</div><div class="cs">'+(live?'YTD through '+MO[lastMo]+' '+cYr:'Full Year '+cYr)+'</div></div></div>'+
+      '<div class="cb"><div id="yoy-panel"></div></div>'+
+    '</div>'+
+  '</div>';
 
-  // ── Table rows ──
-  var tbodyHtml = '';
-  for(var m = 0; m < 12; m++){
-    var isFuture = isCurrYrCurrent && m > lastMo;
-    var isTotal = false;
-    var rowCls = isFuture ? ' class="future"' : '';
-    var moLabel = MONTHS[m];
-    tbodyHtml += '<tr'+rowCls+'>'+
-      '<td>'+moLabel+'</td>';
-    cats.forEach(function(c, i){
-      var cls = i === 0 ? ' class="group-start count"' : ' class="count"';
-      var pv = c.prev[m];
-      var cu = c.curr[m];
-      var p = pct(cu, pv);
-      tbodyHtml += '<td'+cls+'>'+
-        '<span style="color:#94a3b8">'+pv+'</span></td>'+
-        '<td class="count"><strong style="color:#1565c0">'+cu+'</strong></td>'+
-        pctCell(p);
-    });
-    tbodyHtml += '</tr>';
-  }
+  /* Top customers + Freight */
+  h += '<div class="r2 g5545">'+
+    '<div class="card">'+
+      '<div class="ch"><div><div class="ct">Top Customers — Shipping</div><div class="cs">By number of outgoing shipments &nbsp;·&nbsp; '+cYr+'</div></div></div>'+
+      '<div class="cb"><div class="cw" style="height:'+Math.max(180, top.length*34)+'px"><canvas id="c-cust"></canvas></div></div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="ch"><div><div class="ct">Freight Type</div><div class="cs">'+cYr+'</div></div></div>'+
+      '<div class="cb">'+
+        '<div class="cw" style="height:170px"><canvas id="c-fr"></canvas></div>'+
+        '<div class="fstats" id="fstats"></div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
 
-  // Total row
-  tbodyHtml += '<tr class="total-row"><td>Total</td>';
-  cats.forEach(function(c, i){
-    var cls = i === 0 ? ' class="group-start count"' : ' class="count"';
-    var totalPrev = c.prev.reduce(function(a,b){ return a+b; }, 0);
-    var totalCurr = c.curr.reduce(function(a,b){ return a+b; }, 0);
-    var p = pct(totalCurr, totalPrev);
-    tbodyHtml += '<td'+cls+'>'+totalPrev+'</td>'+
-      '<td class="count">'+totalCurr+'</td>'+
-      pctCell(p);
-  });
-  tbodyHtml += '</tr>';
+  /* Table */
+  h += '<div class="r1"><div class="card">'+
+    '<div class="ch"><div><div class="ct">Month-by-Month Detail</div><div class="cs">'+cYr+' vs '+pYr+'</div></div></div>'+
+    '<div class="cb" style="padding-top:10px">'+buildTable(cats,cYr,pYr,lastMo,live)+'</div>'+
+  '</div></div>';
 
-  // YTD row (only if current year)
-  if(isCurrYrCurrent){
-    tbodyHtml += '<tr class="total-row" style="background:#e8f0fe"><td>YTD *</td>';
-    cats.forEach(function(c, i){
-      var cls = i === 0 ? ' class="group-start count"' : ' class="count"';
-      var ytdPrev = c.prev.slice(0, lastMo + 1).reduce(function(a,b){ return a+b; }, 0);
-      var ytdCurr = c.curr.slice(0, lastMo + 1).reduce(function(a,b){ return a+b; }, 0);
-      var p = pct(ytdCurr, ytdPrev);
-      tbodyHtml += '<td'+cls+'>'+ytdPrev+'</td>'+
-        '<td class="count">'+ytdCurr+'</td>'+
-        pctCell(p);
-    });
-    tbodyHtml += '</tr>';
-  }
+  document.getElementById('body').innerHTML = h;
 
-  document.getElementById('tbody').innerHTML = tbodyHtml;
-
-  // ── Charts ──
-  var chartsHtml = '';
+  /* YoY panel */
+  var yh = '<div class="yoy-list">';
   cats.forEach(function(c){
-    chartsHtml += '<div class="chart-card">'+
-      '<div class="chart-title">'+c.label+'</div>'+
-      '<div class="chart-canvas-wrap"><canvas id="chart-'+c.key+'"></canvas></div>'+
+    var p = pct(c.ytdC, c.ytdP);
+    var mx = Math.max(c.ytdC, c.ytdP, 1);
+    yh += '<div>'+
+      '<div class="yitem-hdr"><span class="yitem-lbl">'+c.lbl+'</span>'+badge(p)+'</div>'+
+      '<div class="yitem-nums">'+
+        '<span>'+pYr+': <strong style="color:#334155">'+c.ytdP+'</strong></span>'+
+        '<span>'+cYr+': <strong style="color:'+c.col+'">'+c.ytdC+'</strong></span>'+
+      '</div>'+
+      '<div class="ytrack"><div class="yfill '+c.cls+'" style="width:'+Math.round(c.ytdC/mx*100)+'%"></div></div>'+
     '</div>';
   });
-  document.getElementById('charts-grid').innerHTML = chartsHtml;
+  yh += '</div>';
+  document.getElementById('yoy-panel').innerHTML = yh;
 
+  /* Freight stats */
+  var ft = fr.col+fr.pre+fr.non||1;
+  document.getElementById('fstats').innerHTML =
+    '<div class="fstat"><div class="fstat-num" style="color:var(--cyan)">'+fr.col+'</div>'+
+      '<div class="fstat-lbl">Collect ('+Math.round(fr.col/ft*100)+'%)</div></div>'+
+    '<div class="fstat"><div class="fstat-num" style="color:var(--blue)">'+fr.pre+'</div>'+
+      '<div class="fstat-lbl">Prepaid ('+Math.round(fr.pre/ft*100)+'%)</div></div>'+
+    (fr.non?'<div class="fstat"><div class="fstat-num" style="color:var(--light)">'+fr.non+'</div>'+
+      '<div class="fstat-lbl">Not set</div></div>':'');
+
+  /* ── CHARTS ── */
+
+  // Trend line
+  dc('trend');
+  var tDatasets = [];
   cats.forEach(function(c){
-    if(charts[c.key]) charts[c.key].destroy();
-    var ctx = document.getElementById('chart-'+c.key).getContext('2d');
-    charts[c.key] = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: MONTHS,
-        datasets: [
-          {
-            label: prevYr,
-            data: c.prev,
-            backgroundColor: c.light+'aa',
-            borderColor: c.light,
-            borderWidth: 1,
-            borderRadius: 3
-          },
-          {
-            label: currYr,
-            data: c.curr,
-            backgroundColor: c.color+'cc',
-            borderColor: c.color,
-            borderWidth: 1,
-            borderRadius: 3
-          }
-        ]
+    tDatasets.push({label:c.lbl+' '+cYr, data:c.curr, borderColor:c.col, backgroundColor:c.col+'15',
+      borderWidth:2.5, pointRadius:3, pointHoverRadius:5, fill:false, tension:.35});
+    tDatasets.push({label:c.lbl+' '+pYr, data:c.prev, borderColor:c.lt, backgroundColor:'transparent',
+      borderWidth:1.5, borderDash:[5,4], pointRadius:2, pointHoverRadius:4, fill:false, tension:.35});
+  });
+  CH['trend'] = new Chart(document.getElementById('c-trend').getContext('2d'),{
+    type:'line', data:{labels:MO, datasets:tDatasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top',labels:{font:{size:10.5},boxWidth:16,padding:10,usePointStyle:true}}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10}}},
+        y:{beginAtZero:true,grid:{color:'#f0f4f8'},ticks:{font:{size:10},stepSize:1}}
+      }
+    }
+  });
+
+  // YoY grouped bar (total)
+  var totC = MO.map(function(_,i){ return cats.reduce(function(s,c){return s+c.curr[i];},0); });
+  var totP = MO.map(function(_,i){ return cats.reduce(function(s,c){return s+c.prev[i];},0); });
+  dc('yoy');
+  CH['yoy'] = new Chart(document.getElementById('c-yoy').getContext('2d'),{
+    type:'bar',
+    data:{labels:MO,datasets:[
+      {label:pYr, data:totP, backgroundColor:'#bfdbfe', borderColor:'#93c5fd', borderWidth:1, borderRadius:4},
+      {label:cYr, data:totC, backgroundColor:'#1e40afcc', borderColor:'#1e40af', borderWidth:1, borderRadius:4}
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:14,padding:10}}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10}}},
+        y:{beginAtZero:true,grid:{color:'#f0f4f8'},ticks:{font:{size:10},stepSize:1}}
+      }
+    }
+  });
+
+  // Top customers horizontal bar
+  dc('cust');
+  if(top.length){
+    CH['cust'] = new Chart(document.getElementById('c-cust').getContext('2d'),{
+      type:'bar',
+      data:{
+        labels:top.map(function(e){return e[0];}),
+        datasets:[{
+          label:'Shipments '+cYr,
+          data:top.map(function(e){return e[1];}),
+          backgroundColor:['#1e40af','#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#dbeafe','#eff6ff'],
+          borderRadius:4, borderWidth:0
+        }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'top',
-            labels: { font: { size: 11, family: 'Inter,system-ui,sans-serif' }, boxWidth: 12, padding: 10 }
-          },
-          tooltip: {
-            callbacks: {
-              afterLabel: function(ctx2){
-                var ds = ctx2.chart.data.datasets;
-                var mo = ctx2.dataIndex;
-                var prev = ds[0].data[mo];
-                var curr = ds[1].data[mo];
-                if(ctx2.datasetIndex === 1){
-                  var p = pct(curr, prev);
-                  if(p !== null) return (p >= 0 ? '▲ +' : '▼ ') + p + '% vs ' + prevYr;
-                }
-                return '';
-              }
-            }
-          }
-        },
-        scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-          y: { beginAtZero: true, grid: { color: '#f0f4f8' }, ticks: { font: { size: 10 }, stepSize: 1 } }
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ' '+ctx.parsed.x+' shipments';}}}},
+        scales:{
+          x:{beginAtZero:true,grid:{color:'#f0f4f8'},ticks:{font:{size:10},stepSize:1}},
+          y:{grid:{display:false},ticks:{font:{size:10.5}}}
         }
       }
     });
+  } else {
+    var el = document.getElementById('c-cust');
+    if(el) el.parentElement.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:center;height:180px;color:#94a3b8;font-size:.8rem">No shipping data for '+cYr+'</div>';
+  }
+
+  // Freight donut
+  dc('fr');
+  var fLabels=['Collect','Prepaid']; var fVals=[fr.col,fr.pre];
+  if(fr.non){fLabels.push('Not set'); fVals.push(fr.non);}
+  CH['fr'] = new Chart(document.getElementById('c-fr').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:fLabels, datasets:[{data:fVals, backgroundColor:['#0891b2','#1e40af','#94a3b8'], borderWidth:0, hoverOffset:4}]},
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'68%',
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:12,boxWidth:12}}}
+    }
   });
+}
+
+function buildTable(cats, cYr, pYr, lastMo, live){
+  var h = '<div class="twrap"><table><thead>'+
+    '<tr>'+
+      '<th rowspan="2">Month</th>'+
+      '<th colspan="3" class="cspan">Incoming Form</th>'+
+      '<th colspan="3" class="cspan gs">Incoming Items</th>'+
+      '<th colspan="3" class="cspan gs">Shipping</th>'+
+    '</tr><tr>';
+  cats.forEach(function(c,i){
+    h += '<th'+(i?'class="gs"':'')+'>'+pYr+'</th><th>'+cYr+'</th><th>Δ%</th>';
+  });
+  h += '</tr></thead><tbody>';
+  for(var m=0;m<12;m++){
+    var dim = live && m>lastMo;
+    h += '<tr'+(dim?' class="dim"':'')+'>'+
+      '<td>'+MO[m]+'</td>';
+    cats.forEach(function(c,i){
+      var p = pct(c.curr[m], c.prev[m]);
+      h += '<td class="pv'+(i?' gs':'')+'" >'+c.prev[m]+'</td>'+
+           '<td class="cur">'+c.curr[m]+'</td>'+dlt(p);
+    });
+    h += '</tr>';
+  }
+  h += '<tr class="tot"><td>Total</td>';
+  cats.forEach(function(c,i){
+    h += '<td class="pv'+(i?' gs':'')+'">'+c.totP+'</td>'+
+         '<td class="cur">'+c.totC+'</td>'+dlt(pct(c.totC,c.totP));
+  });
+  h += '</tr>';
+  if(live){
+    h += '<tr class="ytd-row"><td>YTD ★</td>';
+    cats.forEach(function(c,i){
+      h += '<td class="pv'+(i?' gs':'')+'">'+c.ytdP+'</td>'+
+           '<td class="cur">'+c.ytdC+'</td>'+dlt(pct(c.ytdC,c.ytdP));
+    });
+    h += '</tr>';
+  }
+  h += '</tbody></table></div>';
+  return h;
 }
 </script>
 </body>
