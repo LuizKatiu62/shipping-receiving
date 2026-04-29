@@ -421,7 +421,7 @@ document.addEventListener('change', function(ev){ enforceUpper(ev.target); });
     <button class="nav-tab" onclick="showSection('subcontractor')">🔧 Subcontractor</button>
     <button class="nav-tab" onclick="showSection('packing')">📦 Packing & Hold</button>
     <button class="nav-tab" onclick="showSection('process')">⏸ Process on Hold</button>
-    <button class="nav-tab" onclick="showSection('payments')">💰 Payments</button>
+    <button class="nav-tab" id="nav-tab-payments" onclick="showSection('payments')" style="display:none">💰 Payments</button>
     <a class="nav-tab" href="stats.html" target="_blank" style="text-decoration:none">📊 Dashboard</a>
   </div>
 </div>
@@ -1487,6 +1487,7 @@ var auth = null;
 var currentUser = null;
 var isAdmin = false;
 var ADMIN_EMAILS = ['dasilva.luiz@sourceatlantic.ca', 'lcdsilva@hotmail.com'];
+var PAYMENTS_EMAILS = ['gardner.christine@sourceatlantic.ca','renouf.holly@sourceatlantic.ca','koncovy.josef@sourceatlantic.ca'];
 var SR_PATH = 'shipping_receiving';
 var incomingData = {};
 var incomingFiltered = [];
@@ -1545,6 +1546,12 @@ window.addEventListener('DOMContentLoaded', function(){
   }
 });
 
+function canAccessPayments(email){
+  var e = (email||'').toLowerCase();
+  return ADMIN_EMAILS.map(function(x){return x.toLowerCase();}).indexOf(e) !== -1
+      || PAYMENTS_EMAILS.map(function(x){return x.toLowerCase();}).indexOf(e) !== -1;
+}
+
 function processAuthUser(user){
   currentUser = user;
   isAdmin = ADMIN_EMAILS.indexOf(user.email.toLowerCase()) !== -1;
@@ -1559,6 +1566,8 @@ function processAuthUser(user){
   var badge = document.getElementById('user-bar-badge');
   badge.textContent = isAdmin ? 'Admin' : 'Viewer';
   badge.className   = 'user-bar-badge' + (isAdmin ? ' admin' : '');
+  var payTab = document.getElementById('nav-tab-payments');
+  if(payTab) payTab.style.display = canAccessPayments(user.email) ? '' : 'none';
   document.getElementById('auth-overlay').style.display = 'none';
   document.getElementById('app-loading').style.display  = 'flex';
   initDataListeners();
@@ -1807,6 +1816,7 @@ function setDatalist(id, values){
 
 // ── SECTION NAV ──
 function showSection(name){
+  if(name==='payments' && currentUser && !canAccessPayments(currentUser.email)) return;
   document.querySelectorAll('[id^="section-"]').forEach(function(el){ el.style.display='none'; });
   document.getElementById('section-'+name).style.display='block';
   document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
