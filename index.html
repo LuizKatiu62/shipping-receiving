@@ -146,6 +146,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .badge-generator{background:#fef9c3;color:#854d0e}
 .badge-welding{background:#ffe4e6;color:#9f1239}
 .badge-location{background:#f3e8ff;color:#6b21a8}
+.badge-status-shipped{background:#f1f5f9;color:#475569}
+.badge-status-transit{background:#dbeafe;color:#1e40af}
+.badge-status-outdelivery{background:#fef9c3;color:#854d0e}
+.badge-status-delivered{background:#dcfce7;color:#166534}
+.track-link{display:inline-flex;align-items:center;gap:3px;font-size:.72rem;font-weight:700;color:#2563eb;text-decoration:none;padding:2px 7px;border-radius:6px;border:1px solid #bfdbfe;background:#eff6ff;white-space:nowrap;transition:background .15s}
+.track-link:hover{background:#dbeafe}
 
 /* ── EMPTY ── */
 .empty-state{text-align:center;padding:72px 20px;color:var(--text-muted)}
@@ -1411,6 +1417,23 @@ document.addEventListener('keydown', function(ev){
         <div class="form-group full">
           <label>Photos Link (OneDrive)</label>
           <input type="url" id="shp-photos-link" placeholder="Paste OneDrive folder link here...">
+        </div>
+
+        <!-- ── Delivery Status ── -->
+        <div class="form-section-header">Delivery Status</div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="shp-status" onchange="toggleShpDeliveredDate()">
+            <option value="">— Not Set —</option>
+            <option value="Shipped">📦 Shipped</option>
+            <option value="In Transit">🚚 In Transit</option>
+            <option value="Out for Delivery">🏃 Out for Delivery</option>
+            <option value="Delivered">✅ Delivered</option>
+          </select>
+        </div>
+        <div class="form-group" id="shp-delivered-date-group" style="display:none">
+          <label>Delivery Date</label>
+          <input type="date" id="shp-delivered-date">
         </div>
 
       </div>
@@ -2681,6 +2704,32 @@ function toggleShpCarrierOther(){
   if(val !== 'Other') document.getElementById('shp-carrier-other').value = '';
 }
 
+function toggleShpDeliveredDate(){
+  var s = document.getElementById('shp-status').value;
+  document.getElementById('shp-delivered-date-group').style.display = s==='Delivered' ? 'flex' : 'none';
+  if(s!=='Delivered') document.getElementById('shp-delivered-date').value='';
+}
+
+function getTrackingUrl(carrier, carrierOther, trackingNum){
+  var c = (carrier==='Other' ? carrierOther : carrier)||'';
+  var t = encodeURIComponent(trackingNum||'');
+  if(!t) return null;
+  var cl = c.toLowerCase();
+  if(cl.includes('purolator'))       return 'https://www.purolator.com/en/shipping/tracker.page?pin='+t;
+  if(cl.includes('fedex'))           return 'https://www.fedex.com/apps/fedextrack/?action=track&trackingnumber='+t;
+  if(cl.includes('ups'))             return 'https://www.ups.com/track?tracknum='+t;
+  if(cl.includes('day') && cl.includes('ross')) return 'https://dayross.com/en/trace-tracking?pro_number='+t;
+  if(cl.includes('midland'))         return 'https://www.midlandtransport.com/tracing/';
+  return null;
+}
+
+var STATUS_BADGE = {
+  'Shipped':          'badge-status-shipped',
+  'In Transit':       'badge-status-transit',
+  'Out for Delivery': 'badge-status-outdelivery',
+  'Delivered':        'badge-status-delivered'
+};
+
 function updateShpOrderFields(){
   var hasSO = shpTags.so.length > 0 || document.getElementById('shp-so-input').value.trim().length > 0;
   var hasTR = shpTags.tr.length > 0 || document.getElementById('shp-tr-input').value.trim().length > 0;
@@ -2782,7 +2831,12 @@ function renderShipping(){
       ? '<span class="badge '+(r.freightType==='Collect'?'badge-generator':'badge-electrical')+'">'+r.freightType+'</span>'
       : '—';
     var carrierDisplay = r.carrier === 'Other' ? (r.carrierOther||'Other') : (r.carrier||'—');
-    return '<tr onclick="openShipModal(\''+r._key+'\')">'+
+    var trackUrl = getTrackingUrl(r.carrier, r.carrierOther, r.trackingNum);
+    var statusBadge = r.status ? '<span class="badge '+STATUS_BADGE[r.status]+'" style="margin-top:3px;display:block">'+escHtml(r.status)+'</span>' : '';
+    var trackingCell = r.trackingNum
+      ? escHtml(r.trackingNum)+(statusBadge?'<br>'+statusBadge:'')
+      : (statusBadge||'—');
+    return '<tr onclick="openShipModal(\''+r._key+'\')" style="'+(r.status==='Delivered'?'opacity:.7':'')+'">'+
       '<td><strong>'+escHtml(r.outgoing||'—')+'</strong></td>'+
       '<td>'+fmtDate(r.date)+'</td>'+
       '<td>'+escHtml(r.customer||'—')+'</td>'+
@@ -2790,10 +2844,11 @@ function renderShipping(){
       '<td>'+escHtml((r.transferNums&&r.transferNums.length)?r.transferNums.join(', '):'—')+'</td>'+
       '<td>'+escHtml((r.workOrders&&r.workOrders.length)?r.workOrders.join(', '):'—')+'</td>'+
       '<td title="'+escAttr(r.material||'')+'">'+escHtml(r.material||'—')+'</td>'+
-      '<td>'+escHtml(r.trackingNum||'—')+'</td>'+
-      '<td onclick="event.stopPropagation()">'+
-        (r.photosLink?'<a href="'+escAttr(r.photosLink)+'" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none;margin-right:4px" onclick="event.stopPropagation()">📷 Photos</a>':'')+
-        '<button class="btn btn-secondary btn-sm" onclick="openShipModal(\''+r._key+'\')">✏️ Edit</button>'+
+      '<td>'+trackingCell+'</td>'+
+      '<td onclick="event.stopPropagation()" style="white-space:normal">'+
+        (r.photosLink?'<a href="'+escAttr(r.photosLink)+'" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none;margin-right:4px" onclick="event.stopPropagation()">📷</a>':'')+
+        (trackUrl?'<a href="'+escAttr(trackUrl)+'" target="_blank" class="track-link" style="margin-right:4px" onclick="event.stopPropagation()">🔍 Track</a>':'')+
+        '<button class="btn btn-secondary btn-sm" onclick="openShipModal(\''+r._key+'\')">✏️</button>'+
       '</td>'+
     '</tr>';
   }).join('');
@@ -2851,10 +2906,15 @@ function openShipModal(key){
     document.getElementById('shp-carrier-other-group').style.display = r.carrier==='Other' ? 'flex' : 'none';
     document.getElementById('shp-tracking').value = r.trackingNum||'';
     document.getElementById('shp-photos-link').value = r.photosLink||'';
+    document.getElementById('shp-status').value = r.status||'';
+    document.getElementById('shp-delivered-date').value = r.deliveredDate||'';
+    document.getElementById('shp-delivered-date-group').style.display = r.status==='Delivered' ? 'flex' : 'none';
     document.getElementById('shp-del-btn').style.display = 'inline-flex';
   } else {
     document.getElementById('shp-modal-title').textContent = 'New Shipment';
-    ['shp-customer','shp-outgoing','shp-city','shp-province','shp-postal','shp-material-other','shp-carrier-other','shp-tracking','shp-photos-link'].forEach(function(id){ document.getElementById(id).value=''; });
+    ['shp-customer','shp-outgoing','shp-city','shp-province','shp-postal','shp-material-other','shp-carrier-other','shp-tracking','shp-photos-link','shp-delivered-date'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('shp-status').value = '';
+    document.getElementById('shp-delivered-date-group').style.display = 'none';
     document.getElementById('shp-material-type').value = '';
     document.getElementById('shp-material-other-group').style.display = 'none';
     ['shp-pc','shp-lb','shp-rl','shp-weight-lb','shp-weight-kg'].forEach(function(id){ document.getElementById(id).value=''; });
@@ -2907,8 +2967,10 @@ function saveShipment(){
     workOrders:   shpTags.wo.slice(),
     carrier,
     carrierOther: carrier==='Other' ? document.getElementById('shp-carrier-other').value.trim() : '',
-    trackingNum:  document.getElementById('shp-tracking').value.trim(),
-    photosLink:   document.getElementById('shp-photos-link').value.trim(),
+    trackingNum:   document.getElementById('shp-tracking').value.trim(),
+    photosLink:    document.getElementById('shp-photos-link').value.trim(),
+    status:        document.getElementById('shp-status').value,
+    deliveredDate: document.getElementById('shp-status').value==='Delivered' ? document.getElementById('shp-delivered-date').value : '',
     updatedAt: new Date().toISOString()
   };
   var key = document.getElementById('shp-edit-id').value;
