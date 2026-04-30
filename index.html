@@ -2843,7 +2843,8 @@ function renderShipping(){
     var carrierDisplay = r.carrier === 'Other' ? (r.carrierOther||'Other') : (r.carrier||'—');
     var trackNum = formatTrackNum(r.trackingNum);
     var trackUrl = getTrackingUrl(r.carrier, r.carrierOther, trackNum);
-    var trackingCell = trackNum ? escHtml(trackNum) : '—';
+    var carrierLabel = r.carrier && r.carrier !== '—' ? '<span style="display:block;font-size:.7rem;color:#64748b;margin-top:2px">'+escHtml(carrierDisplay)+'</span>' : '';
+    var trackingCell = trackNum ? escHtml(trackNum)+carrierLabel : (carrierLabel||'—');
     var soArr = cleanOrders(r.salesOrders);
     var trArr = cleanOrders(r.transferNums);
     var woArr = cleanOrders(r.workOrders);
