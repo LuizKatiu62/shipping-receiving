@@ -321,6 +321,19 @@ document.addEventListener('keydown', function(ev){
   if(t.tagName === 'TEXTAREA') return;
   if(t.tagName !== 'INPUT') return;
   if(t.type === 'radio' || t.type === 'checkbox' || t.type === 'submit' || t.type === 'button') return;
+  // Don't intercept Enter on datalist inputs — browser needs it to confirm the suggestion.
+  // Instead move focus after a short delay so the value is already applied.
+  if(t.getAttribute('list')){
+    setTimeout(function(){
+      if(t.id === 'shp-city') lookupCityProvince();
+      var focusable = Array.from(document.querySelectorAll(
+        'input:not([type="hidden"]):not([type="radio"]):not([type="checkbox"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])'
+      )).filter(function(el){ return el.offsetParent !== null; });
+      var idx = focusable.indexOf(t);
+      if(idx !== -1 && idx + 1 < focusable.length) focusable[idx + 1].focus();
+    }, 80);
+    return;
+  }
   ev.preventDefault();
   var focusable = Array.from(document.querySelectorAll(
     'input:not([type="hidden"]):not([type="radio"]):not([type="checkbox"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])'
@@ -1346,7 +1359,7 @@ document.addEventListener('keydown', function(ev){
 
         <div class="form-group">
           <label>City</label>
-          <input type="text" id="shp-city" placeholder="City" oninput="lookupCityProvince()" onchange="lookupCityProvince()" list="city-list" autocomplete="off">
+          <input type="text" id="shp-city" placeholder="City" oninput="setTimeout(lookupCityProvince,0)" onchange="setTimeout(lookupCityProvince,0)" list="city-list" autocomplete="off">
           <datalist id="city-list"></datalist>
         </div>
         <div class="form-group">
