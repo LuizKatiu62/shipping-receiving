@@ -33,12 +33,14 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .btn-back:hover{background:rgba(255,255,255,.2);color:#fff}
 
 /* ── FILTER BAR ── */
-.fbar{background:var(--card);border-bottom:1px solid var(--border);padding:11px 28px}
+.fbar{background:linear-gradient(90deg,#1e3a5f 0%,#1e40af 100%);border-bottom:2px solid #1e3a8a;padding:13px 28px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .fbar-inner{max-width:1420px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.flabel{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.fsel{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;font-weight:600;color:var(--text);background:var(--card);cursor:pointer;outline:none;font-family:inherit;transition:border-color .18s}
-.fsel:focus{border-color:var(--blue3)}
-.vs-chip{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:.7rem;font-weight:700;color:var(--muted)}
+.flabel{font-size:.72rem;font-weight:800;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.8px}
+.fsel{padding:8px 14px;border:1.5px solid rgba(255,255,255,.3);border-radius:8px;font-size:.86rem;font-weight:700;color:#fff;background:rgba(255,255,255,.12);cursor:pointer;outline:none;font-family:inherit;transition:all .18s}
+.fsel:hover{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.5)}
+.fsel:focus{border-color:#fff;background:rgba(255,255,255,.22)}
+.fsel option{background:#1e3a5f;color:#fff}
+.vs-chip{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 10px;font-size:.72rem;font-weight:800;color:rgba(255,255,255,.9)}
 .fnote{font-size:.68rem;color:var(--light);margin-left:auto}
 
 /* ── BODY ── */
