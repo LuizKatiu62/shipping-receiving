@@ -1795,6 +1795,12 @@ function today(){
   return new Date().toISOString().split('T')[0];
 }
 
+function getGreeting(name){
+  var h = new Date().getHours();
+  var salut = h < 12 ? 'Bom dia' : h < 18 ? 'Boa Tarde' : 'Boa Noite';
+  return name ? salut + ', ' + name + '!' : salut + '!';
+}
+
 // ── AUTOCOMPLETE FROM HISTORY ──
 function buildAutocomplete(){
   var customers = {}, materials = {}, cities = {};
@@ -3280,13 +3286,13 @@ function saveItem(){
     items: wipEM,
     to: 'gould.howard@sourceatlantic.ca',
     toDisplay: 'Howard Gould',
-    greeting: 'Dear Howard,'
+    greeting: getGreeting('Howard')
   });
   if(wipAC.length) wipEmailQueue.push({
     items: wipAC,
     to: 'Northrup.mark@sourceatlantic.ca,northrup.logan@sourceatlantic.ca,templeton.sara@sourceatlantic.ca',
     toDisplay: 'Mark Northrup, Logan Northrup, Sara Templeton',
-    greeting: 'Dear Team,'
+    greeting: getGreeting('Team')
   });
   if(wipEmailQueue.length) setTimeout(function(){ showNextWipEmail(record); }, 80);
 }
@@ -4092,7 +4098,7 @@ function sendPayEmail(){
   var subject = 'Payment Received — '+r.method+' — '+fmtMoney(r.amount);
   if(r.orderType && r.orderNum) subject += ' — '+r.orderType+' #'+r.orderNum;
 
-  var body = 'Dear Christine,\n\n';
+  var body = getGreeting('Christine') + '\n\n';
   body += 'A payment has been received with the following details:\n\n';
   body += 'Date:           ' + r.date + '\n';
   body += 'Amount:         ' + fmtMoney(r.amount) + '\n';
