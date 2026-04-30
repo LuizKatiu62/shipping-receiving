@@ -517,6 +517,7 @@ document.addEventListener('keydown', function(ev){
       </div>
     </div>
     <div class="table-wrap">
+      <div class="pagination-bar" id="itm-pagination-top" style="border-top:none;border-bottom:1px solid var(--border)"></div>
       <table>
         <thead>
           <tr>
@@ -549,6 +550,7 @@ document.addEventListener('keydown', function(ev){
       </div>
     </div>
     <div class="table-wrap">
+      <div class="pagination-bar" id="shp-pagination-top" style="border-top:none;border-bottom:1px solid var(--border)"></div>
       <table>
         <thead>
           <tr>
@@ -2777,15 +2779,21 @@ function removeShpTag(field, i){
 // ── PAGINATION HELPERS ──
 function renderPagination(prefix, page, totalPages, total){
   var el = document.getElementById(prefix+'-pagination');
-  if(!el) return;
-  if(totalPages <= 1){ el.innerHTML = ''; return; }
+  var elTop = document.getElementById(prefix+'-pagination-top');
+  if(totalPages <= 1){
+    if(el) el.innerHTML = '';
+    if(elTop) elTop.innerHTML = '';
+    return;
+  }
   var start = page * PAGE_SIZE + 1;
   var end   = Math.min((page + 1) * PAGE_SIZE, total);
-  el.innerHTML =
+  var html =
     '<span class="pg-info">'+start+'–'+end+' of '+total+'</span>'+
     '<button class="pg-btn" onclick="changePage(\''+prefix+'\',-1)" '+(page===0?'disabled':'')+'>◀ Prev</button>'+
     '<span class="pg-cur">Page '+(page+1)+' / '+totalPages+'</span>'+
     '<button class="pg-btn" onclick="changePage(\''+prefix+'\',1)" '+(page===totalPages-1?'disabled':'')+'>Next ▶</button>';
+  if(el) el.innerHTML = html;
+  if(elTop) elTop.innerHTML = html;
 }
 function changePage(prefix, dir){
   if(prefix==='shp'){ shpPage += dir; renderShipping(); }
