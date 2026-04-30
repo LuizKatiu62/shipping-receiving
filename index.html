@@ -108,23 +108,24 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 #section-incoming .table-wrap tr:hover td:last-child{background:#f0f7ff}
 #section-incoming .table-wrap th:last-child{background:linear-gradient(180deg,var(--blue-600),var(--blue-500))}
 #section-shipping .table-wrap{overflow-x:auto}
-#section-shipping .table-wrap table{width:100%;min-width:760px;table-layout:fixed}
+#section-shipping .table-wrap table{width:100%;min-width:860px;table-layout:fixed}
 #section-shipping .table-wrap td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.78rem;padding:8px 10px}
 #section-shipping .table-wrap th{white-space:nowrap;padding:10px 10px;font-size:.66rem}
 #section-shipping .col-outgoing{width:90px}
 #section-shipping .col-date{width:100px}
-#section-shipping .col-customer{width:auto;min-width:140px}
-#section-shipping .col-so{width:100px}
-#section-shipping .col-tr{width:95px}
-#section-shipping .col-wo{width:95px}
-#section-shipping .col-material{width:auto;min-width:120px}
-#section-shipping .col-tracking{width:130px}
-#section-shipping .col-actions{width:190px}
+#section-shipping .col-customer{width:auto;min-width:130px}
+#section-shipping .col-so{width:95px}
+#section-shipping .col-tr{width:90px}
+#section-shipping .col-wo{width:90px}
+#section-shipping .col-material{width:auto;min-width:110px}
+#section-shipping .col-tracking{width:145px;white-space:normal;overflow:visible;vertical-align:middle}
+#section-shipping .col-actions{width:230px}
 #section-shipping .table-wrap td:last-child,
-#section-shipping .table-wrap th:last-child{position:sticky;right:0;z-index:2;background:#fff;box-shadow:-3px 0 6px rgba(0,0,0,.06);overflow:visible}
+#section-shipping .table-wrap th:last-child{position:sticky;right:0;z-index:2;background:#fff;box-shadow:-3px 0 6px rgba(0,0,0,.06);overflow:visible;white-space:normal;vertical-align:middle}
 #section-shipping .table-wrap tr:nth-child(even) td:last-child{background:#fafcff}
 #section-shipping .table-wrap tr:hover td:last-child{background:#f0f7ff}
-#section-shipping .table-wrap th:last-child{background:linear-gradient(180deg,var(--blue-600),var(--blue-500))}
+#section-shipping .table-wrap th:last-child{background:linear-gradient(180deg,var(--blue-600),var(--blue-500));white-space:nowrap}
+#section-shipping .shp-actions{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
 
 /* ── YEAR FILTER ── */
 .year-select{padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.82rem;font-family:'Inter',inherit;background:var(--surface);color:var(--text-primary);outline:none;cursor:pointer;min-width:105px;transition:border-color .18s}
@@ -2844,11 +2845,13 @@ function renderShipping(){
       '<td>'+escHtml((r.transferNums&&r.transferNums.length)?r.transferNums.join(', '):'—')+'</td>'+
       '<td>'+escHtml((r.workOrders&&r.workOrders.length)?r.workOrders.join(', '):'—')+'</td>'+
       '<td title="'+escAttr(r.material||'')+'">'+escHtml(r.material||'—')+'</td>'+
-      '<td>'+trackingCell+'</td>'+
-      '<td onclick="event.stopPropagation()" style="white-space:normal">'+
-        (r.photosLink?'<a href="'+escAttr(r.photosLink)+'" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none;margin-right:4px" onclick="event.stopPropagation()">📷</a>':'')+
-        (trackUrl?'<a href="'+escAttr(trackUrl)+'" target="_blank" class="track-link" style="margin-right:4px" onclick="event.stopPropagation()">🔍 Track</a>':'')+
-        '<button class="btn btn-secondary btn-sm" onclick="openShipModal(\''+r._key+'\')">✏️</button>'+
+      '<td class="col-tracking">'+trackingCell+'</td>'+
+      '<td onclick="event.stopPropagation()">'+
+        '<div class="shp-actions">'+
+          (r.photosLink?'<a href="'+escAttr(r.photosLink)+'" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none" onclick="event.stopPropagation()">📷 Photos</a>':'')+
+          (trackUrl?'<a href="'+escAttr(trackUrl)+'" target="_blank" class="track-link" onclick="event.stopPropagation()">🔍 Track</a>':'')+
+          '<button class="btn btn-secondary btn-sm" onclick="openShipModal(\''+r._key+'\')">✏️ Edit</button>'+
+        '</div>'+
       '</td>'+
     '</tr>';
   }).join('');
