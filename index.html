@@ -2717,10 +2717,10 @@ function getTrackingUrl(carrier, carrierOther, trackingNum){
   var t = encodeURIComponent(trackingNum||'');
   if(!t) return null;
   var cl = c.toLowerCase();
-  if(cl.includes('purolator'))       return 'https://www.purolator.com/en/shipping/tracker.page?pin='+t;
+  if(cl.includes('purolator'))       return 'https://www.purolator.com/en/shipping/tracker?pins='+t;
   if(cl.includes('fedex'))           return 'https://www.fedex.com/apps/fedextrack/?action=track&trackingnumber='+t;
   if(cl.includes('ups'))             return 'https://www.ups.com/track?tracknum='+t;
-  if(cl.includes('day') && cl.includes('ross')) return 'https://dayross.com/en/trace-tracking?pro_number='+t;
+  if(cl.includes('day') && cl.includes('ross')) return 'https://dayross.com/track-shipments';
   if(cl.includes('midland') && cl.includes('courier')) return 'https://cssportal.midlandcourier.com/CSSPortal/static/application.html#/track/trackShipment';
   if(cl.includes('midland'))         return 'https://www.midlandtransport.com/MultiTrack.aspx';
   return null;
