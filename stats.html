@@ -41,6 +41,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .fsel:focus{border-color:#fff;background:rgba(255,255,255,.22)}
 .fsel option{background:#1e3a5f;color:#fff}
 .vs-chip{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 10px;font-size:.72rem;font-weight:800;color:rgba(255,255,255,.9)}
+.fsep{width:1px;height:28px;background:rgba(255,255,255,.25);margin:0 6px}
 .fnote{font-size:.68rem;color:var(--light);margin-left:auto}
 
 /* ── BODY ── */
@@ -167,6 +168,21 @@ td.dlt.eq{color:#94a3b8}
       <option value="2024">2024</option>
       <option value="2026">2026</option>
     </select>
+    <div class="fsep"></div>
+    <span class="flabel">Period</span>
+    <select class="fsel" id="sel-from" onchange="render()">
+      <option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option>
+      <option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option>
+      <option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option>
+      <option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
+    </select>
+    <span class="vs-chip">to</span>
+    <select class="fsel" id="sel-to" onchange="render()">
+      <option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option>
+      <option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option>
+      <option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option>
+      <option value="9">Oct</option><option value="10">Nov</option><option value="11" selected>Dec</option>
+    </select>
     <span class="fnote" id="fnote"></span>
   </div>
 </div>
@@ -229,7 +245,22 @@ function render(){
   var todayMo = now.getMonth();
   var live = (cYr===todayYr);
   var lastMo = live ? todayMo : 11;
-  document.getElementById('fnote').textContent = live ? '★ YTD through '+MO[lastMo] : '';
+
+  // Month range filter
+  var moFrom = parseInt(document.getElementById('sel-from').value);
+  var moTo   = parseInt(document.getElementById('sel-to').value);
+  if(moTo < moFrom) moTo = moFrom;
+  var moToCurr = live ? Math.min(moTo, lastMo) : moTo;
+  var periodLbl = (moFrom===0 && moTo===11) ? 'Full Year' : MO[moFrom]+(moFrom===moToCurr?'':' – '+MO[moToCurr]);
+  var periodLblPrev = (moFrom===0 && moTo===11) ? 'Full Year' : MO[moFrom]+(moFrom===moTo?'':' – '+MO[moTo]);
+  document.getElementById('fnote').textContent = live && moFrom===0 && moTo===11 ? '★ YTD through '+MO[lastMo] : '📅 '+periodLbl+' '+cYr;
+
+  // Helper: is a record's date within the current year + month range?
+  function inRange(dateStr, yr, from, to){
+    if(!(dateStr||'').startsWith(yr)) return false;
+    var m = parseInt((dateStr||'').slice(5,7),10)-1;
+    return m>=from && m<=to;
+  }
 
   var cats = [
     {key:'incoming', lbl:'Incoming Form',  col:'#1e40af', lt:'#3b82f6', cls:'blue',   icon:'📋'},
@@ -239,20 +270,20 @@ function render(){
   cats.forEach(function(c){
     c.curr = byMonth(allData[c.key], cYr);
     c.prev = byMonth(allData[c.key], pYr);
-    c.ytdC = sum(c.curr,0,lastMo);
-    c.ytdP = sum(c.prev,0,lastMo);
+    c.ytdC = sum(c.curr, moFrom, moToCurr);
+    c.ytdP = sum(c.prev, moFrom, moTo);
     c.totC = sum(c.curr,0,11);
     c.totP = sum(c.prev,0,11);
-    c.moC  = c.curr[lastMo];
-    c.moP  = c.prev[lastMo];
+    c.moC  = c.curr[moToCurr];
+    c.moP  = c.prev[moTo];
   });
 
-  // WIP / Sales Order / Estoque by month
+  // WIP / Sales Order / Estoque — filtered by month range
   var destWip = new Array(12).fill(0);
   var destSO  = new Array(12).fill(0);
   var destStk = new Array(12).fill(0);
   Object.values(allData.items).forEach(function(r){
-    if(!(r.date||'').startsWith(cYr)) return;
+    if(!inRange(r.date, cYr, moFrom, moToCurr)) return;
     var m = parseInt((r.date||'').slice(5,7),10)-1;
     if(m<0||m>11) return;
     (r.lineItems||[]).forEach(function(li){
@@ -269,11 +300,13 @@ function render(){
     });
   }
 
-  // carrier counts — always use ALL years so totals are realistic
-  function buildCarrierCount(yearFilter){
+  // carrier counts — filtered by year + month range
+  function buildCarrierCount(yearFilter, from, to){
     var cc = {};
     Object.values(allData.shipping).forEach(function(r){
-      if(yearFilter && !(r.date||'').startsWith(yearFilter)) return;
+      if(yearFilter){
+        if(!inRange(r.date, yearFilter, from, to)) return;
+      }
       var raw = r.carrier||'';
       if(!raw) return;
       var name = normName(raw==='Other' ? (r.carrierOther||'Other') : raw);
@@ -281,18 +314,18 @@ function render(){
     });
     return cc;
   }
-  var carrierCount = buildCarrierCount(cYr);
-  var carrierLabel = cYr;
+  var carrierCount = buildCarrierCount(cYr, moFrom, moToCurr);
+  var carrierLabel = cYr+(periodLbl!=='Full Year' ? ' · '+periodLbl : '');
   if(!Object.keys(carrierCount).length){
-    carrierCount = buildCarrierCount(null);
+    carrierCount = buildCarrierCount(null, 0, 11);
     carrierLabel = 'All Years';
   }
   var topCarriers = Object.entries(carrierCount).sort(function(a,b){return b[1]-a[1];});
 
-  // top customers — normalize case
+  // top customers — normalize case, filtered by month range
   var cc = {};
   Object.values(allData.shipping).forEach(function(r){
-    if((r.date||'').startsWith(cYr) && r.customer){
+    if(inRange(r.date, cYr, moFrom, moToCurr) && r.customer){
       var cname = normName(r.customer);
       cc[cname] = (cc[cname]||0)+1;
     }
@@ -310,10 +343,10 @@ function render(){
     h += '<div class="kpi '+c.cls+'">'+
       '<div class="kpi-top"><div class="kpi-label">'+c.lbl+'</div><div class="kpi-icon">'+c.icon+'</div></div>'+
       '<div class="kpi-num">'+c.ytdC+'</div>'+
-      '<div class="kpi-foot">'+badge(p)+'<span class="kpi-vs">vs '+pYr+(live?' YTD':'')+' ('+c.ytdP+')</span></div>'+
+      '<div class="kpi-foot">'+badge(p)+'<span class="kpi-vs">vs '+pYr+' '+periodLblPrev+' ('+c.ytdP+')</span></div>'+
       '<div class="kpi-months">'+
-        '<div class="kmo"><div class="kmo-val">'+c.moC+'</div><div class="kmo-lbl">'+MO[lastMo]+' '+cYr+'</div></div>'+
-        '<div class="kmo"><div class="kmo-val" style="color:var(--light)">'+c.moP+'</div><div class="kmo-lbl">'+MO[lastMo]+' '+pYr+'</div></div>'+
+        '<div class="kmo"><div class="kmo-val">'+c.moC+'</div><div class="kmo-lbl">'+MO[moToCurr]+' '+cYr+'</div></div>'+
+        '<div class="kmo"><div class="kmo-val" style="color:var(--light)">'+c.moP+'</div><div class="kmo-lbl">'+MO[moTo]+' '+pYr+'</div></div>'+
         (mp!==null?'<div class="kmo"><div class="kmo-val" style="color:'+(mp>=0?'#059669':'#dc2626')+'">'+(mp>=0?'▲ ':'▼ ')+Math.abs(mp)+'%</div><div class="kmo-lbl">Month Δ</div></div>':'')+
       '</div>'+
     '</div>';
@@ -333,7 +366,7 @@ function render(){
       '<div class="cb"><div class="cw" style="height:210px"><canvas id="c-yoy"></canvas></div></div>'+
     '</div>'+
     '<div class="card">'+
-      '<div class="ch"><div><div class="ct">Performance Summary</div><div class="cs">'+(live?'YTD through '+MO[lastMo]+' '+cYr:'Full Year '+cYr)+'</div></div></div>'+
+      '<div class="ch"><div><div class="ct">Performance Summary</div><div class="cs">'+periodLbl+' '+cYr+' vs '+pYr+'</div></div></div>'+
       '<div class="cb"><div id="yoy-panel"></div></div>'+
     '</div>'+
   '</div>';
@@ -341,11 +374,11 @@ function render(){
   /* Top customers + Freight */
   h += '<div class="r2 g5545">'+
     '<div class="card">'+
-      '<div class="ch"><div><div class="ct">Top Customers — Shipping</div><div class="cs">By number of outgoing shipments &nbsp;·&nbsp; All shipments in '+cYr+'</div></div></div>'+
+      '<div class="ch"><div><div class="ct">Top Customers — Shipping</div><div class="cs">By number of outgoing shipments &nbsp;·&nbsp; '+cYr+' '+periodLbl+'</div></div></div>'+
       '<div class="cb"><div class="cw" style="height:'+Math.max(180, top.length*34)+'px"><canvas id="c-cust"></canvas></div></div>'+
     '</div>'+
     '<div class="card">'+
-      '<div class="ch"><div><div class="ct">Carrier</div><div class="cs">By number of shipments &nbsp;·&nbsp; All shipments in '+carrierLabel+'</div></div></div>'+
+      '<div class="ch"><div><div class="ct">Carrier</div><div class="cs">By number of shipments &nbsp;·&nbsp; '+carrierLabel+'</div></div></div>'+
       '<div class="cb">'+
         '<div class="cw" style="height:'+(Math.max(160, topCarriers.length*34))+'px"><canvas id="c-fr"></canvas></div>'+
       '</div>'+
@@ -356,7 +389,7 @@ function render(){
   var destTotal = destWip.reduce(function(a,b){return a+b;},0)+destSO.reduce(function(a,b){return a+b;},0)+destStk.reduce(function(a,b){return a+b;},0);
   var dWip=destWip.reduce(function(a,b){return a+b;},0), dSO=destSO.reduce(function(a,b){return a+b;},0), dStk=destStk.reduce(function(a,b){return a+b;},0);
   h += '<div class="r1"><div class="card">'+
-    '<div class="ch"><div><div class="ct">Volume por Destino — Incoming Items</div><div class="cs">'+cYr+(live?' YTD through '+MO[lastMo]:'')+'</div></div></div>'+
+    '<div class="ch"><div><div class="ct">Volume por Destino — Incoming Items</div><div class="cs">'+cYr+' · '+periodLbl+'</div></div></div>'+
     '<div class="cb" style="display:flex;align-items:center;gap:32px;flex-wrap:wrap">'+
       '<div style="flex:0 0 200px"><div class="cw" style="height:200px"><canvas id="c-dest"></canvas></div></div>'+
       '<div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:16px">'+
