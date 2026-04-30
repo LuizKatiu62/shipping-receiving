@@ -1185,13 +1185,13 @@ document.addEventListener('keydown', function(ev){
       <input type="hidden" id="proc-edit-id">
       <div class="form-grid">
 
-        <div class="form-group">
+        <div class="form-group" id="proc-wo-group">
           <label>Work Order #</label>
-          <input type="text" id="proc-wo" placeholder="Work Order #" maxlength="7" oninput="procLookupOrder()">
+          <input type="text" id="proc-wo" placeholder="Work Order #" maxlength="7" oninput="procLookupOrder();updateProcOrderFields()">
         </div>
-        <div class="form-group">
+        <div class="form-group" id="proc-so-group">
           <label>Sales Order #</label>
-          <input type="text" id="proc-so" placeholder="Sales Order #" oninput="procLookupOrder()">
+          <input type="text" id="proc-so" placeholder="Sales Order #" oninput="procLookupOrder();updateProcOrderFields()">
         </div>
         <div class="form-group">
           <label>Outgoing #</label>
@@ -1266,7 +1266,7 @@ document.addEventListener('keydown', function(ev){
         <!-- ── Orders ── -->
         <div class="form-section-header">Orders</div>
 
-        <div class="form-group full">
+        <div class="form-group full" id="shp-so-group">
           <label>Sales Order Number(s)</label>
           <div class="tag-input-row">
             <input type="text" id="shp-so-input" placeholder="Add Sales Order #" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('so')}" oninput="updateShpOrderFields()" onchange="updateShpOrderFields()">
@@ -1277,7 +1277,7 @@ document.addEventListener('keydown', function(ev){
         <div class="form-group full" id="shp-tr-group">
           <label>Transfer Number(s)</label>
           <div class="tag-input-row">
-            <input type="text" id="shp-tr-input" placeholder="Add Transfer #" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('tr')}">
+            <input type="text" id="shp-tr-input" placeholder="Add Transfer #" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('tr')}" oninput="updateShpOrderFields()" onchange="updateShpOrderFields()">
             <button class="btn btn-secondary btn-sm" onclick="addShpTag('tr')">+ Add</button>
           </div>
           <div class="tags-list" id="shp-tr-tags"></div>
@@ -1285,7 +1285,7 @@ document.addEventListener('keydown', function(ev){
         <div class="form-group full" id="shp-wo-group">
           <label>Work Order Number(s)</label>
           <div class="tag-input-row">
-            <input type="text" id="shp-wo-input" placeholder="Add Work Order #" maxlength="7" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('wo')}" oninput="checkShpOutgoing()">
+            <input type="text" id="shp-wo-input" placeholder="Add Work Order #" maxlength="7" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('wo')}" oninput="checkShpOutgoing();updateShpOrderFields()" onchange="updateShpOrderFields()">
             <button class="btn btn-secondary btn-sm" onclick="addShpTag('wo')">+ Add</button>
           </div>
           <div class="tags-list" id="shp-wo-tags"></div>
@@ -2674,9 +2674,19 @@ function toggleShpCarrierOther(){
 
 function updateShpOrderFields(){
   var hasSO = shpTags.so.length > 0 || document.getElementById('shp-so-input').value.trim().length > 0;
-  var show  = !hasSO;
-  document.getElementById('shp-tr-group').style.display = show ? 'flex' : 'none';
-  document.getElementById('shp-wo-group').style.display = show ? 'flex' : 'none';
+  var hasTR = shpTags.tr.length > 0 || document.getElementById('shp-tr-input').value.trim().length > 0;
+  var hasWO = shpTags.wo.length > 0 || document.getElementById('shp-wo-input').value.trim().length > 0;
+  var active = hasSO ? 'so' : hasTR ? 'tr' : hasWO ? 'wo' : null;
+  document.getElementById('shp-so-group').style.display = (!active || active === 'so') ? 'flex' : 'none';
+  document.getElementById('shp-tr-group').style.display = (!active || active === 'tr') ? 'flex' : 'none';
+  document.getElementById('shp-wo-group').style.display = (!active || active === 'wo') ? 'flex' : 'none';
+}
+
+function updateProcOrderFields(){
+  var hasWO = (document.getElementById('proc-wo').value||'').trim().length > 0;
+  var hasSO = (document.getElementById('proc-so').value||'').trim().length > 0;
+  document.getElementById('proc-wo-group').style.display = (!hasSO) ? 'flex' : 'none';
+  document.getElementById('proc-so-group').style.display = (!hasWO) ? 'flex' : 'none';
 }
 
 function addShpTag(field){
@@ -2687,7 +2697,7 @@ function addShpTag(field){
   document.getElementById(inputId).value = '';
   renderShpTags(field);
   if(field === 'wo') prefillFromIncoming(val);
-  if(field === 'so') updateShpOrderFields();
+  updateShpOrderFields();
 }
 
 function removeShpTag(field, i){
@@ -3469,6 +3479,7 @@ function openProcModal(key){
     });
     document.getElementById('proc-del-btn').style.display='none';
   }
+  updateProcOrderFields();
   document.getElementById('proc-modal').style.display='flex';
 }
 
