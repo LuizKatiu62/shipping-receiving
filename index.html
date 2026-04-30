@@ -1256,12 +1256,12 @@ document.addEventListener('keydown', function(ev){
         <div class="form-group full">
           <label>Sales Order Number(s)</label>
           <div class="tag-input-row">
-            <input type="text" id="shp-so-input" placeholder="Add Sales Order #" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('so')}">
+            <input type="text" id="shp-so-input" placeholder="Add Sales Order #" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('so')}" oninput="updateShpOrderFields()" onchange="updateShpOrderFields()">
             <button class="btn btn-secondary btn-sm" onclick="addShpTag('so')">+ Add</button>
           </div>
           <div class="tags-list" id="shp-so-tags"></div>
         </div>
-        <div class="form-group full">
+        <div class="form-group full" id="shp-tr-group">
           <label>Transfer Number(s)</label>
           <div class="tag-input-row">
             <input type="text" id="shp-tr-input" placeholder="Add Transfer #" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('tr')}">
@@ -1269,7 +1269,7 @@ document.addEventListener('keydown', function(ev){
           </div>
           <div class="tags-list" id="shp-tr-tags"></div>
         </div>
-        <div class="form-group full">
+        <div class="form-group full" id="shp-wo-group">
           <label>Work Order Number(s)</label>
           <div class="tag-input-row">
             <input type="text" id="shp-wo-input" placeholder="Add Work Order #" maxlength="7" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('wo')}" oninput="checkShpOutgoing()">
@@ -2568,6 +2568,11 @@ function detectCountryFromPostal(){
   }
 }
 
+document.addEventListener('DOMContentLoaded', function(){
+  var cityEl = document.getElementById('shp-city');
+  if(cityEl) cityEl.addEventListener('blur', lookupCityProvince);
+});
+
 function lookupCityProvince(){
   var city   = document.getElementById('shp-city').value.trim().toLowerCase();
   var picker = document.getElementById('shp-province-picker');
@@ -2654,6 +2659,13 @@ function toggleShpCarrierOther(){
   if(val !== 'Other') document.getElementById('shp-carrier-other').value = '';
 }
 
+function updateShpOrderFields(){
+  var hasSO = shpTags.so.length > 0 || document.getElementById('shp-so-input').value.trim().length > 0;
+  var show  = !hasSO;
+  document.getElementById('shp-tr-group').style.display = show ? 'flex' : 'none';
+  document.getElementById('shp-wo-group').style.display = show ? 'flex' : 'none';
+}
+
 function addShpTag(field){
   var inputId = {so:'shp-so-input', tr:'shp-tr-input', wo:'shp-wo-input'}[field];
   var val = document.getElementById(inputId).value.trim();
@@ -2662,11 +2674,13 @@ function addShpTag(field){
   document.getElementById(inputId).value = '';
   renderShpTags(field);
   if(field === 'wo') prefillFromIncoming(val);
+  if(field === 'so') updateShpOrderFields();
 }
 
 function removeShpTag(field, i){
   shpTags[field].splice(i, 1);
   renderShpTags(field);
+  if(field === 'so') updateShpOrderFields();
 }
 
 // ── PAGINATION HELPERS ──
@@ -2819,6 +2833,7 @@ function openShipModal(key){
   ['so','tr','wo'].forEach(renderShpTags);
   document.getElementById('shp-outgoing-group').style.display = shpTags.wo.length ? 'flex' : 'none';
   ['shp-so-input','shp-tr-input','shp-wo-input'].forEach(function(id){ document.getElementById(id).value=''; });
+  updateShpOrderFields();
   document.getElementById('shp-modal').style.display = 'flex';
 }
 
