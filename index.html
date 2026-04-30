@@ -1890,7 +1890,7 @@ function toggleBenchName(){
 // ── RENDER TABLE ──
 function renderIncoming(){
   var rows = Object.entries(incomingData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
-  rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  rows.sort(function(a,b){ return (b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||''); });
   var yr = (document.getElementById('inc-year')||{}).value||'';
   var mo = (document.getElementById('inc-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.date||'').startsWith(yr); });
@@ -2302,7 +2302,7 @@ function prefillSubFromIncoming(source){
 
 function renderSubcontractor(){
   var rows = Object.entries(subData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
-  rows.sort(function(a,b){ return (b.shipDate||'').localeCompare(a.shipDate||''); });
+  rows.sort(function(a,b){ return (b.createdAt||b.shipDate||'').localeCompare(a.createdAt||a.shipDate||''); });
   var yr = (document.getElementById('sub-year')||{}).value||'';
   var mo = (document.getElementById('sub-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.shipDate||'').startsWith(yr); });
@@ -2714,7 +2714,7 @@ function renderShpTags(field){
 
 function renderShipping(){
   var rows = Object.entries(shpData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
-  rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  rows.sort(function(a,b){ return (b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||''); });
   var yr = (document.getElementById('shp-year')||{}).value||'';
   var mo = (document.getElementById('shp-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.date||'').startsWith(yr); });
@@ -2944,7 +2944,7 @@ function renderItems(){
   var rows = Object.entries(itemsData).map(function(e){
     return normalizeItemRecord(Object.assign({_key:e[0]},e[1]));
   });
-  rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  rows.sort(function(a,b){ return (b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||''); });
   var yr = (document.getElementById('itm-year')||{}).value||'';
   var mo = (document.getElementById('itm-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.date||'').startsWith(yr); });
@@ -3360,7 +3360,7 @@ function updateProcDays(){
 
 function renderProcess(){
   var rows = Object.entries(procData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
-  rows.sort(function(a,b){ return (a.receivedDate||'').localeCompare(b.receivedDate||''); });
+  rows.sort(function(a,b){ return (b.createdAt||b.receivedDate||'').localeCompare(a.createdAt||a.receivedDate||''); });
   var yr = (document.getElementById('proc-year')||{}).value||'';
   var mo = (document.getElementById('proc-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.receivedDate||'').startsWith(yr); });
@@ -3601,7 +3601,7 @@ function findPkgShipDate(orderNum){
 
 function renderPacking(){
   var rows = Object.entries(pkgData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
-  rows.sort(function(a,b){ return (a.pickDate||'').localeCompare(b.pickDate||''); });
+  rows.sort(function(a,b){ return (b.createdAt||b.pickDate||'').localeCompare(a.createdAt||a.pickDate||''); });
   var yr = (document.getElementById('pkg-year')||{}).value||'';
   var mo = (document.getElementById('pkg-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.pickDate||'').startsWith(yr); });
@@ -3816,7 +3816,7 @@ function payLookupOrder(){
 
 function renderPayments(){
   var rows = Object.entries(payData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
-  rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  rows.sort(function(a,b){ return (b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||''); });
   var yr = (document.getElementById('pay-year')||{}).value||'';
   var mo = (document.getElementById('pay-month')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.date||'').startsWith(yr); });
