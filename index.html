@@ -285,6 +285,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 
 /* ── READ-ONLY MODE ── */
 body.readonly-mode .admin-only{display:none!important}
+body.readonly-mode .modal input:not([type="hidden"]):not([type="radio"]):not([type="checkbox"]),
+body.readonly-mode .modal select,
+body.readonly-mode .modal textarea{pointer-events:none;background:#f8faff!important;color:#64748b!important;cursor:default!important;border-color:#e2e8f0!important}
+body.readonly-mode .modal input[type="radio"],
+body.readonly-mode .modal input[type="checkbox"]{pointer-events:none;cursor:default}
+body.readonly-mode .modal .form-actions .btn-primary,
+body.readonly-mode .modal .form-actions .btn-danger{display:none!important}
+body.readonly-mode .modal .form-actions::before{content:'👁 View only — no edit permission';font-size:.72rem;font-weight:600;color:#94a3b8;margin-right:auto;display:flex;align-items:center}
 </style>
 <script>
 // ── GLOBAL UPPERCASE ENFORCEMENT ──
