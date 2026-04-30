@@ -1454,7 +1454,7 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="form-group">
           <label>Supplier</label>
-          <input type="text" id="itm-supplier" placeholder="Supplier name">
+          <input type="text" id="itm-supplier" placeholder="Supplier name" list="supplier-suggestions" autocomplete="off">
         </div>
         <div class="form-group">
           <label>Requested By</label>
@@ -1499,6 +1499,7 @@ document.addEventListener('keydown', function(ev){
 <div id="toast"></div>
 <datalist id="customer-suggestions"></datalist>
 <datalist id="material-suggestions"></datalist>
+<datalist id="supplier-suggestions"></datalist>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -1802,38 +1803,40 @@ function getGreeting(name){
 }
 
 // ── AUTOCOMPLETE FROM HISTORY ──
+function normAC(s){ return (s||'').trim().toUpperCase(); }
+
 function buildAutocomplete(){
-  var customers = {}, materials = {}, cities = {};
+  var customers = {}, materials = {}, suppliers = {}, cities = {};
+
+  function addC(v){ var k=normAC(v); if(k) customers[k]=k; }
+  function addM(v){ var k=normAC(v); if(k) materials[k]=k; }
+  function addS(v){ var k=normAC(v); if(k) suppliers[k]=k; }
 
   Object.values(incomingData).forEach(function(r){
-    if(r.customer) customers[r.customer.toUpperCase()] = r.customer;
-    if(r.equipment) materials[r.equipment] = r.equipment;
+    addC(r.customer);
+    addM(r.equipment);
   });
   Object.values(itemsData).forEach(function(r){
-    if(r.customer) customers[r.customer.toUpperCase()] = r.customer;
-    if(r.material) materials[r.material.toUpperCase()] = r.material;
+    addC(r.customer);
+    addM(r.material);
+    addS(r.supplier);
     (r.lineItems||[]).forEach(function(li){
-      if(li.material) materials[li.material.toUpperCase()] = li.material;
-      if(li.customer) customers[li.customer.toUpperCase()] = li.customer;
+      addM(li.material);
+      addC(li.customer);
     });
   });
   Object.values(shpData).forEach(function(r){
-    if(r.customer) customers[r.customer.toUpperCase()] = r.customer;
-    if(r.material) materials[r.material] = r.material;
-    if(r.city) cities[r.city.toUpperCase()] = r.city;
+    addC(r.customer);
+    addM(r.material);
+    var k=normAC(r.city); if(k) cities[k]=r.city.trim();
   });
-  Object.values(pkgData).forEach(function(r){
-    if(r.customer) customers[r.customer.toUpperCase()] = r.customer;
-  });
-  Object.values(procData).forEach(function(r){
-    if(r.customer) customers[r.customer.toUpperCase()] = r.customer;
-  });
-  Object.values(subData).forEach(function(r){
-    if(r.customer) customers[r.customer.toUpperCase()] = r.customer;
-  });
+  Object.values(pkgData).forEach(function(r){ addC(r.customer); });
+  Object.values(procData).forEach(function(r){ addC(r.customer); });
+  Object.values(subData).forEach(function(r){ addC(r.customer); });
 
   setDatalist('customer-suggestions', Object.values(customers));
   setDatalist('material-suggestions', Object.values(materials));
+  setDatalist('supplier-suggestions', Object.values(suppliers));
 
   // Merge historical cities into existing city datalist
   var cityDl = document.getElementById('city-list');
