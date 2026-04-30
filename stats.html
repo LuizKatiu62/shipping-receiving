@@ -260,14 +260,21 @@ function render(){
     });
   });
 
-  // carrier counts — try selected year first, fall back to all years
+  // Normalize name: trim + title-case so "MIDLAND COURIER" == "Midland Courier"
+  function normName(s){
+    return (s||'').trim().replace(/\S+/g, function(w){
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+    });
+  }
+
+  // carrier counts — always use ALL years so totals are realistic
   function buildCarrierCount(yearFilter){
     var cc = {};
     Object.values(allData.shipping).forEach(function(r){
       if(yearFilter && !(r.date||'').startsWith(yearFilter)) return;
       var raw = r.carrier||'';
       if(!raw) return;
-      var name = raw==='Other' ? (r.carrierOther||'Other') : raw;
+      var name = normName(raw==='Other' ? (r.carrierOther||'Other') : raw);
       cc[name] = (cc[name]||0)+1;
     });
     return cc;
@@ -280,11 +287,13 @@ function render(){
   }
   var topCarriers = Object.entries(carrierCount).sort(function(a,b){return b[1]-a[1];});
 
-  // top customers
+  // top customers — normalize case
   var cc = {};
   Object.values(allData.shipping).forEach(function(r){
-    if((r.date||'').startsWith(cYr) && r.customer)
-      cc[r.customer] = (cc[r.customer]||0)+1;
+    if((r.date||'').startsWith(cYr) && r.customer){
+      var cname = normName(r.customer);
+      cc[cname] = (cc[cname]||0)+1;
+    }
   });
   var top = Object.entries(cc).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
 
@@ -330,11 +339,11 @@ function render(){
   /* Top customers + Freight */
   h += '<div class="r2 g5545">'+
     '<div class="card">'+
-      '<div class="ch"><div><div class="ct">Top Customers — Shipping</div><div class="cs">By number of outgoing shipments &nbsp;·&nbsp; '+cYr+'</div></div></div>'+
+      '<div class="ch"><div><div class="ct">Top Customers — Shipping</div><div class="cs">By number of outgoing shipments &nbsp;·&nbsp; All shipments in '+cYr+'</div></div></div>'+
       '<div class="cb"><div class="cw" style="height:'+Math.max(180, top.length*34)+'px"><canvas id="c-cust"></canvas></div></div>'+
     '</div>'+
     '<div class="card">'+
-      '<div class="ch"><div><div class="ct">Carrier</div><div class="cs">By number of shipments · '+carrierLabel+'</div></div></div>'+
+      '<div class="ch"><div><div class="ct">Carrier</div><div class="cs">By number of shipments &nbsp;·&nbsp; All shipments in '+carrierLabel+'</div></div></div>'+
       '<div class="cb">'+
         '<div class="cw" style="height:'+(Math.max(160, topCarriers.length*34))+'px"><canvas id="c-fr"></canvas></div>'+
       '</div>'+
