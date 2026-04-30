@@ -549,6 +549,7 @@ document.addEventListener('keydown', function(ev){
         <select class="year-select" id="shp-month" onchange="filterShipping()"><option value="">All Months</option></select>
         <input class="search-input" type="text" id="shp-search" placeholder="Search outgoing #, city, material..." oninput="filterShipping()">
         <button class="btn btn-secondary" onclick="exportShippingCSV()">⬇️ Export Excel</button>
+        <button class="btn btn-secondary admin-only" onclick="openBulkStatus()">📊 Bulk Status</button>
         <button class="btn btn-primary admin-only" onclick="openShipModal()">+ New Shipment</button>
       </div>
     </div>
@@ -1248,6 +1249,49 @@ document.addEventListener('keydown', function(ev){
 </div>
 
 <!-- ══ SHIPPING MODAL ══ -->
+<!-- ══ BULK STATUS MODAL ══ -->
+<div class="modal-overlay" id="bulk-status-modal" style="display:none" onclick="if(event.target===this)closeBulkStatus()">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-title">📊 Bulk Status Update</div>
+      <button class="modal-close" onclick="closeBulkStatus()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="grid-template-columns:1fr">
+        <div class="form-group full">
+          <label>Aplicar para</label>
+          <select id="bulk-filter-type" onchange="updateBulkPreview()">
+            <option value="nostatus" selected>Registros sem status definido</option>
+            <option value="carrier">Por transportadora</option>
+            <option value="all">Todos os registros</option>
+          </select>
+        </div>
+        <div class="form-group full" id="bulk-carrier-group" style="display:none">
+          <label>Transportadora</label>
+          <select id="bulk-carrier" onchange="updateBulkPreview()"></select>
+        </div>
+        <div class="form-group full">
+          <label>Definir Status como</label>
+          <select id="bulk-status-val" onchange="updateBulkPreview()">
+            <option value="">— Not Set —</option>
+            <option value="Shipped">📦 Shipped</option>
+            <option value="In Transit">🚚 In Transit</option>
+            <option value="Out for Delivery">🏃 Out for Delivery</option>
+            <option value="Delivered">✅ Delivered</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <div id="bulk-preview" style="font-size:.85rem;color:#475569;padding:10px 12px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;line-height:1.5"></div>
+        </div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeBulkStatus()">Cancelar</button>
+      <button class="btn btn-primary" id="bulk-apply-btn" onclick="applyBulkStatus()" disabled>Aplicar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="shp-modal" style="display:none" onclick="if(event.target===this)closeShipModal()">
   <div class="modal">
     <div class="modal-header">
@@ -2712,6 +2756,90 @@ function toggleShpDeliveredDate(){
   if(s!=='Delivered') document.getElementById('shp-delivered-date').value='';
 }
 
+// Convert scientific notation tracking numbers (e.g. "1.07E+11") back to full integer string
+function formatTrackNum(v){
+  var s = String(v == null ? '' : v);
+  if(/^[\d.]+[eE][+\-]?\d+$/.test(s.trim())){
+    var n = parseFloat(s);
+    if(!isNaN(n) && isFinite(n)) s = Math.round(n).toLocaleString('en-US',{useGrouping:false,maximumFractionDigits:0});
+  }
+  return s;
+}
+
+// Remove "0" and empty values from order number arrays for display
+function cleanOrders(arr){
+  return (arr||[]).filter(function(v){ return v && String(v).trim() !== '0' && String(v).trim() !== ''; });
+}
+
+// ── Bulk Status ──
+function openBulkStatus(){
+  var carriers = {};
+  Object.values(shpData).forEach(function(r){
+    var c = r.carrier === 'Other' ? (r.carrierOther||'Other') : (r.carrier||'');
+    if(c) carriers[c] = true;
+  });
+  var sel = document.getElementById('bulk-carrier');
+  sel.innerHTML = Object.keys(carriers).sort().map(function(c){
+    return '<option value="'+escAttr(c)+'">'+escHtml(c)+'</option>';
+  }).join('');
+  document.getElementById('bulk-status-modal').style.display = 'flex';
+  document.getElementById('bulk-filter-type').value = 'nostatus';
+  document.getElementById('bulk-status-val').value = '';
+  updateBulkPreview();
+}
+
+function closeBulkStatus(){
+  document.getElementById('bulk-status-modal').style.display = 'none';
+}
+
+function getBulkTargetKeys(){
+  var filterType = document.getElementById('bulk-filter-type').value;
+  var carrierVal = document.getElementById('bulk-carrier').value;
+  return Object.entries(shpData).filter(function(e){
+    var r = e[1];
+    if(filterType === 'nostatus') return !r.status;
+    if(filterType === 'carrier'){
+      var c = r.carrier === 'Other' ? (r.carrierOther||'Other') : (r.carrier||'');
+      return c === carrierVal;
+    }
+    return true;
+  }).map(function(e){ return e[0]; });
+}
+
+function updateBulkPreview(){
+  var filterType = document.getElementById('bulk-filter-type').value;
+  document.getElementById('bulk-carrier-group').style.display = filterType === 'carrier' ? 'flex' : 'none';
+  var keys = getBulkTargetKeys();
+  var statusVal = document.getElementById('bulk-status-val').value;
+  var preview = document.getElementById('bulk-preview');
+  var applyBtn = document.getElementById('bulk-apply-btn');
+  if(!statusVal){
+    preview.innerHTML = '<span style="color:#94a3b8">Selecione o status a aplicar.</span>';
+    applyBtn.disabled = true;
+    return;
+  }
+  if(!keys.length){
+    preview.innerHTML = '<span style="color:#94a3b8">Nenhum registro encontrado com este filtro.</span>';
+    applyBtn.disabled = true;
+    return;
+  }
+  preview.innerHTML = '<strong>'+keys.length+'</strong> registro(s) serão atualizados para <strong>"'+escHtml(statusVal)+'"</strong>.';
+  applyBtn.disabled = false;
+}
+
+function applyBulkStatus(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
+  var keys = getBulkTargetKeys();
+  var statusVal = document.getElementById('bulk-status-val').value;
+  if(!keys.length || !statusVal) return;
+  var updates = {};
+  keys.forEach(function(k){ updates[SR_PATH+'/shipping/'+k+'/status'] = statusVal; });
+  db.ref('/').update(updates).then(function(){
+    showToast(keys.length+' registro(s) atualizados.');
+    closeBulkStatus();
+  }).catch(function(e){ showToast('Erro: '+e.message); });
+}
+
 function getTrackingUrl(carrier, carrierOther, trackingNum){
   var c = (carrier==='Other' ? carrierOther : carrier)||'';
   var t = encodeURIComponent(trackingNum||'');
@@ -2859,24 +2987,28 @@ function renderShipping(){
       ? '<span class="badge '+(r.freightType==='Collect'?'badge-generator':'badge-electrical')+'">'+r.freightType+'</span>'
       : '—';
     var carrierDisplay = r.carrier === 'Other' ? (r.carrierOther||'Other') : (r.carrier||'—');
-    var trackUrl = getTrackingUrl(r.carrier, r.carrierOther, r.trackingNum);
+    var trackNum = formatTrackNum(r.trackingNum);
+    var trackUrl = getTrackingUrl(r.carrier, r.carrierOther, trackNum);
     var statusBadge = r.status ? '<span class="badge '+STATUS_BADGE[r.status]+'" style="margin-top:3px;display:block">'+escHtml(r.status)+'</span>' : '';
-    var trackingCell = r.trackingNum
-      ? escHtml(r.trackingNum)+(statusBadge?'<br>'+statusBadge:'')
+    var trackingCell = trackNum
+      ? escHtml(trackNum)+(statusBadge?'<br>'+statusBadge:'')
       : (statusBadge||'—');
+    var soArr = cleanOrders(r.salesOrders);
+    var trArr = cleanOrders(r.transferNums);
+    var woArr = cleanOrders(r.workOrders);
     return '<tr onclick="openShipModal(\''+r._key+'\')" style="'+(r.status==='Delivered'?'opacity:.7':'')+'">'+
       '<td><strong>'+escHtml(r.outgoing||'—')+'</strong></td>'+
       '<td>'+fmtDate(r.date)+'</td>'+
       '<td>'+escHtml(r.customer||'—')+'</td>'+
-      '<td>'+escHtml((r.salesOrders&&r.salesOrders.length)?r.salesOrders.join(', '):'—')+'</td>'+
-      '<td>'+escHtml((r.transferNums&&r.transferNums.length)?r.transferNums.join(', '):'—')+'</td>'+
-      '<td>'+escHtml((r.workOrders&&r.workOrders.length)?r.workOrders.join(', '):'—')+'</td>'+
+      '<td>'+escHtml(soArr.length?soArr.join(', '):'—')+'</td>'+
+      '<td>'+escHtml(trArr.length?trArr.join(', '):'—')+'</td>'+
+      '<td>'+escHtml(woArr.length?woArr.join(', '):'—')+'</td>'+
       '<td title="'+escAttr(r.material||'')+'">'+escHtml(r.material||'—')+'</td>'+
       '<td class="col-tracking">'+trackingCell+'</td>'+
       '<td onclick="event.stopPropagation()">'+
         '<div class="shp-actions">'+
           (r.photosLink?'<a href="'+escAttr(r.photosLink)+'" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none" onclick="event.stopPropagation()">📷 Photos</a>':'')+
-          (trackUrl?'<button class="track-link" onclick="event.stopPropagation();trackShipment(\''+escAttr(r.carrier||'')+'\',\''+escAttr(r.carrierOther||'')+'\',\''+escAttr(r.trackingNum||'')+'\')">🔍 Track</button>':'')+
+          (trackUrl?'<button class="track-link" onclick="event.stopPropagation();trackShipment(\''+escAttr(r.carrier||'')+'\',\''+escAttr(r.carrierOther||'')+'\',\''+escAttr(trackNum)+'\')">🔍 Track</button>':'')+
           '<button class="btn btn-secondary btn-sm" onclick="openShipModal(\''+r._key+'\')">✏️ Edit</button>'+
         '</div>'+
       '</td>'+
