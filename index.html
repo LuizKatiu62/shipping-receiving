@@ -2772,15 +2772,19 @@ function cleanOrders(arr){
 }
 
 // ── Bulk Status ──
+function titleCase(s){
+  return (s||'').trim().replace(/\S+/g,function(w){ return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase(); });
+}
 function openBulkStatus(){
   var carriers = {};
   Object.values(shpData).forEach(function(r){
-    var c = r.carrier === 'Other' ? (r.carrierOther||'Other') : (r.carrier||'');
-    if(c) carriers[c] = true;
+    var raw = r.carrier === 'Other' ? (r.carrierOther||'Other') : (r.carrier||'');
+    var c = titleCase(raw);
+    if(c) carriers[c.toUpperCase()] = c;
   });
   var sel = document.getElementById('bulk-carrier');
-  sel.innerHTML = Object.keys(carriers).sort().map(function(c){
-    return '<option value="'+escAttr(c)+'">'+escHtml(c)+'</option>';
+  sel.innerHTML = Object.values(carriers).sort().map(function(c){
+    return '<option value="'+escAttr(c.toUpperCase())+'">'+escHtml(c)+'</option>';
   }).join('');
   document.getElementById('bulk-status-modal').style.display = 'flex';
   document.getElementById('bulk-filter-type').value = 'nostatus';
@@ -2800,7 +2804,7 @@ function getBulkTargetKeys(){
     if(filterType === 'nostatus') return !r.status;
     if(filterType === 'carrier'){
       var c = r.carrier === 'Other' ? (r.carrierOther||'Other') : (r.carrier||'');
-      return c === carrierVal;
+      return c.toUpperCase() === carrierVal;
     }
     return true;
   }).map(function(e){ return e[0]; });
