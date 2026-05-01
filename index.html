@@ -488,6 +488,7 @@ document.addEventListener('keydown', function(ev){
       <div class="section-actions">
         <select class="year-select" id="inc-year" onchange="filterIncoming()"><option value="">All Years</option></select>
         <select class="year-select" id="inc-month" onchange="filterIncoming()"><option value="">All Months</option></select>
+        <select class="year-select" id="inc-day" onchange="filterIncoming()" style="min-width:80px"><option value="">All Days</option></select>
         <input class="search-input" type="text" id="inc-search" placeholder="Search form #, WO, equipment..." oninput="filterIncoming()">
         <button class="btn btn-secondary" onclick="exportIncomingCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openIncomingModal()">+ New Incoming</button>
@@ -523,6 +524,7 @@ document.addEventListener('keydown', function(ev){
       <div class="section-actions">
         <select class="year-select" id="itm-year" onchange="filterItems()"><option value="">All Years</option></select>
         <select class="year-select" id="itm-month" onchange="filterItems()"><option value="">All Months</option></select>
+        <select class="year-select" id="itm-day" onchange="filterItems()" style="min-width:80px"><option value="">All Days</option></select>
         <input class="search-input" type="text" id="itm-search" placeholder="Search doc #, PO, supplier, customer, SO#, WO#, transfer, material…" oninput="filterItems()">
         <button class="btn btn-secondary" onclick="exportItemsCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openItemModal()">+ New Item</button>
@@ -556,6 +558,7 @@ document.addEventListener('keydown', function(ev){
       <div class="section-actions">
         <select class="year-select" id="shp-year" onchange="filterShipping()"><option value="">All Years</option></select>
         <select class="year-select" id="shp-month" onchange="filterShipping()"><option value="">All Months</option></select>
+        <select class="year-select" id="shp-day" onchange="filterShipping()" style="min-width:80px"><option value="">All Days</option></select>
         <input class="search-input" type="text" id="shp-search" placeholder="Search outgoing #, city, material..." oninput="filterShipping()">
         <button class="btn btn-secondary" onclick="exportShippingCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openShipModal()">+ New Shipment</button>
@@ -590,6 +593,7 @@ document.addEventListener('keydown', function(ev){
       <div class="section-actions">
         <select class="year-select" id="sub-year" onchange="filterSubcontractor()"><option value="">All Years</option></select>
         <select class="year-select" id="sub-month" onchange="filterSubcontractor()"><option value="">All Months</option></select>
+        <select class="year-select" id="sub-day" onchange="filterSubcontractor()" style="min-width:80px"><option value="">All Days</option></select>
         <input class="search-input" type="text" id="sub-search" placeholder="Search WO, customer, subcontractor..." oninput="filterSubcontractor()">
         <button class="btn btn-secondary" onclick="exportSubcontractorCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openSubModal()">+ New Record</button>
@@ -624,6 +628,7 @@ document.addEventListener('keydown', function(ev){
       <div class="section-actions">
         <select class="year-select" id="pkg-year" onchange="filterPacking()"><option value="">All Years</option></select>
         <select class="year-select" id="pkg-month" onchange="filterPacking()"><option value="">All Months</option></select>
+        <select class="year-select" id="pkg-day" onchange="filterPacking()" style="min-width:80px"><option value="">All Days</option></select>
         <input class="search-input" type="text" id="pkg-search" placeholder="Search order #, customer..." oninput="filterPacking()">
         <button class="btn btn-secondary" onclick="exportPackingCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openPackModal()">+ New Record</button>
@@ -653,6 +658,7 @@ document.addEventListener('keydown', function(ev){
       <div class="section-actions">
         <select class="year-select" id="proc-year" onchange="filterProcess()"><option value="">All Years</option></select>
         <select class="year-select" id="proc-month" onchange="filterProcess()"><option value="">All Months</option></select>
+        <select class="year-select" id="proc-day" onchange="filterProcess()" style="min-width:80px"><option value="">All Days</option></select>
         <input class="search-input" type="text" id="proc-search" placeholder="Search outgoing #, WO #, customer..." oninput="filterProcess()">
         <button class="btn btn-secondary" onclick="exportProcessCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openProcModal()">+ New Record</button>
@@ -687,6 +693,7 @@ document.addEventListener('keydown', function(ev){
       <div class="section-actions">
         <select class="year-select" id="pay-year" onchange="filterPayments()"><option value="">All Years</option></select>
         <select class="year-select" id="pay-month" onchange="filterPayments()"><option value="">All Months</option></select>
+        <select class="year-select" id="pay-day" onchange="filterPayments()" style="min-width:80px"><option value="">All Days</option></select>
         <input class="search-input" type="text" id="pay-search" placeholder="Search order #, customer, method..." oninput="filterPayments()">
         <button class="btn btn-secondary" onclick="exportPaymentsCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openPayModal()">+ New Payment</button>
@@ -1686,6 +1693,12 @@ function buildMonthSelects(){
     var el = document.getElementById(id);
     if(el) el.innerHTML = opts;
   });
+  var dayOpts = '<option value="">All Days</option>';
+  for(var d=1;d<=31;d++) dayOpts += '<option value="'+(d<10?'0':'')+d+'">'+(d<10?'0':'')+d+'</option>';
+  ['inc-day','itm-day','shp-day','sub-day','pkg-day','proc-day','pay-day'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.innerHTML = dayOpts;
+  });
 }
 
 function populateYearSelect(selectId, dataObj, dateField){
@@ -1989,8 +2002,10 @@ function renderIncoming(){
   rows.sort(function(a,b){ return (b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||''); });
   var yr = (document.getElementById('inc-year')||{}).value||'';
   var mo = (document.getElementById('inc-month')||{}).value||'';
+  var dy = (document.getElementById('inc-day')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.date||'').startsWith(yr); });
   if(mo) rows = rows.filter(function(r){ return (r.date||'').slice(5,7)===mo; });
+  if(dy) rows = rows.filter(function(r){ return (r.date||'').slice(8,10)===dy; });
   incomingFiltered = rows;
 
   var q = (document.getElementById('inc-search').value||'').toLowerCase();
@@ -2465,8 +2480,10 @@ function renderSubcontractor(){
   rows.sort(function(a,b){ return (b.createdAt||b.shipDate||'').localeCompare(a.createdAt||a.shipDate||''); });
   var yr = (document.getElementById('sub-year')||{}).value||'';
   var mo = (document.getElementById('sub-month')||{}).value||'';
+  var dy = (document.getElementById('sub-day')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.shipDate||'').startsWith(yr); });
   if(mo) rows = rows.filter(function(r){ return (r.shipDate||'').slice(5,7)===mo; });
+  if(dy) rows = rows.filter(function(r){ return (r.shipDate||'').slice(8,10)===dy; });
   subFiltered = rows;
   var q = (document.getElementById('sub-search').value||'').toLowerCase();
   if(q) subFiltered = rows.filter(function(r){
@@ -2988,8 +3005,10 @@ function renderShipping(){
   rows.sort(function(a,b){ return (b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||''); });
   var yr = (document.getElementById('shp-year')||{}).value||'';
   var mo = (document.getElementById('shp-month')||{}).value||'';
+  var dy = (document.getElementById('shp-day')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.date||'').startsWith(yr); });
   if(mo) rows = rows.filter(function(r){ return (r.date||'').slice(5,7)===mo; });
+  if(dy) rows = rows.filter(function(r){ return (r.date||'').slice(8,10)===dy; });
   shpFiltered = rows;
 
   var q = (document.getElementById('shp-search').value||'').toLowerCase();
@@ -3235,8 +3254,10 @@ function renderItems(){
   rows.sort(function(a,b){ return (b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||''); });
   var yr = (document.getElementById('itm-year')||{}).value||'';
   var mo = (document.getElementById('itm-month')||{}).value||'';
+  var dy = (document.getElementById('itm-day')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.date||'').startsWith(yr); });
   if(mo) rows = rows.filter(function(r){ return (r.date||'').slice(5,7)===mo; });
+  if(dy) rows = rows.filter(function(r){ return (r.date||'').slice(8,10)===dy; });
   itemsFiltered = rows;
   var q = (document.getElementById('itm-search').value||'').toLowerCase();
   if(q) itemsFiltered = rows.filter(function(r){
@@ -3642,8 +3663,10 @@ function renderProcess(){
   rows.sort(function(a,b){ return (b.createdAt||b.receivedDate||'').localeCompare(a.createdAt||a.receivedDate||''); });
   var yr = (document.getElementById('proc-year')||{}).value||'';
   var mo = (document.getElementById('proc-month')||{}).value||'';
+  var dy = (document.getElementById('proc-day')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.receivedDate||'').startsWith(yr); });
   if(mo) rows = rows.filter(function(r){ return (r.receivedDate||'').slice(5,7)===mo; });
+  if(dy) rows = rows.filter(function(r){ return (r.receivedDate||'').slice(8,10)===dy; });
   if(!yr && !mo){
     var curYM = today().slice(0,7);
     rows = rows.filter(function(r){
@@ -3944,9 +3967,11 @@ function renderPacking(){
   rows.sort(function(a,b){ return (b.createdAt||b.pickDate||'').localeCompare(a.createdAt||a.pickDate||''); });
   var yr = (document.getElementById('pkg-year')||{}).value||'';
   var mo = (document.getElementById('pkg-month')||{}).value||'';
+  var dy = (document.getElementById('pkg-day')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.pickDate||'').startsWith(yr); });
   if(mo) rows = rows.filter(function(r){ return (r.pickDate||'').slice(5,7)===mo; });
-  if(!yr && !mo){
+  if(dy) rows = rows.filter(function(r){ return (r.pickDate||'').slice(8,10)===dy; });
+  if(!yr && !mo && !dy){
     var curYM = today().slice(0,7);
     rows = rows.filter(function(r){
       var sd = findPkgShipDate(r.orderNum);
@@ -4159,8 +4184,10 @@ function renderPayments(){
   rows.sort(function(a,b){ return (b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||''); });
   var yr = (document.getElementById('pay-year')||{}).value||'';
   var mo = (document.getElementById('pay-month')||{}).value||'';
+  var dy = (document.getElementById('pay-day')||{}).value||'';
   if(yr) rows = rows.filter(function(r){ return (r.date||'').startsWith(yr); });
   if(mo) rows = rows.filter(function(r){ return (r.date||'').slice(5,7)===mo; });
+  if(dy) rows = rows.filter(function(r){ return (r.date||'').slice(8,10)===dy; });
   payFiltered = rows;
   var q = (document.getElementById('pay-search').value||'').toLowerCase();
   if(q) payFiltered = rows.filter(function(r){
