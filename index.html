@@ -90,9 +90,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .btn-sm{padding:6px 12px;font-size:.73rem}
 
 /* ── TABLE ── */
-.table-wrap{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);overflow-x:auto;border:1px solid var(--border)}
+.table-wrap{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);overflow:auto;max-height:calc(100vh - 260px);min-height:300px;border:1px solid var(--border)}
 .table-wrap table{width:100%;border-collapse:collapse;font-size:.82rem}
-.table-wrap th{background:linear-gradient(180deg,var(--blue-600),var(--blue-500));color:#fff;padding:12px 16px;text-align:left;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap;position:sticky;top:96px;z-index:3}
+.table-wrap th{background:linear-gradient(180deg,var(--blue-600),var(--blue-500));color:#fff;padding:12px 16px;text-align:left;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap;position:sticky;top:0;z-index:3}
 .table-wrap th:first-child{padding-left:20px}
 .table-wrap td{padding:11px 16px;border-bottom:1px solid #f1f5f9;vertical-align:middle;color:var(--text-primary)}
 .table-wrap td:first-child{padding-left:20px}
@@ -103,7 +103,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .table-wrap tbody tr:nth-child(even):hover td{background:#f0f7ff}
 
 /* ── WIDE SECTION TABLES ── */
-#section-incoming .table-wrap{overflow-x:auto}
 #section-incoming .table-wrap table{width:max-content;min-width:100%}
 #section-incoming .table-wrap td{white-space:nowrap}
 #section-incoming .table-wrap th{white-space:nowrap}
@@ -116,7 +115,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 #section-incoming .table-wrap tr:nth-child(even) td:last-child{background:#fafcff}
 #section-incoming .table-wrap tr:hover td:last-child{background:#f0f7ff}
 #section-incoming .table-wrap th:last-child{background:linear-gradient(180deg,var(--blue-600),var(--blue-500));z-index:5}
-#section-shipping .table-wrap{overflow-x:auto}
 #section-shipping .table-wrap table{width:100%;min-width:908px;table-layout:fixed}
 #section-shipping .table-wrap td{white-space:nowrap;font-size:.78rem;padding:8px 10px}
 #section-shipping .table-wrap td:not(:last-child){overflow:hidden;text-overflow:ellipsis}
