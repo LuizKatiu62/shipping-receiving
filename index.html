@@ -471,7 +471,7 @@ document.addEventListener('keydown', function(ev){
     <button class="nav-tab" onclick="showSection('shipping')">🚚 Shipping</button>
     <button class="nav-tab" onclick="showSection('subcontractor')">🔧 Subcontractor</button>
     <button class="nav-tab" onclick="showSection('packing')">📦 Packing & Hold</button>
-    <button class="nav-tab" onclick="showSection('process')">⏸ Process on Hold</button>
+    <button class="nav-tab" onclick="showSection('process')">⏸ Shipping On Hold</button>
     <button class="nav-tab" id="nav-tab-payments" onclick="showSection('payments')" style="display:none">💰 Payments</button>
     <a class="nav-tab" href="stats.html" target="_blank" style="text-decoration:none">📊 Dashboard</a>
   </div>
@@ -649,7 +649,7 @@ document.addEventListener('keydown', function(ev){
   <div id="section-process" style="display:none">
     <div class="stats-bar" id="proc-stats"></div>
     <div class="section-header">
-      <div class="section-title">⏸ Process on Hold</div>
+      <div class="section-title">⏸ Shipping On Hold</div>
       <div class="section-actions">
         <select class="year-select" id="proc-year" onchange="filterProcess()"><option value="">All Years</option></select>
         <select class="year-select" id="proc-month" onchange="filterProcess()"><option value="">All Months</option></select>
@@ -1202,7 +1202,7 @@ document.addEventListener('keydown', function(ev){
 <div class="modal-overlay" id="proc-modal" style="display:none" onclick="if(event.target===this)closeProcModal()">
   <div class="modal" style="max-width:620px">
     <div class="modal-header">
-      <div class="modal-title" id="proc-modal-title">New Process on Hold</div>
+      <div class="modal-title" id="proc-modal-title">New Shipping On Hold</div>
       <button class="modal-close" onclick="closeProcModal()">✕</button>
     </div>
     <div class="modal-body">
@@ -2939,7 +2939,7 @@ function lookupProcPhotos(){
     if((rwo && wos.includes(rwo)) || (rso && sos.includes(rso))){ found = r; return true; }
     return false;
   });
-  if(found){ photosEl.value = found.photosLink; showToast('📷 Photos link loaded from Process on Hold'); }
+  if(found){ photosEl.value = found.photosLink; showToast('📷 Photos link loaded from Shipping On Hold'); }
 }
 
 function removeShpTag(field, i){
@@ -3663,7 +3663,7 @@ function renderProcess(){
   });
   var tbody = document.getElementById('proc-tbody');
   if(!procFiltered.length){
-    tbody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">⏸</div><div class="empty-text">No process on hold records yet.</div></div></td></tr>';
+    tbody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">⏸</div><div class="empty-text">No shipping on hold records yet.</div></div></td></tr>';
     renderProcStats(rows); return;
   }
   tbody.innerHTML = procFiltered.map(function(r){
@@ -3719,7 +3719,7 @@ function openProcModal(key){
   document.getElementById('proc-current-date').value = today();
   if(key && procData[key]){
     var r = procData[key];
-    document.getElementById('proc-modal-title').textContent = 'Edit Process on Hold';
+    document.getElementById('proc-modal-title').textContent = 'Edit Shipping On Hold';
     document.getElementById('proc-outgoing').value      = r.outgoing||'';
     document.getElementById('proc-wo').value            = r.wo||'';
     document.getElementById('proc-so').value            = r.so||'';
@@ -3733,7 +3733,7 @@ function openProcModal(key){
     document.getElementById('proc-del-btn').style.display='';
     updateProcDays();
   } else {
-    document.getElementById('proc-modal-title').textContent = 'New Process on Hold';
+    document.getElementById('proc-modal-title').textContent = 'New Shipping On Hold';
     document.getElementById('proc-pics-qty').value = '';
     ['proc-outgoing','proc-wo','proc-so','proc-customer','proc-po','proc-material','proc-received-date','proc-photos-link','proc-comments'].forEach(function(id){
       document.getElementById(id).value='';
@@ -3760,7 +3760,7 @@ function printProcLabel(){
   var mainValue = wo || so || '—';
 
   var win = window.open('','_blank','width=600,height=400');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Process on Hold Label</title><style>'+
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Shipping On Hold Label</title><style>'+
     '*{margin:0;padding:0;box-sizing:border-box}'+
     'body{font-family:Arial,sans-serif;background:#fff;padding:6px}'+
     '.label{width:8.4cm;min-height:4.9cm;border:3px solid #000;padding:4px;page-break-inside:avoid}'+
