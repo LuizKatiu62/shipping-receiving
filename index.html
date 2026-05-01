@@ -719,6 +719,7 @@ document.addEventListener('keydown', function(ev){
             <th>End Date</th>
             <th>Status</th>
             <th style="text-align:center">Days at SA</th>
+            <th style="width:80px"></th>
           </tr>
         </thead>
         <tbody id="trn-tbody"></tbody>
@@ -3855,6 +3856,7 @@ function renderTurnaround(){
         ? '<span style="background:#dcfce7;color:#166534;border-radius:20px;padding:2px 10px;font-size:.72rem;font-weight:700">✓ Shipped</span>'
         : '<span style="background:#e0f2fe;color:#0369a1;border-radius:20px;padding:2px 10px;font-size:.72rem;font-weight:700">⏸ On Hold</span>');
     var dc = r.days>60?'#dc2626':(r.days>30?'#d97706':'#16a34a');
+    var woEsc = escAttr(r.wo);
     return '<tr>'+
       '<td><strong>'+escHtml(r.formNum)+'</strong></td>'+
       '<td>'+escHtml(r.wo)+'</td>'+
@@ -3865,8 +3867,52 @@ function renderTurnaround(){
       '<td style="white-space:nowrap">'+(r.endDate?fmtDate(r.endDate):'—')+'</td>'+
       '<td>'+sb+'</td>'+
       '<td style="text-align:center;font-weight:800;font-size:.95rem;color:'+dc+'">'+r.days+'</td>'+
+      '<td onclick="event.stopPropagation()"><button class="btn btn-secondary btn-sm" onclick="showWoMaterials(\''+woEsc+'\')" title="View received materials" style="font-size:.7rem;padding:4px 8px;white-space:nowrap">📦 Materials</button></td>'+
     '</tr>';
   }).join('');
+}
+
+function showWoMaterials(wo){
+  var items = [];
+  Object.values(itemsData).forEach(function(doc){
+    var date = doc.date||'';
+    (doc.lineItems||[]).forEach(function(li){
+      if((li.workOrderNum||'').trim().toUpperCase() === wo.trim().toUpperCase()){
+        items.push({ material: li.material||'', pc: li.pc||'', date: date });
+      }
+    });
+  });
+  items.sort(function(a,b){ return a.date.localeCompare(b.date); });
+
+  document.getElementById('wo-mat-title').textContent = 'Materials Received — WO ' + wo;
+  document.getElementById('wo-mat-sub').textContent = items.length + ' item' + (items.length!==1?'s':'') + ' received';
+
+  var body = document.getElementById('wo-mat-body');
+  if(!items.length){
+    body.innerHTML = '<div style="text-align:center;padding:32px;color:#94a3b8;font-size:.88rem">No materials found in Incoming Items for this Work Order.</div>';
+  } else {
+    body.innerHTML =
+      '<table style="width:100%;border-collapse:collapse;font-size:.83rem">'+
+      '<thead><tr style="background:#eff6ff;border-bottom:2px solid #bfdbfe">'+
+        '<th style="padding:8px 12px;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#1565c0">Material</th>'+
+        '<th style="padding:8px 10px;width:60px;text-align:center;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#1565c0">Qty</th>'+
+        '<th style="padding:8px 12px;width:110px;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#1565c0">Date Received</th>'+
+      '</tr></thead><tbody>'+
+      items.map(function(it, i){
+        var bg = i%2===0?'#fff':'#f8fafc';
+        return '<tr style="border-bottom:1px solid #f1f5f9;background:'+bg+'">'+
+          '<td style="padding:9px 12px;font-weight:600">'+escHtml(it.material||'—')+'</td>'+
+          '<td style="padding:9px 10px;text-align:center;font-weight:700;color:#1565c0">'+escHtml(it.pc||'—')+'</td>'+
+          '<td style="padding:9px 12px;white-space:nowrap;color:#475569">'+fmtDate(it.date)+'</td>'+
+        '</tr>';
+      }).join('')+
+      '</tbody></table>';
+  }
+  document.getElementById('wo-mat-modal').style.display = 'flex';
+}
+
+function closeWoMatModal(){
+  document.getElementById('wo-mat-modal').style.display = 'none';
 }
 
 function openProcModal(key){
@@ -4722,6 +4768,20 @@ function exportIncomingCSV(){
   toXLS('incoming-forms', headers, data);
 }
 </script>
+
+<!-- ══ WO MATERIALS MODAL ══ -->
+<div id="wo-mat-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:1100;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeWoMatModal()">
+  <div style="background:#fff;border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.25);width:100%;max-width:640px;max-height:85vh;display:flex;flex-direction:column">
+    <div style="padding:18px 22px 14px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:1rem;font-weight:800;color:#1e293b" id="wo-mat-title">Materials Received</div>
+        <div style="font-size:.78rem;color:#64748b;margin-top:2px" id="wo-mat-sub"></div>
+      </div>
+      <button onclick="closeWoMatModal()" style="background:none;border:none;cursor:pointer;font-size:1.4rem;color:#94a3b8;line-height:1;padding:2px 6px;border-radius:6px" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'">×</button>
+    </div>
+    <div style="overflow-y:auto;padding:16px 22px" id="wo-mat-body"></div>
+  </div>
+</div>
 </body>
 </html>
 
