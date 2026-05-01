@@ -129,6 +129,21 @@ td.dlt.eq{color:#94a3b8}
 /* ── LOADING ── */
 .loading{text-align:center;padding:70px;color:var(--light);font-size:.85rem}
 
+/* ── INTERACTIVE ── */
+.chip-btn{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.38);border-radius:20px;padding:3px 12px;font-size:.68rem;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;transition:all .15s}
+.chip-btn:hover{background:rgba(255,255,255,.32)}
+.chips-bar{background:#1e3a5f;border-bottom:1px solid rgba(255,255,255,.08);padding:7px 28px;display:none}
+.chips-inner{max-width:1420px;margin:0 auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chips-label{font-size:.62rem;font-weight:800;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.8px}
+.chip-clear{background:rgba(220,38,38,.35);border-color:rgba(220,38,38,.5)}
+.chip-clear:hover{background:rgba(220,38,38,.55)}
+tbody tr.row-hl{background:#dbeafe!important}
+tbody tr.row-hl td{font-weight:700}
+tbody tr.row-hl td.cur{color:#1e3a8a;font-weight:900}
+tbody tr.row-dim{opacity:.28}
+tbody tr.row-click{cursor:pointer}
+tbody tr.row-click:hover{background:#f0f7ff}
+
 @media(max-width:960px){
   .kpi-row{grid-template-columns:1fr}
   .r2.g6040,.r2.g5545{grid-template-columns:1fr}
@@ -185,6 +200,14 @@ td.dlt.eq{color:#94a3b8}
       <option value="9">Oct</option><option value="10">Nov</option><option value="11" selected>Dec</option>
     </select>
     <span class="fnote" id="fnote"></span>
+  </div>
+</div>
+
+<div class="chips-bar" id="chips-bar">
+  <div class="chips-inner">
+    <span class="chips-label">Filters:</span>
+    <div id="chips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    <button class="chip-btn chip-clear" onclick="clearAllFilters()">✕ Clear all</button>
   </div>
 </div>
 
@@ -271,6 +294,36 @@ function dlt(p){
 }
 function dc(id){ if(CH[id]){ CH[id].destroy(); delete CH[id]; } }
 
+var activeFilters = {month:null, carrier:null, customer:null, dest:null, area:null};
+
+function toggleFilter(key, val){
+  activeFilters[key] = (activeFilters[key] === val) ? null : val;
+  render();
+}
+function clearFilter(key){ activeFilters[key] = null; render(); }
+function clearAllFilters(){
+  Object.keys(activeFilters).forEach(function(k){ activeFilters[k] = null; });
+  render();
+}
+function updateChips(){
+  var any = Object.values(activeFilters).some(function(v){ return v !== null; });
+  var bar = document.getElementById('chips-bar');
+  var el  = document.getElementById('chips');
+  if(bar) bar.style.display = any ? 'flex' : 'none';
+  if(!el) return;
+  var h = '';
+  if(activeFilters.month    !== null) h += mkChip('📅 '+MO[activeFilters.month],"clearFilter('month')");
+  if(activeFilters.carrier)           h += mkChip('🚚 '+activeFilters.carrier,"clearFilter('carrier')");
+  if(activeFilters.customer)          h += mkChip('👤 '+activeFilters.customer,"clearFilter('customer')");
+  if(activeFilters.dest)              h += mkChip('📦 '+activeFilters.dest,"clearFilter('dest')");
+  if(activeFilters.area)              h += mkChip('🏷️ '+activeFilters.area,"clearFilter('area')");
+  el.innerHTML = h;
+}
+function mkChip(lbl, fn){
+  return '<button class="chip-btn" onclick="'+fn+'">'+lbl+' &nbsp;×</button>';
+}
+function toggleAreaFilter(a){ toggleFilter('area', a); }
+
 function render(){
   if(loaded<3) return;
   var cYr = document.getElementById('sel-curr').value;
@@ -338,11 +391,10 @@ function render(){
   function buildCarrierCount(yearFilter, from, to){
     var cc = {};
     Object.values(allData.shipping).forEach(function(r){
-      if(yearFilter){
-        if(!inRange(r.date, yearFilter, from, to)) return;
-      }
-      var raw = r.carrier||'';
-      if(!raw) return;
+      if(yearFilter){ if(!inRange(r.date, yearFilter, from, to)) return; }
+      if(activeFilters.month!==null){ var rm=parseInt((r.date||'').slice(5,7),10)-1; if(rm!==activeFilters.month) return; }
+      if(activeFilters.customer && normName(r.customer||'')!==activeFilters.customer) return;
+      var raw = r.carrier||''; if(!raw) return;
       var name = normName(raw==='Other' ? (r.carrierOther||'Other') : raw);
       cc[name] = (cc[name]||0)+1;
     });
@@ -359,10 +411,10 @@ function render(){
   // top customers — normalize case, filtered by month range
   var cc = {};
   Object.values(allData.shipping).forEach(function(r){
-    if(inRange(r.date, cYr, moFrom, moToCurr) && r.customer){
-      var cname = normName(r.customer);
-      cc[cname] = (cc[cname]||0)+1;
-    }
+    if(!inRange(r.date, cYr, moFrom, moToCurr)) return;
+    if(activeFilters.month!==null){ var rm=parseInt((r.date||'').slice(5,7),10)-1; if(rm!==activeFilters.month) return; }
+    if(activeFilters.carrier && normName(r.carrier||'')!==activeFilters.carrier && normName(r.carrierOther||'')!==activeFilters.carrier) return;
+    if(r.customer){ var cname=normName(r.customer); cc[cname]=(cc[cname]||0)+1; }
   });
   var top = Object.entries(cc).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
 
@@ -406,6 +458,7 @@ function render(){
   AREAS.forEach(function(a){ areaStats[a]={total:0,active:0,shipped:0,onHold:0}; });
   Object.values(allData.incoming).forEach(function(r){
     if(!inRange(r.date,cYr,moFrom,moToCurr)) return;
+    if(activeFilters.month!==null){ var rm=parseInt((r.date||'').slice(5,7),10)-1; if(rm!==activeFilters.month) return; }
     var a=r.area||''; if(!areaStats[a]) return;
     areaStats[a].total++;
     var k=(r.wo||'').trim().toUpperCase();
@@ -417,7 +470,10 @@ function render(){
   h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px">';
   AREAS.forEach(function(a){
     var st=areaStats[a]; var col=AREA_COLS[a];
-    h += '<div class="card" style="overflow:hidden">'+
+    var asel = activeFilters.area === a;
+    var adim = activeFilters.area && !asel;
+    var cardStyle = 'overflow:hidden;cursor:pointer;transition:all .2s;'+(asel?'box-shadow:0 0 0 3px '+col+',0 4px 16px rgba(0,0,0,.15);transform:translateY(-2px);':'')+(adim?'opacity:.35;':'');
+    h += '<div class="card" style="'+cardStyle+'" onclick="toggleAreaFilter(\''+a+'\')" title="Click to filter by '+a+'">'+
       '<div style="height:3px;background:'+col+'"></div>'+
       '<div style="padding:14px 16px 12px">'+
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
@@ -449,18 +505,18 @@ function render(){
 
   /* Trend line (full width) */
   h += '<div class="r1"><div class="card">'+
-    '<div class="ch"><div><div class="ct">Monthly Volume Trend</div><div class="cs">Solid — '+cYr+' &nbsp;|&nbsp; Dashed — '+pYr+'</div></div></div>'+
+    '<div class="ch"><div><div class="ct">Monthly Volume Trend</div><div class="cs">Solid — '+cYr+' &nbsp;|&nbsp; Dashed — '+pYr+'&nbsp;&nbsp;<span style="color:var(--blue3);font-style:italic">· Click a month to filter</span></div></div></div>'+
     '<div class="cb"><div class="cw" style="height:230px"><canvas id="c-trend"></canvas></div></div>'+
   '</div></div>';
 
   /* Top customers + Freight */
   h += '<div class="r2 g5545">'+
     '<div class="card">'+
-      '<div class="ch"><div><div class="ct">Top Customers — Shipping</div><div class="cs">By number of outgoing shipments &nbsp;·&nbsp; '+cYr+' '+periodLbl+'</div></div></div>'+
+      '<div class="ch"><div><div class="ct">Top Customers — Shipping</div><div class="cs">By number of outgoing shipments &nbsp;·&nbsp; '+cYr+' '+periodLbl+'&nbsp;&nbsp;<span style="color:var(--blue3);font-style:italic">· Click to filter</span></div></div></div>'+
       '<div class="cb"><div class="cw" style="height:'+Math.max(180, top.length*34)+'px"><canvas id="c-cust"></canvas></div></div>'+
     '</div>'+
     '<div class="card">'+
-      '<div class="ch"><div><div class="ct">Carrier</div><div class="cs">By number of shipments &nbsp;·&nbsp; '+carrierLabel+'</div></div></div>'+
+      '<div class="ch"><div><div class="ct">Carrier</div><div class="cs">By number of shipments &nbsp;·&nbsp; '+carrierLabel+'&nbsp;&nbsp;<span style="color:var(--blue3);font-style:italic">· Click to filter</span></div></div></div>'+
       '<div class="cb">'+
         '<div class="cw" style="height:'+(Math.max(160, topCarriers.length*34))+'px"><canvas id="c-fr"></canvas></div>'+
       '</div>'+
@@ -496,8 +552,14 @@ function render(){
   dc('trend');
   var tDatasets = [];
   cats.forEach(function(c){
-    tDatasets.push({label:c.lbl+' '+cYr, data:c.curr, borderColor:c.col, backgroundColor:c.col+'15',
-      borderWidth:2.5, pointRadius:3, pointHoverRadius:5, fill:false, tension:.35});
+    tDatasets.push({label:c.lbl+' '+cYr, data:c.curr, borderColor:c.col, backgroundColor:c.col+'18',
+      borderWidth:2.5, fill:false, tension:.35,
+      pointRadius:MO.map(function(_,m){ return m===activeFilters.month?8:3; }),
+      pointHoverRadius:MO.map(function(_,m){ return m===activeFilters.month?10:5; }),
+      pointBackgroundColor:MO.map(function(_,m){ return m===activeFilters.month?'#f59e0b':c.col; }),
+      pointBorderColor:MO.map(function(_,m){ return m===activeFilters.month?'#fff':c.col; }),
+      pointBorderWidth:MO.map(function(_,m){ return m===activeFilters.month?2.5:0; })
+    });
     tDatasets.push({label:c.lbl+' '+pYr, data:c.prev, borderColor:c.lt, backgroundColor:'transparent',
       borderWidth:1.5, borderDash:[5,4], pointRadius:2, pointHoverRadius:4, fill:false, tension:.35});
   });
@@ -506,9 +568,14 @@ function render(){
     options:{
       responsive:true, maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
-      plugins:{legend:{position:'top',labels:{font:{size:10.5},boxWidth:16,padding:10,usePointStyle:true}}},
+      onClick:function(evt,elements){ if(elements.length) toggleFilter('month',elements[0].index); },
+      onHover:function(evt,elements){ evt.native.target.style.cursor=elements.length?'pointer':'default'; },
+      plugins:{
+        legend:{position:'top',labels:{font:{size:10.5},boxWidth:16,padding:10,usePointStyle:true}},
+        tooltip:{callbacks:{footer:function(){ return activeFilters.month!==null?'Click to deselect':'Click month to filter'; }}}
+      },
       scales:{
-        x:{grid:{display:false},ticks:{font:{size:10}}},
+        x:{grid:{display:false},ticks:{font:{size:10},color:MO.map(function(_,m){ return m===activeFilters.month?'#1e40af':'#94a3b8'; })}},
         y:{beginAtZero:true,grid:{color:'#f0f4f8'},ticks:{font:{size:10},stepSize:1}}
       }
     }
@@ -525,20 +592,25 @@ function render(){
         datasets:[{
           label:'Shipments '+cYr,
           data:top.map(function(e){return e[1];}),
-          backgroundColor:['#1e40af','#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#dbeafe','#eff6ff'],
+          backgroundColor:top.map(function(e,i){
+            var base=['#1e40af','#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#dbeafe','#eff6ff'][i]||'#bfdbfe';
+            return (activeFilters.customer && e[0]!==activeFilters.customer)?'rgba(148,163,184,.2)':base;
+          }),
           borderRadius:4, borderWidth:0
         }]
       },
       options:{
         indexAxis:'y', responsive:true, maintainAspectRatio:false,
         layout:{padding:{right:24}},
+        onClick:function(evt,elements){ if(elements.length) toggleFilter('customer',top[elements[0].index][0]); },
+        onHover:function(evt,elements){ evt.native.target.style.cursor=elements.length?'pointer':'default'; },
         plugins:{
           legend:{display:false},
           tooltip:{callbacks:{label:function(ctx){return ' '+ctx.parsed.x+' shipments';}}},
           datalabels:{
             anchor:'end', align:'end',
             font:{size:10,weight:'700'},
-            color:'#1e40af',
+            color:function(ctx){ return (activeFilters.customer&&top[ctx.dataIndex][0]!==activeFilters.customer)?'#94a3b8':'#1e40af'; },
             formatter:function(v){return v>0?v:'';}
           }
         },
@@ -562,12 +634,19 @@ function render(){
       labels:['WIP','Sales Order','Estoque'],
       datasets:[{
         data:[dWip,dSO,dStk],
-        backgroundColor:['#1e40af','#0891b2','#7c3aed'],
+        backgroundColor:['WIP','Sales Order','Estoque'].map(function(lbl,i){
+          var base=['#1e40af','#0891b2','#7c3aed'][i];
+          return (activeFilters.dest && lbl!==activeFilters.dest)?'rgba(148,163,184,.2)':base;
+        }),
         borderWidth:0, hoverOffset:6
       }]
     },
     options:{
       responsive:true, maintainAspectRatio:false, cutout:'62%',
+      onClick:function(evt,elements){
+        if(elements.length) toggleFilter('dest',['WIP','Sales Order','Estoque'][elements[0].index]);
+      },
+      onHover:function(evt,elements){ evt.native.target.style.cursor=elements.length?'pointer':'default'; },
       plugins:{
         legend:{display:false},
         datalabels:{
@@ -592,20 +671,25 @@ function render(){
         datasets:[{
           label:'Shipments',
           data:topCarriers.map(function(e){return e[1];}),
-          backgroundColor:topCarriers.map(function(_,i){return carrierColors[i%carrierColors.length];}),
+          backgroundColor:topCarriers.map(function(e,i){
+            var base=carrierColors[i%carrierColors.length];
+            return (activeFilters.carrier && e[0]!==activeFilters.carrier)?'rgba(148,163,184,.2)':base;
+          }),
           borderRadius:4, borderWidth:0
         }]
       },
       options:{
         indexAxis:'y', responsive:true, maintainAspectRatio:false,
         layout:{padding:{right:24}},
+        onClick:function(evt,elements){ if(elements.length) toggleFilter('carrier',topCarriers[elements[0].index][0]); },
+        onHover:function(evt,elements){ evt.native.target.style.cursor=elements.length?'pointer':'default'; },
         plugins:{
           legend:{display:false},
           tooltip:{callbacks:{label:function(ctx){return ' '+ctx.parsed.x+' shipments';}}},
           datalabels:{
             anchor:'end', align:'end',
             font:{size:10,weight:'700'},
-            color:'#1e40af',
+            color:function(ctx){ return (activeFilters.carrier&&topCarriers[ctx.dataIndex][0]!==activeFilters.carrier)?'#94a3b8':'#1e40af'; },
             formatter:function(v){return v>0?v:'';}
           }
         },
@@ -621,6 +705,7 @@ function render(){
       '<div style="display:flex;align-items:center;justify-content:center;height:160px;color:#94a3b8;font-size:.8rem">No carrier data for '+cYr+'</div>';
   }
 
+  updateChips();
 }
 
 function destStatRow(label, color, val, total){
@@ -650,8 +735,9 @@ function buildTable(cats, cYr, pYr, lastMo, live){
   h += '</tr></thead><tbody>';
   for(var m=0;m<12;m++){
     var dim = live && m>lastMo;
-    h += '<tr'+(dim?' class="dim"':'')+'>'+
-      '<td>'+MO[m]+'</td>';
+    var rowCls = dim ? 'dim' : (activeFilters.month===m ? 'row-hl row-click' : (activeFilters.month!==null ? 'row-dim row-click' : 'row-click'));
+    h += '<tr class="'+rowCls+'" onclick="toggleFilter(\'month\','+m+')">'+
+      '<td>'+MO[m]+(activeFilters.month===m?' ★':'')+'</td>';
     cats.forEach(function(c,i){
       var p = pct(c.curr[m], c.prev[m]);
       h += '<td class="pv'+(i?' gs':'')+'" >'+c.prev[m]+'</td>'+
