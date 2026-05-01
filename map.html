@@ -152,10 +152,10 @@ var db = firebase.database();
 
 // ── LEAFLET MAP ──
 var map = L.map('map', {
-  center: [53, -90],
-  zoom: 5,
-  zoomControl: true
+  zoomControl: true,
+  minZoom: 3
 });
+map.fitBounds([[24, -127], [83, -53]]);
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
