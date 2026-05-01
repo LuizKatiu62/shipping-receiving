@@ -3816,11 +3816,8 @@ function renderTurnaround(){
       var procDate = woProcDate[woKey];
       var shipDate = woShipDate[woKey];
       var endDate = null; var endSource = 'Active';
-      if(procDate && shipDate){
-        endDate = procDate <= shipDate ? procDate : shipDate;
-        endSource = procDate <= shipDate ? 'On Hold' : 'Shipped';
-      } else if(procDate){ endDate = procDate; endSource = 'On Hold';
-      } else if(shipDate){ endDate = shipDate; endSource = 'Shipped'; }
+      if(shipDate){ endDate = shipDate; endSource = 'Shipped'; }
+      else if(procDate){ endDate = procDate; endSource = 'On Hold'; }
       var days = calcDaysOnHold(r.date, endDate || today());
       return { formNum:r.formNum, wo:r.wo, equipment:r.equipment||'', customer:r.customer||'',
                area:r.area||'', startDate:r.date, endDate:endDate||'', endSource:endSource,

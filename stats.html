@@ -244,9 +244,8 @@ function computeTurnaround(cYr, moFrom, moTo, inRangeFn){
       var k=r.wo.trim().toUpperCase();
       var pd=woProcDate[k], sd=woShipDate[k];
       var endDate=null, status='Active';
-      if(pd&&sd){ endDate=pd<=sd?pd:sd; status=pd<=sd?'On Hold':'Shipped'; }
+      if(sd){ endDate=sd; status='Shipped'; }
       else if(pd){ endDate=pd; status='On Hold'; }
-      else if(sd){ endDate=sd; status='Shipped'; }
       var days=Math.max(0,Math.floor((new Date((endDate||todayStr)+'T00:00:00')-new Date(r.date+'T00:00:00'))/86400000));
       return {area:r.area||'', status:status, days:days};
     });
