@@ -523,7 +523,7 @@ document.addEventListener('keydown', function(ev){
       <div class="section-actions">
         <select class="year-select" id="itm-year" onchange="filterItems()"><option value="">All Years</option></select>
         <select class="year-select" id="itm-month" onchange="filterItems()"><option value="">All Months</option></select>
-        <input class="search-input" type="text" id="itm-search" placeholder="Search doc #, PO, material..." oninput="filterItems()">
+        <input class="search-input" type="text" id="itm-search" placeholder="Search doc #, PO, supplier, customer, SO#, WO#, transfer, material…" oninput="filterItems()">
         <button class="btn btn-secondary" onclick="exportItemsCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openItemModal()">+ New Item</button>
       </div>
