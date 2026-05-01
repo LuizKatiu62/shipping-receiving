@@ -386,23 +386,65 @@ function render(){
   });
   h += '</div>';
 
-  /* Performance Summary */
-  var yh = '<div class="yoy-list">';
-  cats.forEach(function(c){
-    var p = pct(c.ytdC, c.ytdP);
-    var maxVal = Math.max(c.ytdC, c.ytdP, 1);
-    var pctW = Math.round(c.ytdC / maxVal * 100);
-    yh += '<div>'+
-      '<div class="yitem-hdr"><span class="yitem-lbl">'+c.lbl+'</span>'+badge(p)+'</div>'+
-      '<div class="yitem-nums"><span>'+pYr+': '+c.ytdP+'</span><span>'+cYr+': '+c.ytdC+'</span></div>'+
-      '<div class="ytrack"><div class="yfill '+c.cls+'" style="width:'+pctW+'%"></div></div>'+
+  /* Area banners — Electrical / Mechanical / Air Compressor / Generator */
+  var woProcDateA = {};
+  Object.values(allData.process).forEach(function(r){
+    if(!r.wo||!r.receivedDate) return;
+    var k=r.wo.trim().toUpperCase();
+    if(!woProcDateA[k]||r.receivedDate<woProcDateA[k]) woProcDateA[k]=r.receivedDate;
+  });
+  var woShipDateA = {};
+  Object.values(allData.shipping).forEach(function(r){
+    if(!r.date) return;
+    (r.workOrders||[]).forEach(function(wo){
+      var k=wo.trim().toUpperCase();
+      if(!woShipDateA[k]||r.date<woShipDateA[k]) woShipDateA[k]=r.date;
+    });
+  });
+  var areaStats = {};
+  AREAS.forEach(function(a){ areaStats[a]={total:0,active:0,shipped:0,onHold:0}; });
+  Object.values(allData.incoming).forEach(function(r){
+    if(!inRange(r.date,cYr,moFrom,moToCurr)) return;
+    var a=r.area||''; if(!areaStats[a]) return;
+    areaStats[a].total++;
+    var k=(r.wo||'').trim().toUpperCase();
+    if(k&&woShipDateA[k]) areaStats[a].shipped++;
+    else if(k&&woProcDateA[k]) areaStats[a].onHold++;
+    else areaStats[a].active++;
+  });
+  var areaIcons={'Electrical':'⚡','Mechanical':'⚙️','Air Compressor':'💨','Generator':'🔋'};
+  h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px">';
+  AREAS.forEach(function(a){
+    var st=areaStats[a]; var col=AREA_COLS[a];
+    h += '<div class="card" style="overflow:hidden">'+
+      '<div style="height:3px;background:'+col+'"></div>'+
+      '<div style="padding:14px 16px 12px">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+          '<span style="font-size:.63rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">'+a+'</span>'+
+          '<span style="font-size:1.1rem">'+areaIcons[a]+'</span>'+
+        '</div>'+
+        '<div style="font-size:2.2rem;font-weight:800;line-height:1;letter-spacing:-1px;color:'+col+'">'+st.total+'</div>'+
+        '<div style="font-size:.61rem;color:var(--light);margin-top:2px;margin-bottom:10px">Equipment received · '+cYr+' '+periodLbl+'</div>'+
+        '<div style="display:flex;gap:0;border-top:1px solid var(--border);padding-top:8px">'+
+          '<div style="flex:1;text-align:center">'+
+            '<div style="font-size:.95rem;font-weight:800;color:#059669">'+st.shipped+'</div>'+
+            '<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--light)">Shipped</div>'+
+          '</div>'+
+          '<div style="width:1px;background:var(--border)"></div>'+
+          '<div style="flex:1;text-align:center">'+
+            '<div style="font-size:.95rem;font-weight:800;color:#dc2626">'+st.onHold+'</div>'+
+            '<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--light)">On Hold</div>'+
+          '</div>'+
+          '<div style="width:1px;background:var(--border)"></div>'+
+          '<div style="flex:1;text-align:center">'+
+            '<div style="font-size:.95rem;font-weight:800;color:#d97706">'+st.active+'</div>'+
+            '<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--light)">Active</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
     '</div>';
   });
-  yh += '</div>';
-  h += '<div class="r1"><div class="card">'+
-    '<div class="ch"><div><div class="ct">Performance Summary</div><div class="cs">'+cYr+' vs '+pYr+' &nbsp;·&nbsp; '+periodLbl+'</div></div></div>'+
-    '<div class="cb">'+yh+'</div>'+
-  '</div></div>';
+  h += '</div>';
 
   /* Trend line (full width) */
   h += '<div class="r1"><div class="card">'+
