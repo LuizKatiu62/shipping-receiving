@@ -386,6 +386,24 @@ function render(){
   });
   h += '</div>';
 
+  /* Performance Summary */
+  var yh = '<div class="yoy-list">';
+  cats.forEach(function(c){
+    var p = pct(c.ytdC, c.ytdP);
+    var maxVal = Math.max(c.ytdC, c.ytdP, 1);
+    var pctW = Math.round(c.ytdC / maxVal * 100);
+    yh += '<div>'+
+      '<div class="yitem-hdr"><span class="yitem-lbl">'+c.lbl+'</span>'+badge(p)+'</div>'+
+      '<div class="yitem-nums"><span>'+pYr+': '+c.ytdP+'</span><span>'+cYr+': '+c.ytdC+'</span></div>'+
+      '<div class="ytrack"><div class="yfill '+c.cls+'" style="width:'+pctW+'%"></div></div>'+
+    '</div>';
+  });
+  yh += '</div>';
+  h += '<div class="r1"><div class="card">'+
+    '<div class="ch"><div><div class="ct">Performance Summary</div><div class="cs">'+cYr+' vs '+pYr+' &nbsp;·&nbsp; '+periodLbl+'</div></div></div>'+
+    '<div class="cb">'+yh+'</div>'+
+  '</div></div>';
+
   /* Trend line (full width) */
   h += '<div class="r1"><div class="card">'+
     '<div class="ch"><div><div class="ct">Monthly Volume Trend</div><div class="cs">Solid — '+cYr+' &nbsp;|&nbsp; Dashed — '+pYr+'</div></div></div>'+
