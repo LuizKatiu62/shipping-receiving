@@ -2996,6 +2996,7 @@ function renderShipping(){
   if(q) shpFiltered = rows.filter(function(r){
     var orders = [].concat(r.salesOrders||[],r.transferNums||[],r.workOrders||[]).join(' ').toLowerCase();
     return (r.outgoing||'').toLowerCase().includes(q)
+      || (r.customer||'').toLowerCase().includes(q)
       || (r.city||'').toLowerCase().includes(q)
       || (r.material||'').toLowerCase().includes(q)
       || (r.carrier||'').toLowerCase().includes(q)
