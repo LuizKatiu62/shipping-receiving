@@ -2301,6 +2301,58 @@ function printItemWipLabel(i){
   win.document.close();
 }
 
+function printItemGenericLabel(i){
+  var binType  = document.getElementById('itm-l'+i+'-bin').value;
+  var app      = document.getElementById('itm-app').value;
+  var so       = document.getElementById('itm-so').value.trim();
+  var wo       = document.getElementById('itm-wo').value.trim();
+  var area     = document.getElementById('itm-area').value;
+  var material = document.getElementById('itm-l'+i+'-mat').value.trim();
+  var customer = document.getElementById('itm-cust').value.trim();
+  var date     = document.getElementById('itm-date').value;
+
+  var orderLabel = app==='Sales Order' ? 'Sales Order #' : (app==='Work Order' ? 'Work Order #' : 'Order #');
+  var orderNum   = app==='Sales Order' ? so : (app==='Work Order' ? wo : (so||wo||'—'));
+  var binColor   = binType==='NOBIN' ? '#6b7280' : '#0ea5e9';
+
+  var win = window.open('','_blank','width=600,height=380');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Item Label</title><style>'+
+    '*{margin:0;padding:0;box-sizing:border-box}'+
+    'body{font-family:Arial,sans-serif;background:#fff;padding:6px}'+
+    '.label{width:8.4cm;min-height:4.9cm;border:3px solid #000;padding:4px;page-break-inside:avoid}'+
+    '.label-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #000;padding-bottom:5px;margin-bottom:5px}'+
+    '.company{font-size:8pt;font-weight:700}'+
+    '.type-badge{background:'+binColor+';color:#fff;font-size:8pt;font-weight:900;padding:2px 8px;border-radius:4px;letter-spacing:1px}'+
+    '.order-block{text-align:center;background:#000;color:#fff;padding:6px 0;margin-bottom:6px;border-radius:4px}'+
+    '.order-label{font-size:7pt;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.7}'+
+    '.order-value{font-size:28pt;font-weight:900;line-height:1}'+
+    '.grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px}'+
+    '.field{display:flex;flex-direction:column}'+
+    '.f-label{font-size:6pt;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#666}'+
+    '.f-value{font-size:9pt;font-weight:700;color:#000}'+
+    '@media print{body{padding:0}@page{margin:3mm;size:9cm 5.5cm}}'+
+  '</style></head><body>'+
+  '<div class="label">'+
+    '<div class="label-header">'+
+      '<div class="company">SOURCE ATLANTIC<br><span style="font-size:8pt;font-weight:400">Saint John, NB</span></div>'+
+      '<div class="type-badge">'+(binType||'ITEM')+'</div>'+
+    '</div>'+
+    '<div class="order-block">'+
+      '<div class="order-label">'+orderLabel+'</div>'+
+      '<div class="order-value">'+(orderNum||'—')+'</div>'+
+    '</div>'+
+    '<div class="grid">'+
+      '<div class="field"><span class="f-label">Material</span><span class="f-value">'+(material||'—')+'</span></div>'+
+      '<div class="field"><span class="f-label">Area</span><span class="f-value">'+(area||'—')+'</span></div>'+
+      '<div class="field"><span class="f-label">Customer</span><span class="f-value">'+(customer||'—')+'</span></div>'+
+      '<div class="field"><span class="f-label">Date</span><span class="f-value">'+(date?fmtDate(date):'—')+'</span></div>'+
+    '</div>'+
+  '</div>'+
+  '<script>window.onload=function(){window.print();}<\/script>'+
+  '</body></html>');
+  win.document.close();
+}
+
 function deleteIncoming(){
   if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var key = document.getElementById('inc-edit-id').value;
@@ -3252,6 +3304,8 @@ function renderItmLines(){
     var binSel  = binOpts.map(function(o){ return '<option'+(item.binLocation===o?' selected':'')+'>'+o+'</option>'; }).join('');
     var isStock = item.binLocation==='Stock';
     var isWIP   = item.binLocation==='WIP';
+    var isNOBIN = item.binLocation==='NOBIN';
+    var isOther = !isStock && !isWIP && !isNOBIN && item.binLocation!=='';
     return '<tr style="border-bottom:1px solid #e3f2fd;vertical-align:middle">'+
       '<td style="padding:5px 4px;text-align:center;font-size:.72rem;font-weight:700;color:#94a3b8;white-space:nowrap;width:26px">'+(i+1)+'</td>'+
       '<td style="padding:4px 4px;min-width:200px"><input type="text" id="itm-l'+i+'-mat" list="material-suggestions" autocomplete="off" placeholder="Material…" oninput="enforceUpper(this)" value="'+escAttr(item.material||'')+'" style="'+fi+'"></td>'+
@@ -3261,7 +3315,8 @@ function renderItmLines(){
       '<td style="padding:4px 6px;width:145px">'+
         '<select id="itm-l'+i+'-bin" onchange="toggleLineStock('+i+')" style="'+fi+'"><option value="">— BIN —</option>'+binSel+'</select>'+
         '<input type="text" id="itm-l'+i+'-binstock" placeholder="Stock #" oninput="enforceUpper(this)" value="'+escAttr(item.binStock||'')+'" style="'+fi+';margin-top:3px;display:'+(isStock?'block':'none')+'">'+
-        '<button type="button" id="itm-l'+i+'-wipbtn" class="btn btn-secondary btn-sm" onclick="printItemWipLabel('+i+')" style="margin-top:3px;font-size:.65rem;padding:2px 6px;display:'+(isWIP?'block':'none')+'">🏷️ WIP</button>'+
+        '<button type="button" id="itm-l'+i+'-wipbtn" class="btn btn-secondary btn-sm" onclick="printItemWipLabel('+i+')" style="margin-top:3px;font-size:.65rem;padding:2px 6px;display:'+(isWIP?'block':'none')+'">🏷️ WIP Label</button>'+
+        '<button type="button" id="itm-l'+i+'-labelbtn" class="btn btn-secondary btn-sm" onclick="printItemGenericLabel('+i+')" style="margin-top:3px;font-size:.65rem;padding:2px 6px;display:'+((isNOBIN||isOther)?'block':'none')+'">🏷️ Print Label</button>'+
       '</td>'+
       '<td style="padding:4px 4px;text-align:center;width:36px">'+
         (itmLines.length>1?'<button type="button" onclick="removeLineItem('+i+')" title="Remove row" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:1rem;padding:2px 4px;border-radius:3px" onmouseover="this.style.background=\'#fef2f2\'" onmouseout="this.style.background=\'none\'">✕</button>':'')+
@@ -3310,12 +3365,15 @@ function removeLineItem(i){
 }
 
 function toggleLineStock(i){
-  var val     = document.getElementById('itm-l'+i+'-bin').value;
-  var stockEl = document.getElementById('itm-l'+i+'-binstock');
-  var wipBtn  = document.getElementById('itm-l'+i+'-wipbtn');
-  if(stockEl) stockEl.style.display = val==='Stock' ? 'block' : 'none';
+  var val      = document.getElementById('itm-l'+i+'-bin').value;
+  var stockEl  = document.getElementById('itm-l'+i+'-binstock');
+  var wipBtn   = document.getElementById('itm-l'+i+'-wipbtn');
+  var labelBtn = document.getElementById('itm-l'+i+'-labelbtn');
+  if(stockEl)  stockEl.style.display  = val==='Stock' ? 'block' : 'none';
   if(stockEl && val!=='Stock') stockEl.value='';
-  if(wipBtn)  wipBtn.style.display  = val==='WIP'   ? 'block' : 'none';
+  if(wipBtn)   wipBtn.style.display   = val==='WIP'   ? 'block' : 'none';
+  var showLabel = val!=='' && val!=='Stock' && val!=='WIP';
+  if(labelBtn) labelBtn.style.display = showLabel ? 'block' : 'none';
   var hdrApp = document.getElementById('itm-app');
   if(val==='WIP' && hdrApp && hdrApp.value!=='Work Order'){
     hdrApp.value='Work Order'; toggleItmApp();
