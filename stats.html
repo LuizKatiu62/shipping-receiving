@@ -664,7 +664,8 @@ function buildTable(cats, cYr, pYr, lastMo, live){
          '<td class="cur">'+c.totC+'</td>'+dlt(pct(c.totC,c.totP));
   });
   h += '</tr>';
-  if(live){
+  var ytdDiffers = live && cats.some(function(c){ return c.ytdC !== c.totC; });
+  if(ytdDiffers){
     h += '<tr class="ytd-row"><td>YTD ★</td>';
     cats.forEach(function(c,i){
       h += '<td class="pv'+(i?' gs':'')+'">'+c.ytdP+'</td>'+
