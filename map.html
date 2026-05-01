@@ -73,7 +73,9 @@ body{display:flex;flex-direction:column}
 .mp-row:hover{background:#f8faff}
 .mp-date{color:var(--muted);font-weight:600;padding-top:1px}
 .mp-cust{font-weight:700;color:#1e293b;margin-bottom:3px;font-size:.74rem}
-.mp-orders{color:#2563eb;font-weight:600;font-size:.67rem;line-height:1.5}
+.mp-orders{font-size:.67rem;line-height:1.8}
+.mp-order-link{color:#2563eb;font-weight:700;text-decoration:none;display:inline-block;padding:1px 6px;border-radius:4px;background:#eff6ff;border:1px solid #bfdbfe;transition:all .15s}
+.mp-order-link:hover{background:#2563eb;color:#fff;border-color:#2563eb}
 .mp-empty{padding:16px;text-align:center;color:var(--light);font-size:.75rem}
 </style>
 </head>
@@ -311,15 +313,19 @@ function applyFilters(){
       var rows = sorted.map(function(r){
         var salesOrders = (r.salesOrders||[]).filter(Boolean);
         var workOrders  = (r.workOrders ||[]).filter(Boolean);
-        var allOrders   = [];
-        salesOrders.forEach(function(o){ allOrders.push('SO: '+o); });
-        workOrders.forEach(function(o){  allOrders.push('WO: '+o); });
+        var orderLinks  = [];
+        salesOrders.forEach(function(o){
+          orderLinks.push('<a href="index.html?goto=shipping&q='+encodeURIComponent(o)+'" target="_blank" class="mp-order-link">SO: '+o+'</a>');
+        });
+        workOrders.forEach(function(o){
+          orderLinks.push('<a href="index.html?goto=shipping&q='+encodeURIComponent(o)+'" target="_blank" class="mp-order-link">WO: '+o+'</a>');
+        });
         return '<div class="mp-row">'+
           '<div class="mp-date">'+(r.date||'—')+'</div>'+
           '<div>'+
             '<div class="mp-cust">'+(r.customer||'—')+'</div>'+
-            (allOrders.length
-              ? '<div class="mp-orders">'+allOrders.join('<br>')+'</div>'
+            (orderLinks.length
+              ? '<div class="mp-orders">'+orderLinks.join('<br>')+'</div>'
               : '')+
           '</div>'+
         '</div>';

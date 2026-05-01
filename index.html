@@ -1779,6 +1779,7 @@ function initDataListeners(){
     renderPacking();
     renderProcess();
     buildAutocomplete();
+    handleDeepLink();
   });
   db.ref(SR_PATH+'/subcontractor').on('value', function(snap){
     subData = snap.val() || {};
@@ -1991,6 +1992,33 @@ function showSection(name){
   event.currentTarget.classList.add('active');
   if(name==='payments') renderPayCharts(Object.entries(payData).map(function(e){ return Object.assign({_key:e[0]},e[1]); }));
   if(name==='turnaround') renderTurnaround();
+}
+
+function gotoSection(name){
+  document.querySelectorAll('[id^="section-"]').forEach(function(el){ el.style.display='none'; });
+  var sec = document.getElementById('section-'+name);
+  if(sec) sec.style.display='block';
+  document.querySelectorAll('.nav-tab').forEach(function(t){
+    var oc = t.getAttribute('onclick')||'';
+    t.classList.toggle('active', oc.indexOf("'"+name+"'") !== -1);
+  });
+  if(name==='turnaround') renderTurnaround();
+}
+
+var _deepLinkDone = false;
+function handleDeepLink(){
+  if(_deepLinkDone) return;
+  var params = new URLSearchParams(window.location.search);
+  var goto = params.get('goto');
+  var q    = params.get('q');
+  if(!goto || !q) return;
+  _deepLinkDone = true;
+  if(goto === 'shipping'){
+    gotoSection('shipping');
+    var inp = document.getElementById('shp-search');
+    if(inp){ inp.value = q; filterShipping(); }
+    if(shpFiltered.length === 1) openShipModal(shpFiltered[0]._key);
+  }
 }
 
 // ── AREA BADGE ──
