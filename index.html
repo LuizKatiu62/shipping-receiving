@@ -472,6 +472,7 @@ document.addEventListener('keydown', function(ev){
     <button class="nav-tab" onclick="showSection('subcontractor')">🔧 Subcontractor</button>
     <button class="nav-tab" onclick="showSection('packing')">📦 Packing & Hold</button>
     <button class="nav-tab" onclick="showSection('process')">⏸ Shipping On Hold</button>
+    <button class="nav-tab" onclick="showSection('turnaround')">⏱️ Process Time</button>
     <button class="nav-tab" id="nav-tab-payments" onclick="showSection('payments')" style="display:none">💰 Payments</button>
     <a class="nav-tab" href="stats.html" target="_blank" style="text-decoration:none">📊 Dashboard</a>
   </div>
@@ -681,6 +682,47 @@ document.addEventListener('keydown', function(ev){
           </tr>
         </thead>
         <tbody id="proc-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <!-- ══ PROCESS TIME SECTION ══ -->
+  <div id="section-turnaround" style="display:none">
+    <div class="stats-bar" id="trn-stats"></div>
+    <div class="section-header">
+      <div class="section-title">⏱️ Process Time</div>
+      <div class="section-actions">
+        <select class="year-select" id="trn-year" onchange="renderTurnaround()"><option value="">All Years</option></select>
+        <select class="year-select" id="trn-area" onchange="renderTurnaround()">
+          <option value="">All Categories</option>
+          <option value="Electrical">Electrical</option>
+          <option value="Mechanical">Mechanical</option>
+          <option value="Air Compressor">Air Compressor</option>
+          <option value="Generator">Generator</option>
+        </select>
+        <select class="year-select" id="trn-status" onchange="renderTurnaround()">
+          <option value="">All Status</option>
+          <option value="Active">Active</option>
+          <option value="Shipped">Shipped</option>
+          <option value="On Hold">On Hold</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Incoming #</th>
+            <th>Work Order #</th>
+            <th>Equipment</th>
+            <th>Customer</th>
+            <th>Category</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Status</th>
+            <th style="text-align:center">Days at SA</th>
+          </tr>
+        </thead>
+        <tbody id="trn-tbody"></tbody>
       </table>
     </div>
   </div>
@@ -1721,6 +1763,7 @@ function initDataListeners(){
   db.ref(SR_PATH+'/incoming').on('value', function(snap){
     incomingData = snap.val() || {};
     populateYearSelect('inc-year', incomingData, 'date');
+    populateYearSelect('trn-year', incomingData, 'date');
     renderIncoming();
     buildAutocomplete();
   });
@@ -1948,6 +1991,7 @@ function showSection(name){
   document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
   event.currentTarget.classList.add('active');
   if(name==='payments') renderPayCharts(Object.entries(payData).map(function(e){ return Object.assign({_key:e[0]},e[1]); }));
+  if(name==='turnaround') renderTurnaround();
 }
 
 // ── AREA BADGE ──
@@ -3733,6 +3777,100 @@ function renderProcStats(rows){
 }
 
 function filterProcess(){ renderProcess(); }
+
+// ══ PROCESS TIME ══
+function renderTurnaround(){
+  // WO → earliest Shipping On Hold received date
+  var woProcDate = {};
+  Object.values(procData).forEach(function(r){
+    if(!r.wo || !r.receivedDate) return;
+    var k = r.wo.trim().toUpperCase();
+    if(!woProcDate[k] || r.receivedDate < woProcDate[k]) woProcDate[k] = r.receivedDate;
+  });
+
+  // WO → earliest Shipping date
+  var woShipDate = {};
+  Object.values(shpData).forEach(function(r){
+    if(!r.date) return;
+    (r.workOrders||[]).forEach(function(wo){
+      var k = wo.trim().toUpperCase();
+      if(!woShipDate[k] || r.date < woShipDate[k]) woShipDate[k] = r.date;
+    });
+  });
+
+  var TARGET_AREAS = ['Electrical','Mechanical','Air Compressor','Generator'];
+  var yr     = (document.getElementById('trn-year')||{}).value||'';
+  var area   = (document.getElementById('trn-area')||{}).value||'';
+  var status = (document.getElementById('trn-status')||{}).value||'';
+
+  var rows = Object.values(incomingData)
+    .filter(function(r){ return r.formNum && r.wo && r.date; })
+    .map(function(r){
+      var woKey    = r.wo.trim().toUpperCase();
+      var procDate = woProcDate[woKey];
+      var shipDate = woShipDate[woKey];
+      var endDate = null; var endSource = 'Active';
+      if(procDate && shipDate){
+        endDate = procDate <= shipDate ? procDate : shipDate;
+        endSource = procDate <= shipDate ? 'On Hold' : 'Shipped';
+      } else if(procDate){ endDate = procDate; endSource = 'On Hold';
+      } else if(shipDate){ endDate = shipDate; endSource = 'Shipped'; }
+      var days = calcDaysOnHold(r.date, endDate || today());
+      return { formNum:r.formNum, wo:r.wo, equipment:r.equipment||'', customer:r.customer||'',
+               area:r.area||'', startDate:r.date, endDate:endDate||'', endSource:endSource,
+               days:days!==null?days:0 };
+    });
+
+  if(yr)     rows = rows.filter(function(r){ return r.startDate.startsWith(yr); });
+  if(area)   rows = rows.filter(function(r){ return r.area === area; });
+  if(status) rows = rows.filter(function(r){ return r.endSource === status; });
+
+  rows.sort(function(a,b){
+    if(a.endSource==='Active' && b.endSource!=='Active') return -1;
+    if(a.endSource!=='Active' && b.endSource==='Active') return 1;
+    return b.days - a.days;
+  });
+
+  // Stats
+  var activeN = rows.filter(function(r){ return r.endSource==='Active'; }).length;
+  var avgAll  = rows.length ? Math.round(rows.reduce(function(s,r){ return s+r.days; },0)/rows.length) : 0;
+  var statsHtml =
+    '<div class="stat-card"><div class="stat-val">'+rows.length+'</div><div class="stat-lbl">Total WOs</div></div>'+
+    '<div class="stat-card"><div class="stat-val" style="color:#f59e0b">'+activeN+'</div><div class="stat-lbl">Active</div></div>'+
+    '<div class="stat-card"><div class="stat-val">'+avgAll+'d</div><div class="stat-lbl">Avg Days</div></div>';
+  TARGET_AREAS.forEach(function(a){
+    var ar = rows.filter(function(r){ return r.area===a; });
+    if(!ar.length) return;
+    var avg = Math.round(ar.reduce(function(s,r){ return s+r.days; },0)/ar.length);
+    statsHtml += '<div class="stat-card"><div class="stat-val">'+avg+'d</div><div class="stat-lbl">'+a+' ('+ar.length+')</div></div>';
+  });
+  document.getElementById('trn-stats').innerHTML = statsHtml;
+
+  var tbody = document.getElementById('trn-tbody');
+  if(!rows.length){
+    tbody.innerHTML='<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">⏱️</div><div class="empty-text">No data. Incoming Forms need an Incoming Number and Work Order to appear here.</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(function(r){
+    var sb = r.endSource==='Active'
+      ? '<span style="background:#fef3c7;color:#b45309;border-radius:20px;padding:2px 10px;font-size:.72rem;font-weight:700">● Active</span>'
+      : (r.endSource==='Shipped'
+        ? '<span style="background:#dcfce7;color:#166534;border-radius:20px;padding:2px 10px;font-size:.72rem;font-weight:700">✓ Shipped</span>'
+        : '<span style="background:#e0f2fe;color:#0369a1;border-radius:20px;padding:2px 10px;font-size:.72rem;font-weight:700">⏸ On Hold</span>');
+    var dc = r.days>60?'#dc2626':(r.days>30?'#d97706':'#16a34a');
+    return '<tr>'+
+      '<td><strong>'+escHtml(r.formNum)+'</strong></td>'+
+      '<td>'+escHtml(r.wo)+'</td>'+
+      '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(r.equipment||'—')+'</td>'+
+      '<td>'+escHtml(r.customer||'—')+'</td>'+
+      '<td>'+areaBadge(r.area)+'</td>'+
+      '<td style="white-space:nowrap">'+fmtDate(r.startDate)+'</td>'+
+      '<td style="white-space:nowrap">'+(r.endDate?fmtDate(r.endDate):'—')+'</td>'+
+      '<td>'+sb+'</td>'+
+      '<td style="text-align:center;font-weight:800;font-size:.95rem;color:'+dc+'">'+r.days+'</td>'+
+    '</tr>';
+  }).join('');
+}
 
 function openProcModal(key){
   document.getElementById('proc-edit-id').value = key||'';
