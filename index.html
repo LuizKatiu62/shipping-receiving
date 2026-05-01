@@ -2017,7 +2017,6 @@ function handleDeepLink(){
     gotoSection('shipping');
     var inp = document.getElementById('shp-search');
     if(inp){ inp.value = q; filterShipping(); }
-    if(shpFiltered.length === 1) openShipModal(shpFiltered[0]._key);
   }
 }
 
