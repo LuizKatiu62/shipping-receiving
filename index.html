@@ -3867,7 +3867,7 @@ function renderTurnaround(){
     var woEsc  = escAttr(r.wo);
     var hasMat = wosWithMaterials[r.wo.trim().toUpperCase()];
     var matBtn = hasMat
-      ? '<button class="btn btn-secondary btn-sm" onclick="showWoMaterials(\''+woEsc+'\')" title="View received materials" style="font-size:.7rem;padding:4px 8px;white-space:nowrap">📦 Materials</button>'
+      ? '<button class="btn btn-secondary btn-sm" onclick="showWoMaterials(\''+woEsc+'\')" title="View received materials" style="font-size:.7rem;padding:4px 8px;white-space:nowrap">📦 Components</button>'
       : '';
     return '<tr>'+
       '<td><strong>'+escHtml(r.formNum)+'</strong></td>'+
