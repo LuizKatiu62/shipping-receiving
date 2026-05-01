@@ -899,10 +899,16 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="form-group">
           <label>Received By</label>
-          <select id="inc-received">
+          <select id="inc-received" onchange="toggleIncReceivedOther()">
             <option value="Luiz Silva">Luiz Silva</option>
             <option value="Dustin Howe">Dustin Howe</option>
+            <option value="Christine Gardner">Christine Gardner</option>
+            <option value="Outros">Outros</option>
           </select>
+        </div>
+        <div class="form-group" id="inc-received-other-group" style="display:none">
+          <label>Received By — Nome</label>
+          <input type="text" id="inc-received-other" placeholder="Digite o nome">
         </div>
         <div class="form-group full">
           <label>Notes</label>
@@ -1957,6 +1963,13 @@ function fmtDate(d){
 }
 
 // ── EQUIPMENT TYPE TOGGLE ──
+function toggleIncReceivedOther(){
+  var val = document.getElementById('inc-received').value;
+  var grp = document.getElementById('inc-received-other-group');
+  grp.style.display = val === 'Outros' ? 'flex' : 'none';
+  if(val !== 'Outros') document.getElementById('inc-received-other').value = '';
+}
+
 function toggleEquipOther(){
   var val = document.getElementById('inc-equip-type').value;
   var grp = document.getElementById('equip-other-group');
@@ -2083,7 +2096,16 @@ function openIncomingModal(key){
     // Work info
     document.getElementById('inc-whattodo').value     = r.whatToDo||'';
     document.getElementById('inc-delivery').value     = r.deliveryBy||'';
-    document.getElementById('inc-received').value     = r.receivedBy||'';
+    var knownRecv = ['Luiz Silva','Dustin Howe','Christine Gardner'];
+    if(r.receivedBy && !knownRecv.includes(r.receivedBy)){
+      document.getElementById('inc-received').value = 'Outros';
+      document.getElementById('inc-received-other').value = r.receivedBy;
+      document.getElementById('inc-received-other-group').style.display = 'flex';
+    } else {
+      document.getElementById('inc-received').value = r.receivedBy||'Luiz Silva';
+      document.getElementById('inc-received-other').value = '';
+      document.getElementById('inc-received-other-group').style.display = 'none';
+    }
     document.getElementById('inc-notes').value        = r.notes||'';
     document.getElementById('inc-photos-link').value  = r.photosLink||'';
     delBtn.style.display = 'inline-flex';
@@ -2096,6 +2118,8 @@ function openIncomingModal(key){
       document.getElementById(id).value = '';
     });
     document.getElementById('inc-received').value = 'Luiz Silva';
+    document.getElementById('inc-received-other').value = '';
+    document.getElementById('inc-received-other-group').style.display = 'none';
     document.getElementById('inc-equip-type').value = '';
     document.getElementById('equip-other-group').style.display = 'none';
     document.getElementById('inc-area').value     = '';
@@ -2144,7 +2168,7 @@ function saveIncoming(){
   // Work
   var whatToDo   = document.getElementById('inc-whattodo').value;
   var deliveryBy = document.getElementById('inc-delivery').value;
-  var receivedBy = document.getElementById('inc-received').value.trim();
+  var receivedBy = (function(){ var v=document.getElementById('inc-received').value; return v==='Outros' ? document.getElementById('inc-received-other').value.trim() : v; })();
   var notes      = document.getElementById('inc-notes').value.trim();
   var photosLink = document.getElementById('inc-photos-link').value.trim();
 
