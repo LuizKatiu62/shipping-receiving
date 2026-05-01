@@ -1248,6 +1248,11 @@ document.addEventListener('keydown', function(ev){
           <input type="url" id="proc-photos-link" placeholder="Paste OneDrive folder link here...">
         </div>
 
+        <div class="form-group full">
+          <label>Comments</label>
+          <textarea id="proc-comments" rows="3" placeholder="Additional notes or comments..." style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.83rem;font-family:'Inter',inherit;resize:vertical;outline:none;transition:border-color .2s;color:var(--text-primary)" onfocus="this.style.borderColor='var(--blue-500)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+        </div>
+
         <div class="full" style="display:flex;align-items:center;gap:16px;padding:6px 0">
           <div style="font-size:.75rem;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.4px">Days On Hold</div>
           <div id="proc-days-badge" style="display:none"></div>
@@ -3642,13 +3647,14 @@ function openProcModal(key){
     document.getElementById('proc-material').value      = r.material||'';
     document.getElementById('proc-pics-qty').value      = r.picsQty||'';
     document.getElementById('proc-photos-link').value   = r.photosLink||'';
+    document.getElementById('proc-comments').value      = r.comments||'';
     document.getElementById('proc-received-date').value = r.receivedDate||'';
     document.getElementById('proc-del-btn').style.display='';
     updateProcDays();
   } else {
     document.getElementById('proc-modal-title').textContent = 'New Process on Hold';
     document.getElementById('proc-pics-qty').value = '';
-    ['proc-outgoing','proc-wo','proc-so','proc-customer','proc-po','proc-material','proc-received-date','proc-photos-link'].forEach(function(id){
+    ['proc-outgoing','proc-wo','proc-so','proc-customer','proc-po','proc-material','proc-received-date','proc-photos-link','proc-comments'].forEach(function(id){
       document.getElementById(id).value='';
     });
     document.getElementById('proc-del-btn').style.display='none';
@@ -3778,6 +3784,7 @@ function saveProcRecord(){
     material:     document.getElementById('proc-material').value.trim(),
     picsQty:      document.getElementById('proc-pics-qty').value,
     photosLink:   document.getElementById('proc-photos-link').value.trim(),
+    comments:     document.getElementById('proc-comments').value.trim(),
     receivedDate,
     updatedAt:    new Date().toISOString()
   };
