@@ -4340,10 +4340,17 @@ function exportIncomingCSV(){
 </html>
 
 <style>
-/* Garantir espaço suficiente para os ícones de Actions */
+/* Actions: sempre mostrar todos os ícones */
 .act-cell {
   display: flex;
   gap: 6px;
   min-width: 120px;
+  flex-wrap: nowrap;      /* ⬅️ ISSO É O QUE FALTAVA */
+}
+
+td:has(.act-cell) {
+  overflow: visible;      /* ⬅️ Impede que a tabela corte os botões */
+  white-space: nowrap;
 }
 </style>
+
