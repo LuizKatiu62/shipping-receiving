@@ -392,18 +392,6 @@ function render(){
     '<div class="cb"><div class="cw" style="height:230px"><canvas id="c-trend"></canvas></div></div>'+
   '</div></div>';
 
-  /* YoY bar + summary */
-  h += '<div class="r2 g6040">'+
-    '<div class="card">'+
-      '<div class="ch"><div><div class="ct">Year-over-Year — Total Activity</div><div class="cs">All categories combined &nbsp;·&nbsp; '+cYr+' vs '+pYr+'</div></div></div>'+
-      '<div class="cb"><div class="cw" style="height:210px"><canvas id="c-yoy"></canvas></div></div>'+
-    '</div>'+
-    '<div class="card">'+
-      '<div class="ch"><div><div class="ct">Performance Summary</div><div class="cs">'+periodLbl+' '+cYr+' vs '+pYr+'</div></div></div>'+
-      '<div class="cb"><div id="yoy-panel"></div></div>'+
-    '</div>'+
-  '</div>';
-
   /* Top customers + Freight */
   h += '<div class="r2 g5545">'+
     '<div class="card">'+
@@ -519,24 +507,6 @@ function render(){
 
   document.getElementById('body').innerHTML = h;
 
-  /* YoY panel */
-  var yh = '<div class="yoy-list">';
-  cats.forEach(function(c){
-    var p = pct(c.ytdC, c.ytdP);
-    var mx = Math.max(c.ytdC, c.ytdP, 1);
-    yh += '<div>'+
-      '<div class="yitem-hdr"><span class="yitem-lbl">'+c.lbl+'</span>'+badge(p)+'</div>'+
-      '<div class="yitem-nums">'+
-        '<span>'+pYr+': <strong style="color:#334155">'+c.ytdP+'</strong></span>'+
-        '<span>'+cYr+': <strong style="color:'+c.col+'">'+c.ytdC+'</strong></span>'+
-      '</div>'+
-      '<div class="ytrack"><div class="yfill '+c.cls+'" style="width:'+Math.round(c.ytdC/mx*100)+'%"></div></div>'+
-    '</div>';
-  });
-  yh += '</div>';
-  document.getElementById('yoy-panel').innerHTML = yh;
-
-
   /* ── CHARTS ── */
 
   // Trend line
@@ -554,37 +524,6 @@ function render(){
       responsive:true, maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
       plugins:{legend:{position:'top',labels:{font:{size:10.5},boxWidth:16,padding:10,usePointStyle:true}}},
-      scales:{
-        x:{grid:{display:false},ticks:{font:{size:10}}},
-        y:{beginAtZero:true,grid:{color:'#f0f4f8'},ticks:{font:{size:10},stepSize:1}}
-      }
-    }
-  });
-
-  // YoY grouped bar (total)
-  var totC = MO.map(function(_,i){ return cats.reduce(function(s,c){return s+c.curr[i];},0); });
-  var totP = MO.map(function(_,i){ return cats.reduce(function(s,c){return s+c.prev[i];},0); });
-  dc('yoy');
-  CH['yoy'] = new Chart(document.getElementById('c-yoy').getContext('2d'),{
-    type:'bar',
-    plugins:[ChartDataLabels],
-    data:{labels:MO,datasets:[
-      {label:pYr, data:totP, backgroundColor:'#bfdbfe', borderColor:'#93c5fd', borderWidth:1, borderRadius:4},
-      {label:cYr, data:totC, backgroundColor:'#1e40afcc', borderColor:'#1e40af', borderWidth:1, borderRadius:4}
-    ]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      layout:{padding:{top:16}},
-      plugins:{
-        legend:{position:'top',labels:{font:{size:11},boxWidth:14,padding:10}},
-        datalabels:{
-          anchor:'end', align:'end',
-          font:{size:9,weight:'700'},
-          color:function(ctx){return ctx.datasetIndex===0?'#3b82f6':'#1e40af';},
-          formatter:function(v){return v>0?v:'';}
-        }
-      },
       scales:{
         x:{grid:{display:false},ticks:{font:{size:10}}},
         y:{beginAtZero:true,grid:{color:'#f0f4f8'},ticks:{font:{size:10},stepSize:1}}
