@@ -473,8 +473,8 @@ document.addEventListener('keydown', function(ev){
     <button class="nav-tab" onclick="showSection('process')">⏸ Shipping On Hold</button>
     <button class="nav-tab" onclick="showSection('turnaround')">⏱️ Process Time</button>
     <button class="nav-tab" id="nav-tab-payments" onclick="showSection('payments')" style="display:none">💰 Payments</button>
-    <a class="nav-tab" href="stats.html" target="_blank" style="text-decoration:none">📊 Dashboard</a>
-    <a class="nav-tab" href="map.html" target="_blank" style="text-decoration:none">🗺️ Map</a>
+    <a class="nav-tab" href="stats.html" target="sa-dashboard" style="text-decoration:none">📊 Dashboard</a>
+    <a class="nav-tab" href="map.html" target="sa-map" style="text-decoration:none">🗺️ Map</a>
   </div>
 </div>
 
@@ -2336,7 +2336,7 @@ function printIncomingLabel(){
       '<div class="field"><span class="f-label">Pics Time</span><span class="f-value">'+fmtPicsTime+'</span></div>'+
     '</div>'+
   '</div>'+
-  '<script>window.onload=function(){window.print();}<\/script>'+
+  '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>'+
   '</body></html>');
   win.document.close();
 }
@@ -2381,7 +2381,7 @@ function printItemWipLabel(i){
       '<div class="field"><span class="f-label">Date</span><span class="f-value">'+(date?fmtDate(date):'—')+'</span></div>'+
     '</div>'+
   '</div>'+
-  '<script>window.onload=function(){window.print();}<\/script>'+
+  '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>'+
   '</body></html>');
   win.document.close();
 }
@@ -2433,7 +2433,7 @@ function printItemGenericLabel(i){
       '<div class="field"><span class="f-label">Date</span><span class="f-value">'+(date?fmtDate(date):'—')+'</span></div>'+
     '</div>'+
   '</div>'+
-  '<script>window.onload=function(){window.print();}<\/script>'+
+  '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>'+
   '</body></html>');
   win.document.close();
 }
@@ -4035,7 +4035,7 @@ function printProcLabel(){
       '<div class="field"><span class="f-label">Pictures</span><span class="f-value">'+(picsQty?picsQty+' photo'+(picsQty!='1'?'s':''):'—')+'</span></div>'+
     '</div>'+
   '</div>'+
-  '<script>window.onload=function(){window.print();}<\/script>'+
+  '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>'+
   '</body></html>');
   win.document.close();
 }
@@ -4088,7 +4088,7 @@ function printPackLabel(){
       '<div class="field"><span class="f-label">Printed</span><span class="f-value">'+(fmtDate(currDate))+'</span></div>'+
     '</div>'+
   '</div>'+
-  '<script>window.onload=function(){window.print();}<\/script>'+
+  '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>'+
   '</body></html>');
   win.document.close();
 }
