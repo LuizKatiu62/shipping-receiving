@@ -616,10 +616,16 @@ function renderResults(result, raw){
       h += '</div>';
       h += '</div>';
 
-      // Action buttons
-      if(trackUrl || s.photosLink){
+      // Action buttons — show Track whenever tracking# exists, Photos whenever link exists
+      if(s.trackingNum || s.photosLink){
         h += '<div class="btn-row">';
-        if(trackUrl) h += '<button class="ct-btn ct-btn-blue" onclick="window.open(\''+trackUrl.replace(/'/g,"\\'")+'\'  ,\'_blank\')">🔍 Track Shipment — '+escHtml(carrierName)+'</button>';
+        if(s.trackingNum){
+          if(trackUrl){
+            h += '<a class="ct-btn ct-btn-blue" href="'+escHtml(trackUrl)+'" target="_blank">🔍 Track — '+escHtml(carrierName)+'</a>';
+          } else {
+            h += '<button class="ct-btn ct-btn-blue" onclick="navigator.clipboard.writeText(\''+s.trackingNum.replace(/'/g,"\\'")+'\').then(function(){alert(\'Tracking # copied:\\n'+s.trackingNum.replace(/'/g,"\\'")+'\')})">🔍 '+escHtml(carrierName)+' — '+escHtml(s.trackingNum)+'</button>';
+          }
+        }
         if(s.photosLink) h += '<a class="ct-btn ct-btn-gray" href="'+escHtml(s.photosLink)+'" target="_blank">📷 View Photos</a>';
         h += '</div>';
       }
