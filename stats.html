@@ -617,7 +617,9 @@ function render(){
     var a = r.area||''; if(!areaMonths[a]) return;
     var m = parseInt((r.date||'').slice(5,7),10)-1; if(m>=0&&m<12) areaMonths[a][m]++;
   });
-  var incYTD  = cats[0].ytdC;
+  var incFormsYTD = cats[0].ytdC;
+  var incItemsYTD = cats[1].ytdC;
+  var incYTD  = incFormsYTD + incItemsYTD;
   var shpYTD  = cats[2].ytdC;
   var onHold  = Object.values(allData.process).filter(function(r){ return !r.shipped; }).length;
   var shipRate = incYTD > 0 ? Math.round(shpYTD / incYTD * 100) : 0;
@@ -629,10 +631,10 @@ function render(){
     '</div></div>';
   h += '<div class="cb">';
   h += '<div class="exec-metrics">';
-  h += execMetric('📋 Received YTD', incYTD, '#1e40af', 'Incoming Forms · '+cYr+' '+periodLbl);
+  h += execMetric('📋 Received YTD', incYTD, '#1e40af', 'Forms ('+incFormsYTD+') + Items ('+incItemsYTD+') · '+cYr+' '+periodLbl);
   h += execMetric('🚚 Shipped YTD',  shpYTD, '#059669', 'Outgoing shipments · '+cYr+' '+periodLbl);
   h += execMetric('⏸ On Hold',      onHold,  '#dc2626', 'Records in Shipping On Hold');
-  h += execMetric('📈 Ship Rate',    shipRate+'%', '#7c3aed', 'Shipped ÷ Received YTD');
+  h += execMetric('📈 Ship Rate',    shipRate+'%', '#7c3aed', 'Shipped ÷ (Forms + Items) YTD');
   h += '</div>';
   h += '<div class="cw" style="height:260px"><canvas id="c-exec"></canvas></div>';
   h += '</div></div></div>';
