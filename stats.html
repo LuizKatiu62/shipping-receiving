@@ -209,8 +209,7 @@ tbody tr.row-click:hover{background:#f0f7ff}
     </div>
     <div style="display:flex;align-items:center;gap:12px">
       <span class="hdr-date" id="hdr-date"></span>
-      <a class="btn-back" href="map.html" target="sa-map">🗺️ Map</a>
-      <a class="btn-back" href="control-tower.html" target="sa-control">🗼 Control Tower</a>
+<a class="btn-back" href="control-tower.html" target="sa-control">🗼 Control Tower</a>
       <button class="btn-back" onclick="window.close()">← Back to App</button>
     </div>
   </div>
@@ -488,7 +487,6 @@ function render(){
     var cc = {};
     Object.values(allData.shipping).forEach(function(r){
       if(yearFilter){ if(!inRange(r.date, yearFilter, from, to)) return; }
-      if(activeFilters.month!==null){ var rm=parseInt((r.date||'').slice(5,7),10)-1; if(rm!==activeFilters.month) return; }
       if(activeFilters.customer && normName(r.customer||'')!==activeFilters.customer) return;
       if(!inAreaShp(r)) return;
       var raw = r.carrier||''; if(!raw) return;
@@ -497,19 +495,20 @@ function render(){
     });
     return cc;
   }
-  var carrierCount = buildCarrierCount(cYr, moFrom, moToCurr);
-  var carrierLabel = cYr+(periodLbl!=='Full Year' ? ' · '+periodLbl : '');
+  var effFrom = activeFilters.month!==null ? activeFilters.month : moFrom;
+  var effTo   = activeFilters.month!==null ? activeFilters.month : moToCurr;
+  var carrierCount = buildCarrierCount(cYr, effFrom, effTo);
+  var carrierLabel = cYr+(activeFilters.month!==null ? ' · '+MO[activeFilters.month] : (periodLbl!=='Full Year' ? ' · '+periodLbl : ''));
   if(!Object.keys(carrierCount).length){
-    carrierCount = buildCarrierCount(null, 0, 11);
-    carrierLabel = 'All Years';
+    carrierCount = buildCarrierCount(null, effFrom, effTo);
+    carrierLabel = 'All Years'+(activeFilters.month!==null ? ' · '+MO[activeFilters.month] : '');
   }
   var topCarriers = Object.entries(carrierCount).sort(function(a,b){return b[1]-a[1];});
 
   // top customers — normalize case, filtered by month range
   var cc = {};
   Object.values(allData.shipping).forEach(function(r){
-    if(!inRange(r.date, cYr, moFrom, moToCurr)) return;
-    if(activeFilters.month!==null){ var rm=parseInt((r.date||'').slice(5,7),10)-1; if(rm!==activeFilters.month) return; }
+    if(!inRange(r.date, cYr, effFrom, effTo)) return;
     if(activeFilters.carrier && normName(r.carrier||'')!==activeFilters.carrier && normName(r.carrierOther||'')!==activeFilters.carrier) return;
     if(!inAreaShp(r)) return;
     if(r.customer){ var cname=normName(r.customer); cc[cname]=(cc[cname]||0)+1; }
