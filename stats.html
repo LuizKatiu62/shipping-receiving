@@ -378,14 +378,33 @@ function dlt(p){
   return '<td class="dlt '+(p>0?'up':p<0?'dn':'eq')+'">'+(p>0?'▲ ':'▼ ')+Math.abs(p)+'%</td>';
 }
 function dc(id){ if(CH[id]){ CH[id].destroy(); delete CH[id]; } }
+var PROV_ABBR = {
+  'NEW BRUNSWICK':'NB','NOUVEAU-BRUNSWICK':'NB',
+  'NOVA SCOTIA':'NS','NOUVELLE-ÉCOSSE':'NS',
+  'PRINCE EDWARD ISLAND':'PE','PEI':'PE','ÎLE-DU-PRINCE-ÉDOUARD':'PE',
+  'NEWFOUNDLAND AND LABRADOR':'NL','NEWFOUNDLAND':'NL','NF':'NL','LABRADOR':'NL',
+  'QUÉBEC':'QC','QUEBEC':'QC',
+  'ONTARIO':'ON',
+  'ALBERTA':'AB',
+  'BRITISH COLUMBIA':'BC','COLOMBIE-BRITANNIQUE':'BC',
+  'MANITOBA':'MB',
+  'SASKATCHEWAN':'SK',
+  'YUKON':'YT',
+  'NORTHWEST TERRITORIES':'NT','TERRITOIRES DU NORD-OUEST':'NT',
+  'NUNAVUT':'NU'
+};
+var CA_PROVS = {NB:1,NS:1,PE:1,NL:1,QC:1,ON:1,AB:1,BC:1,MB:1,SK:1,YT:1,NT:1,NU:1};
 function destKey(r){
-  var prov = (r.province||'').trim();
+  var raw  = (r.province||'').trim();
   var ctry = (r.country||'').trim();
   var ctryUp = ctry.toUpperCase();
-  if(!prov && !ctry) return 'Unknown';
-  if(!prov) return ctry;
-  if(!ctry || ctryUp==='CANADA' || ctryUp==='CA') return prov;
-  return prov + ' · ' + ctry;
+  if(!raw && !ctry) return 'Unknown';
+  var norm = PROV_ABBR[raw.toUpperCase()] || raw;
+  if(!norm) return ctry || 'Unknown';
+  var isCanada = !ctry || ctryUp==='CANADA' || ctryUp==='CA' || CA_PROVS[norm.toUpperCase()];
+  if(isCanada) return norm.toUpperCase();
+  var isUSA = ctryUp==='USA'||ctryUp==='US'||ctryUp==='UNITED STATES';
+  return norm.toUpperCase() + ' · ' + (isUSA ? 'USA' : ctry);
 }
 
 var activeFilters = {month:null, carrier:null, customer:null, dest:null, area:null, province:null};
@@ -682,7 +701,14 @@ function render(){
     var key = destKey(r);
     provCount[key] = (provCount[key]||0)+1;
   });
-  var topProvs = Object.entries(provCount).sort(function(a,b){return b[1]-a[1];});
+  var topProvs = Object.entries(provCount).sort(function(a,b){
+    var aUSA = a[0].includes('· USA'); var bUSA = b[0].includes('· USA');
+    var aIntl = a[0].includes(' · ') && !aUSA; var bIntl = b[0].includes(' · ') && !bUSA;
+    var aRank = aIntl ? 2 : aUSA ? 1 : 0;
+    var bRank = bIntl ? 2 : bUSA ? 1 : 0;
+    if(aRank !== bRank) return aRank - bRank;
+    return b[1] - a[1];
+  });
 
   h += '<div class="r1"><div class="card">'+
     '<div class="ch"><div><div class="ct">📍 Shipments by Province / State / Country</div>'+
