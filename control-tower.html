@@ -357,10 +357,17 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
           </select>
         </div>
         <div class="oms-filter-group">
-          <div class="oms-filter-label">Day</div>
-          <select class="oms-select" id="oms-day" onchange="omsApply()">
-            <option value="">All Days</option>
-          </select>
+          <div class="oms-filter-label">Day — Period</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:.75rem;color:var(--muted);font-weight:600">De</span>
+            <select class="oms-select" id="oms-day-from" onchange="omsApply()" style="min-width:72px">
+              <option value="">1st</option>
+            </select>
+            <span style="font-size:.75rem;color:var(--muted);font-weight:600">até</span>
+            <select class="oms-select" id="oms-day-to" onchange="omsApply()" style="min-width:72px">
+              <option value="">Last</option>
+            </select>
+          </div>
         </div>
         <button class="oms-reset-btn" onclick="omsReset()">✕ Reset</button>
       </div>
@@ -783,22 +790,28 @@ function omsDateMatch(dateISO){
   if(!dateISO) return false;
   var yr = document.getElementById('oms-year').value;
   var mo = document.getElementById('oms-month').value;
-  var dy = document.getElementById('oms-day').value;
+  var df = document.getElementById('oms-day-from').value;
+  var dt = document.getElementById('oms-day-to').value;
   if(yr && !dateISO.startsWith(yr)) return false;
   if(mo && dateISO.slice(5,7) !== mo) return false;
-  if(dy && dateISO.slice(8,10) !== dy.padStart(2,'0')) return false;
+  var dayNum = parseInt(dateISO.slice(8,10), 10);
+  if(df && dayNum < parseInt(df, 10)) return false;
+  if(dt && dayNum > parseInt(dt, 10)) return false;
   return true;
 }
 
 function omsPopulateDays(){
   var yr = parseInt(document.getElementById('oms-year').value) || 0;
   var mo = parseInt(document.getElementById('oms-month').value) || 0;
-  var sel = document.getElementById('oms-day');
-  var curVal = sel.value;
   var days = (yr && mo) ? new Date(yr, mo, 0).getDate() : 31;
-  var opts = '<option value="">All Days</option>';
-  for(var d=1; d<=days; d++) opts += '<option value="'+d+'"'+(String(d)===curVal?' selected':'')+'>'+d+'</option>';
-  sel.innerHTML = opts;
+  ['oms-day-from','oms-day-to'].forEach(function(id){
+    var sel = document.getElementById(id);
+    var isFrom = id === 'oms-day-from';
+    var curVal = sel.value;
+    var opts = '<option value="">'+(isFrom ? '1st' : 'Last')+'</option>';
+    for(var d=1; d<=days; d++) opts += '<option value="'+d+'"'+(String(d)===curVal?' selected':'')+'>'+d+'</option>';
+    sel.innerHTML = opts;
+  });
 }
 
 function omsSetSection(s){
@@ -830,7 +843,8 @@ function omsReset(){
   document.getElementById('oms-year').value  = '';
   document.getElementById('oms-month').value = '';
   omsPopulateDays();
-  document.getElementById('oms-day').value = '';
+  document.getElementById('oms-day-from').value = '';
+  document.getElementById('oms-day-to').value   = '';
   omsRender();
 }
 
@@ -957,9 +971,11 @@ function downloadOmsExcel(){
 
   var yr = document.getElementById('oms-year').value;
   var mo = document.getElementById('oms-month').value;
-  var dy = document.getElementById('oms-day').value;
+  var df = document.getElementById('oms-day-from').value;
+  var dt = document.getElementById('oms-day-to').value;
   var MO_NAME = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var periodLabel = (yr||'All') + (mo ? '-'+MO_NAME[parseInt(mo,10)-1] : '') + (dy ? '-'+dy.padStart(2,'0') : '');
+  var dayPart = df && dt ? '-D'+df.padStart(2,'0')+'to'+dt.padStart(2,'0') : df ? '-D'+df.padStart(2,'0')+'to31' : dt ? '-D01to'+dt.padStart(2,'0') : '';
+  var periodLabel = (yr||'All') + (mo ? '-'+MO_NAME[parseInt(mo,10)-1] : '') + dayPart;
 
   // ── Sheet 1: Incoming Forms ──
   var incRows = Object.values(allData.incoming)
