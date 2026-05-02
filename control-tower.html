@@ -354,15 +354,26 @@ function calcDays(start, end){
   return Math.max(0, Math.floor((e-s)/86400000));
 }
 function norm(s){ return (s||'').trim().toUpperCase(); }
-function getTrackingUrl(carrier, other, num){
-  if(!num) return '';
-  var c = (carrier+' '+other).toLowerCase();
-  var t = encodeURIComponent(num.trim());
-  if(c.includes('fedex'))       return 'https://www.fedex.com/fedextrack/?trknbr='+t;
-  if(c.includes('ups'))         return 'https://www.ups.com/track?tracknum='+t;
-  if(c.includes('purolator'))   return 'https://www.purolator.com/en/ship-track/tracking-summary.page?pin='+t;
-  if(c.includes('canada post')||c.includes('canadapost')) return 'https://www.canadapost-postescanada.ca/track-reperage/en#'+t;
-  return '';
+function formatTrackNum(v){
+  var s = String(v == null ? '' : v);
+  if(/^[\d.]+[eE][+\-]?\d+$/.test(s.trim())){
+    var n = parseFloat(s);
+    if(!isNaN(n) && isFinite(n)) s = Math.round(n).toLocaleString('en-US',{useGrouping:false,maximumFractionDigits:0});
+  }
+  return s;
+}
+function getTrackingUrl(carrier, carrierOther, trackingNum){
+  var c = (carrier==='Other' ? carrierOther : carrier)||'';
+  var t = encodeURIComponent(trackingNum||'');
+  if(!t) return null;
+  var cl = c.toLowerCase();
+  if(cl.includes('purolator'))       return 'https://www.purolator.com/en/shipping/tracker?pins='+t;
+  if(cl.includes('fedex'))           return 'https://www.fedex.com/apps/fedextrack/?action=track&trackingnumber='+t;
+  if(cl.includes('ups'))             return 'https://www.ups.com/track?tracknum='+t;
+  if(cl.includes('day') && cl.includes('ross')) return 'https://dayross.com/track-shipments';
+  if(cl.includes('midland') && cl.includes('courier')) return 'https://cssportal.midlandcourier.com/CSSPortal/static/application.html#/track/trackShipment';
+  if(cl.includes('midland'))         return 'https://www.midlandtransport.com/MultiTrack.aspx';
+  return 'https://www.google.com/search?q=track+shipment+'+t;
 }
 function infoRow(lbl, val){
   if(!val && val!==0) return '';
@@ -586,7 +597,8 @@ function renderResults(result, raw){
   if(shpList.length){
     shpList.forEach(function(s){
       var carrierName = s.carrier==='Other' ? (s.carrierOther||'Other') : (s.carrier||'—');
-      var trackUrl = getTrackingUrl(s.carrier||'', s.carrierOther||'', s.trackingNum||'');
+      var trackNum = formatTrackNum(s.trackingNum);
+      var trackUrl = getTrackingUrl(s.carrier||'', s.carrierOther||'', trackNum);
       var allOrders = [].concat(
         (s.workOrders||[]).map(function(o){ return 'WO: '+o; }),
         (s.salesOrders||[]).map(function(o){ return 'SO: '+o; }),
@@ -608,7 +620,7 @@ function renderResults(result, raw){
       // Right column
       h += '<div>';
       h += infoRow('Carrier', carrierName);
-      h += infoRow('Tracking #', s.trackingNum);
+      h += infoRow('Tracking #', trackNum);
       h += infoRow('Freight Type', s.freightType);
       h += infoRow('Pieces', s.pc);
       h += infoRow('Weight', s.lb ? s.lb+' lb' : null);
@@ -617,15 +629,9 @@ function renderResults(result, raw){
       h += '</div>';
 
       // Action buttons — show Track whenever tracking# exists, Photos whenever link exists
-      if(s.trackingNum || s.photosLink){
+      if(trackNum || s.photosLink){
         h += '<div class="btn-row">';
-        if(s.trackingNum){
-          if(trackUrl){
-            h += '<a class="ct-btn ct-btn-blue" href="'+escHtml(trackUrl)+'" target="_blank">🔍 Track — '+escHtml(carrierName)+'</a>';
-          } else {
-            h += '<button class="ct-btn ct-btn-blue" onclick="navigator.clipboard.writeText(\''+s.trackingNum.replace(/'/g,"\\'")+'\').then(function(){alert(\'Tracking # copied:\\n'+s.trackingNum.replace(/'/g,"\\'")+'\')})">🔍 '+escHtml(carrierName)+' — '+escHtml(s.trackingNum)+'</button>';
-          }
-        }
+        if(trackNum && trackUrl) h += '<a class="ct-btn ct-btn-blue" href="'+escHtml(trackUrl)+'" target="_blank">🔍 Track — '+escHtml(carrierName)+'</a>';
         if(s.photosLink) h += '<a class="ct-btn ct-btn-gray" href="'+escHtml(s.photosLink)+'" target="_blank">📷 View Photos</a>';
         h += '</div>';
       }
