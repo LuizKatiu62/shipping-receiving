@@ -30,10 +30,37 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .ready-dot span{width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block;box-shadow:0 0 0 2px rgba(16,185,129,.3);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
-/* SEARCH SECTION */
-.search-wrap{max-width:1100px;margin:0 auto;padding:32px 24px 0}
+/* PAGE SECTIONS */
+.page-section{display:none}
+.page-section.active{display:block}
+
+/* PORTAL HOME */
+.portal-home{max-width:880px;margin:0 auto;padding:52px 24px 60px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.portal-eyebrow{font-size:.7rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--light);margin-bottom:10px}
+.portal-heading{font-size:2rem;font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:8px}
+.portal-sub{font-size:.88rem;color:var(--muted);margin-bottom:44px}
+.portal-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;width:100%;max-width:760px}
+.portal-card{border-radius:20px;padding:36px 32px 30px;cursor:pointer;text-align:left;transition:transform .2s,box-shadow .2s;min-height:240px;display:flex;flex-direction:column;user-select:none}
+.portal-card:hover{transform:translateY(-5px);box-shadow:0 24px 64px rgba(0,0,0,.22)}
+.portal-card:active{transform:translateY(-2px)}
+.portal-card-blue{background:linear-gradient(160deg,#1e3a8a 0%,#2563eb 100%)}
+.portal-card-navy{background:linear-gradient(160deg,#0f172a 0%,#1e293b 100%)}
+.portal-card-icon{font-size:2.6rem;margin-bottom:20px;line-height:1}
+.portal-card-title{font-size:1.35rem;font-weight:900;color:#fff;margin-bottom:10px;letter-spacing:-.3px}
+.portal-card-sub{font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.6;flex:1}
+.portal-card-arrow{font-size:1.3rem;color:rgba(255,255,255,.4);margin-top:22px;transition:color .15s,transform .18s;display:inline-block}
+.portal-card:hover .portal-card-arrow{color:rgba(255,255,255,.85);transform:translateX(5px)}
+
+/* PAGE BACK ROW */
+.page-back-row{max-width:1100px;margin:0 auto;padding:16px 24px 0;display:flex;align-items:center;gap:12px}
+.btn-back-page{background:#fff;border:1px solid var(--border);color:var(--muted);padding:7px 16px;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px;box-shadow:var(--shadow)}
+.btn-back-page:hover{background:#f8faff;color:var(--blue);border-color:var(--blue3)}
+.page-title-inline{font-size:1rem;font-weight:800;color:var(--text)}
+
+/* SEARCH */
+.search-wrap{max-width:1100px;margin:0 auto;padding:20px 24px 0}
 .search-card{background:var(--card);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,.1);border:1px solid var(--border);padding:28px 28px 24px}
-.search-title{font-size:1.15rem;font-weight:800;color:var(--text);margin-bottom:4px}
+.search-title{font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:4px}
 .search-sub{font-size:.75rem;color:var(--muted);margin-bottom:20px}
 .type-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
 .type-btn{display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:.8rem;font-weight:700;color:var(--muted);transition:all .15s;font-family:inherit}
@@ -77,7 +104,6 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .info-row{display:flex;gap:8px;margin-bottom:8px;font-size:.8rem;align-items:flex-start}
 .info-lbl{color:var(--light);font-weight:600;min-width:110px;flex-shrink:0;padding-top:1px}
 .info-val{color:var(--text);font-weight:600;flex:1;word-break:break-word}
-.info-val.empty{color:var(--light);font-style:italic}
 
 /* HOLD CARDS */
 .card-danger{border-color:#fca5a5;background:#fff5f5}
@@ -104,8 +130,6 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .ct-btn-blue:hover{background:var(--blue2)}
 .ct-btn-gray{background:#f1f5f9;color:#334155;border:1px solid var(--border)}
 .ct-btn-gray:hover{background:#e2e8f0}
-.ct-btn-green{background:#059669;color:#fff}
-.ct-btn-green:hover{background:#047857}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
 
 /* BADGE */
@@ -115,30 +139,68 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .bin-stock{background:#dcfce7;color:#16a34a}
 .bin-nobin{background:#f1f5f9;color:#64748b}
 
-/* LOADING */
-.loading{text-align:center;padding:80px 20px;color:var(--light)}
-.ld-spinner{width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* CLICKABLE ORDER NUMBERS */
+.order-link{color:var(--blue);font-weight:700;cursor:pointer;text-decoration:underline;text-decoration-color:rgba(37,99,235,.3);background:none;border:none;font-family:inherit;font-size:inherit;padding:0;line-height:inherit;transition:color .15s}
+.order-link:hover{color:var(--blue2)}
 
-/* EMPTY SEARCH */
+/* LOADING / EMPTY */
 .empty-search{text-align:center;padding:48px 20px}
 .empty-search-icon{font-size:3rem;margin-bottom:12px;opacity:.4}
 .empty-search-text{font-size:.88rem;color:var(--muted);font-weight:600}
 
+/* OMS */
+.oms-wrap{max-width:1100px;margin:0 auto;padding:16px 24px 60px}
+.oms-filter{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--border);padding:18px 22px;margin-bottom:18px}
+.oms-filter-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.oms-filter-group{display:flex;flex-direction:column;gap:5px}
+.oms-filter-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.oms-select{padding:9px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;font-family:inherit;color:var(--text);background:#fff;cursor:pointer;outline:none;min-width:130px;transition:border-color .15s}
+.oms-select:focus{border-color:var(--blue)}
+.oms-apply-btn{padding:9px 20px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+.oms-apply-btn:hover{background:var(--blue2)}
+.oms-reset-btn{padding:9px 14px;background:#f1f5f9;color:var(--muted);border:1px solid var(--border);border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+.oms-reset-btn:hover{background:#e2e8f0;color:var(--text)}
+
+.oms-kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.oms-kpi{background:var(--card);border-radius:10px;border:1px solid var(--border);padding:14px 20px;flex:1;min-width:120px;text-align:center;box-shadow:var(--shadow)}
+.oms-kpi-num{font-size:1.7rem;font-weight:900;color:var(--text)}
+.oms-kpi-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:3px}
+
+.oms-stab-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.oms-stab{padding:8px 18px;border-radius:8px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:.8rem;font-weight:700;color:var(--muted);transition:all .15s;font-family:inherit}
+.oms-stab:hover{border-color:var(--blue3);color:var(--blue)}
+.oms-stab.active{border-color:var(--blue);background:#eff6ff;color:var(--blue)}
+
+.oms-pill-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.oms-pill{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:.72rem;font-weight:700;color:var(--muted);transition:all .15s;font-family:inherit}
+.oms-pill:hover{border-color:var(--blue3);color:var(--blue)}
+.oms-pill.active{border-color:var(--blue);background:#eff6ff;color:var(--blue)}
+.oms-pill.p-elec.active{border-color:#7c3aed;background:#f5f3ff;color:#7c3aed}
+.oms-pill.p-mech.active{border-color:#059669;background:#f0fdf4;color:#059669}
+.oms-pill.p-comp.active{border-color:#d97706;background:#fffbeb;color:#d97706}
+.oms-pill.p-gen.active{border-color:#dc2626;background:#fff5f5;color:#dc2626}
+.oms-pill.p-wip.active{border-color:#7c3aed;background:#f5f3ff;color:#7c3aed}
+.oms-pill.p-so.active{border-color:#059669;background:#f0fdf4;color:#059669}
+
+.oms-table-wrap{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden}
+.oms-table-scroll{overflow-x:auto}
+.oms-empty{text-align:center;padding:36px;color:var(--light);font-size:.83rem;font-style:italic}
+
 @media(max-width:760px){
   .ct-grid2,.ct-grid3{grid-template-columns:1fr}
   .search-row{flex-direction:column}
-  .type-row{gap:4px}
+  .portal-grid{grid-template-columns:1fr}
+  .portal-heading{font-size:1.6rem}
 }
 
-/* ── AUTH ── */
+/* AUTH */
 #auth-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;background:url('warehouse-bg.jpg') center center/cover no-repeat}
 #auth-overlay::before{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(10,25,60,.82) 0%,rgba(15,40,90,.75) 50%,rgba(20,55,110,.70) 100%);backdrop-filter:blur(2px)}
-.auth-box{position:relative;z-index:1;background:#fff;border-radius:16px;width:100%;max-width:420px;box-shadow:0 25px 50px rgba(0,0,0,.35);overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+.auth-box{position:relative;z-index:1;background:#fff;border-radius:16px;width:100%;max-width:420px;box-shadow:0 25px 50px rgba(0,0,0,.35);overflow:hidden}
 .auth-box-header{background:linear-gradient(160deg,#0f172a,#1d4ed8);padding:30px 28px 22px;text-align:center}
 .auth-box-logo{display:flex;align-items:center;justify-content:center;margin-bottom:12px}
-.auth-box-title{color:#fff;font-size:1.05rem;font-weight:800;letter-spacing:-.2px}
-.auth-box-sub{color:rgba(255,255,255,.55);font-size:.75rem;margin-top:5px;font-weight:500}
+.auth-box-title{color:#fff;font-size:1.05rem;font-weight:800}
+.auth-box-sub{color:rgba(255,255,255,.55);font-size:.75rem;margin-top:5px}
 .auth-box-body{padding:26px 28px 30px}
 .auth-screen{display:none}
 .auth-screen.active{display:block}
@@ -146,59 +208,43 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .auth-field label{font-size:.67rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px}
 .auth-field input{padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.88rem;font-family:inherit;outline:none;transition:all .18s;color:#0f172a}
 .auth-field input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
-.auth-btn{width:100%;padding:12px;background:linear-gradient(160deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:8px;font-size:.88rem;font-weight:800;cursor:pointer;font-family:inherit;transition:all .18s;margin-top:6px;box-shadow:0 2px 8px rgba(29,78,216,.3);letter-spacing:.1px}
-.auth-btn:hover{background:linear-gradient(160deg,#1e40af,#1d4ed8);box-shadow:0 4px 14px rgba(29,78,216,.4);transform:translateY(-1px)}
-.auth-btn:disabled{background:#93c5fd;cursor:not-allowed;box-shadow:none;transform:none}
-.auth-link{background:none;border:none;color:#2563eb;cursor:pointer;font-size:.8rem;font-weight:700;font-family:inherit;text-decoration:underline;padding:0;transition:color .15s}
-.auth-link:hover{color:#1d4ed8}
+.auth-btn{width:100%;padding:12px;background:linear-gradient(160deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:8px;font-size:.88rem;font-weight:800;cursor:pointer;font-family:inherit;transition:all .18s;margin-top:6px;box-shadow:0 2px 8px rgba(29,78,216,.3)}
+.auth-btn:hover{background:linear-gradient(160deg,#1e40af,#1d4ed8);transform:translateY(-1px)}
+.auth-btn:disabled{background:#93c5fd;cursor:not-allowed;transform:none}
+.auth-link{background:none;border:none;color:#2563eb;cursor:pointer;font-size:.8rem;font-weight:700;font-family:inherit;text-decoration:underline;padding:0}
 .auth-error{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:8px;padding:10px 13px;font-size:.79rem;font-weight:600;margin-bottom:14px;display:none}
-.auth-info{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:8px;padding:10px 13px;font-size:.79rem;font-weight:600;margin-bottom:14px}
 .auth-footer{display:flex;justify-content:center;gap:6px;align-items:center;margin-top:18px;font-size:.78rem;color:#94a3b8}
 </style>
 </head>
 <body>
 
-<!-- AUTH OVERLAY -->
+<!-- AUTH -->
 <div id="auth-overlay" style="display:none">
   <div class="auth-box">
     <div class="auth-box-header">
-      <div class="auth-box-logo">
-        <img src="logo.png" alt="Source Atlantic" style="height:44px;width:auto;border-radius:8px;background:#fff;padding:6px 12px;display:block">
-      </div>
+      <div class="auth-box-logo"><img src="logo.png" alt="SA" style="height:44px;border-radius:8px;background:#fff;padding:6px 12px"></div>
       <div class="auth-box-title">🗼 Control Tower</div>
       <div class="auth-box-sub">Source Atlantic — Industrial Services</div>
     </div>
     <div class="auth-box-body">
       <div class="auth-screen active" id="auth-login">
         <div class="auth-error" id="auth-login-err"></div>
-        <div class="auth-field">
-          <label>Email</label>
-          <input type="email" id="auth-login-email" placeholder="your@email.com" autocomplete="email">
-        </div>
-        <div class="auth-field">
-          <label>Password</label>
-          <input type="password" id="auth-login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-        </div>
+        <div class="auth-field"><label>Email</label><input type="email" id="auth-login-email" placeholder="your@email.com" autocomplete="email"></div>
+        <div class="auth-field"><label>Password</label><input type="password" id="auth-login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
         <button class="auth-btn" id="auth-login-btn" onclick="doLogin()">Sign In</button>
-        <div class="auth-footer">
-          <button class="auth-link" onclick="authShow('forgot')">Forgot password?</button>
-        </div>
+        <div class="auth-footer"><button class="auth-link" onclick="authShow('forgot')">Forgot password?</button></div>
       </div>
       <div class="auth-screen" id="auth-forgot">
         <div class="auth-error" id="auth-forgot-err"></div>
-        <div class="auth-field">
-          <label>Email</label>
-          <input type="email" id="auth-forgot-email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doForgotPassword()">
-        </div>
+        <div class="auth-field"><label>Email</label><input type="email" id="auth-forgot-email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doForgotPassword()"></div>
         <button class="auth-btn" onclick="doForgotPassword()">Send Reset Email</button>
-        <div class="auth-footer">
-          <button class="auth-link" onclick="authShow('login')">Back to Sign In</button>
-        </div>
+        <div class="auth-footer"><button class="auth-link" onclick="authShow('login')">Back to Sign In</button></div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- HEADER -->
 <div class="hdr">
   <div class="hdr-inner">
     <div style="display:flex;align-items:center;gap:12px">
@@ -216,40 +262,169 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   </div>
 </div>
 
-<!-- SEARCH -->
-<div class="search-wrap">
-  <div class="search-card">
-    <div class="search-title">🔍 Order Lookup</div>
-    <div class="search-sub">Enter a Work Order, Sales Order or Incoming # to see the complete status</div>
-    <div class="type-row">
-      <button class="type-btn active" id="btn-wo" onclick="setType('wo')">
-        <span class="dot"></span>Work Order #
-      </button>
-      <button class="type-btn" id="btn-so" onclick="setType('so')">
-        <span class="dot"></span>Sales Order #
-      </button>
-      <button class="type-btn" id="btn-inc" onclick="setType('inc')">
-        <span class="dot"></span>Incoming #
-      </button>
-    </div>
-    <div class="search-row">
-      <div class="search-input-wrap">
-        <input class="search-input" id="search-input" type="text" placeholder="e.g. 6020183"
-          onkeydown="if(event.key==='Enter')doSearch()"
-          oninput="document.getElementById('search-clear').style.display=this.value?'block':'none'">
-        <button class="search-clear" id="search-clear" onclick="clearSearch()" title="Clear">✕</button>
+<!-- ═══ HOME ═══ -->
+<div id="page-home" class="page-section active">
+  <div class="portal-home">
+    <div class="portal-eyebrow">Source Atlantic — EPS</div>
+    <div class="portal-heading">🗼 Control Tower</div>
+    <div class="portal-sub">Full visibility into orders, materials and shipments</div>
+    <div class="portal-grid">
+      <div class="portal-card portal-card-blue" onclick="showPage('overview')">
+        <div class="portal-card-icon">🔍</div>
+        <div class="portal-card-title">Operation Overview</div>
+        <div class="portal-card-sub">Search by Work Order, Sales Order or Incoming # — see full order details, components, hold status and shipping history</div>
+        <div class="portal-card-arrow">→</div>
       </div>
-      <button class="search-btn" onclick="doSearch()">Search</button>
+      <div class="portal-card portal-card-navy" onclick="showPage('oms')">
+        <div class="portal-card-icon">📊</div>
+        <div class="portal-card-title">Order &amp; Material Status</div>
+        <div class="portal-card-sub">Browse Incoming Forms, WIP components and Shipping activity — filter by year, month and day to generate line reports</div>
+        <div class="portal-card-arrow">→</div>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="body">
-  <div id="results">
-    <div class="loading" id="loading-state">
-      <div class="ld-spinner"></div>
-      <div>Loading data…</div>
+<!-- ═══ OPERATION OVERVIEW ═══ -->
+<div id="page-overview" class="page-section">
+  <div class="page-back-row">
+    <button class="btn-back-page" onclick="showPage('home')">← Back</button>
+    <span class="page-title-inline">Operation Overview</span>
+  </div>
+  <div class="search-wrap">
+    <div class="search-card">
+      <div class="search-title">🔍 Order Lookup</div>
+      <div class="search-sub">Enter a Work Order, Sales Order or Incoming # to see the complete status</div>
+      <div class="type-row">
+        <button class="type-btn active" id="btn-wo" onclick="setType('wo')"><span class="dot"></span>Work Order #</button>
+        <button class="type-btn" id="btn-so" onclick="setType('so')"><span class="dot"></span>Sales Order #</button>
+        <button class="type-btn" id="btn-inc" onclick="setType('inc')"><span class="dot"></span>Incoming #</button>
+      </div>
+      <div class="search-row">
+        <div class="search-input-wrap">
+          <input class="search-input" id="search-input" type="text" placeholder="e.g. 6020183"
+            onkeydown="if(event.key==='Enter')doSearch()"
+            oninput="document.getElementById('search-clear').style.display=this.value?'block':'none'">
+          <button class="search-clear" id="search-clear" onclick="clearSearch()" title="Clear">✕</button>
+        </div>
+        <button class="search-btn" onclick="doSearch()">Search</button>
+      </div>
     </div>
+  </div>
+  <div class="body">
+    <div id="results">
+      <div class="empty-search">
+        <div class="empty-search-icon">🗼</div>
+        <div class="empty-search-text">Enter a Work Order, Sales Order or Incoming # above to begin</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ORDER & MATERIAL STATUS ═══ -->
+<div id="page-oms" class="page-section">
+  <div class="page-back-row">
+    <button class="btn-back-page" onclick="showPage('home')">← Back</button>
+    <span class="page-title-inline">Order &amp; Material Status</span>
+  </div>
+  <div class="oms-wrap">
+
+    <!-- Filters -->
+    <div class="oms-filter">
+      <div class="oms-filter-row">
+        <div class="oms-filter-group">
+          <div class="oms-filter-label">Year</div>
+          <select class="oms-select" id="oms-year" onchange="omsApply()">
+            <option value="">All Years</option>
+            <option value="2026" selected>2026</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+          </select>
+        </div>
+        <div class="oms-filter-group">
+          <div class="oms-filter-label">Month</div>
+          <select class="oms-select" id="oms-month" onchange="omsApply()">
+            <option value="">All Months</option>
+            <option value="01">January</option><option value="02">February</option><option value="03">March</option>
+            <option value="04">April</option><option value="05">May</option><option value="06">June</option>
+            <option value="07">July</option><option value="08">August</option><option value="09">September</option>
+            <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+          </select>
+        </div>
+        <div class="oms-filter-group">
+          <div class="oms-filter-label">Day</div>
+          <select class="oms-select" id="oms-day" onchange="omsApply()">
+            <option value="">All Days</option>
+          </select>
+        </div>
+        <button class="oms-reset-btn" onclick="omsReset()">✕ Reset</button>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="oms-kpi-row" id="oms-kpis"></div>
+
+    <!-- Section Tabs -->
+    <div class="oms-stab-row">
+      <button class="oms-stab active" id="oms-stab-incoming" onclick="omsSetSection('incoming')">📋 Incoming Forms</button>
+      <button class="oms-stab" id="oms-stab-items" onclick="omsSetSection('items')">📦 Incoming Items</button>
+      <button class="oms-stab" id="oms-stab-shipping" onclick="omsSetSection('shipping')">🚚 Shipping</button>
+    </div>
+
+    <!-- INCOMING FORMS -->
+    <div id="oms-sec-incoming">
+      <div class="oms-pill-row">
+        <button class="oms-pill active" id="oms-area-all" onclick="omsSetArea('all')">All</button>
+        <button class="oms-pill p-elec" id="oms-area-electrical" onclick="omsSetArea('electrical')">⚡ Electrical</button>
+        <button class="oms-pill p-mech" id="oms-area-mechanical" onclick="omsSetArea('mechanical')">⚙️ Mechanical</button>
+        <button class="oms-pill p-comp" id="oms-area-aircompressor" onclick="omsSetArea('aircompressor')">💨 Air Compressor</button>
+        <button class="oms-pill p-gen" id="oms-area-generator" onclick="omsSetArea('generator')">⚡ Generator</button>
+      </div>
+      <div class="oms-table-wrap">
+        <div class="oms-table-scroll">
+          <table class="ct-table">
+            <thead><tr>
+              <th>Date</th><th>Incoming #</th><th>Work Order #</th><th>Customer</th><th>Equipment</th><th>Category</th><th>Job Type</th>
+            </tr></thead>
+            <tbody id="oms-incoming-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- INCOMING ITEMS -->
+    <div id="oms-sec-items" style="display:none">
+      <div class="oms-pill-row">
+        <button class="oms-pill p-wip active" id="oms-item-wip" onclick="omsSetItemCat('wip')">🟣 WIP</button>
+        <button class="oms-pill p-so" id="oms-item-so" onclick="omsSetItemCat('so')">🟢 Sales Order</button>
+        <button class="oms-pill" id="oms-item-other" onclick="omsSetItemCat('other')">⚪ Others</button>
+      </div>
+      <div class="oms-table-wrap">
+        <div class="oms-table-scroll">
+          <table class="ct-table">
+            <thead><tr>
+              <th>Date</th><th>Receipt #</th><th>Material / Description</th><th>Qty</th><th>Work Order #</th><th>Sales Order #</th><th>Area</th><th>Customer</th><th>Bin</th>
+            </tr></thead>
+            <tbody id="oms-items-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHIPPING -->
+    <div id="oms-sec-shipping" style="display:none">
+      <div class="oms-table-wrap">
+        <div class="oms-table-scroll">
+          <table class="ct-table">
+            <thead><tr>
+              <th>Date</th><th>Customer</th><th>Destination</th><th>Work Orders</th><th>Sales Orders</th><th>Carrier</th><th>Tracking #</th><th>Pieces</th><th>Weight (lb)</th>
+            </tr></thead>
+            <tbody id="oms-shipping-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -267,26 +442,21 @@ firebase.initializeApp(firebaseConfig);
 var db   = firebase.database();
 var auth = firebase.auth();
 
-// ── DATA ──
 var allData = {incoming:{}, items:{}, shipping:{}, process:{}, packing:{}};
 var loadedCount = 0;
-var dataListeners = [];
 var TOTAL = 5;
 
 function startDataLoad(){
   loadedCount = 0;
   Object.keys(allData).forEach(function(key){
-    var ref = db.ref('shipping_receiving/'+key);
-    ref.on('value', function(snap){
+    db.ref('shipping_receiving/'+key).on('value', function(snap){
       allData[key] = snap.val() || {};
       loadedCount++;
       if(loadedCount >= TOTAL){
-        document.getElementById('loading-state').style.display = 'none';
         document.getElementById('ready-dot').style.display = 'inline-flex';
-        showEmptyState();
+        if(currentPage === 'oms') omsRender();
       }
     });
-    dataListeners.push(ref);
   });
 }
 
@@ -295,22 +465,17 @@ auth.onAuthStateChanged(function(user){
     document.getElementById('auth-overlay').style.display = 'none';
     startDataLoad();
   } else {
-    document.getElementById('loading-state').style.display = 'none';
     document.getElementById('auth-overlay').style.display = 'flex';
   }
 });
 
-// ── AUTH FUNCTIONS ──
+// AUTH
 function authShow(screen){
-  ['login','forgot'].forEach(function(s){
-    document.getElementById('auth-'+s).classList.toggle('active', s===screen);
-  });
+  ['login','forgot'].forEach(function(s){ document.getElementById('auth-'+s).classList.toggle('active', s===screen); });
 }
 function authSetError(id, msg){
-  var el = document.getElementById(id);
-  if(!el) return;
-  el.textContent = msg;
-  el.style.display = msg ? 'block' : 'none';
+  var el = document.getElementById(id); if(!el) return;
+  el.textContent = msg; el.style.display = msg ? 'block' : 'none';
 }
 function doLogin(){
   var email = document.getElementById('auth-login-email').value.trim();
@@ -318,13 +483,12 @@ function doLogin(){
   if(!email||!pass){ authSetError('auth-login-err','Please enter email and password.'); return; }
   var btn = document.getElementById('auth-login-btn');
   btn.disabled = true; btn.textContent = 'Please wait…';
-  auth.signInWithEmailAndPassword(email, pass)
-    .catch(function(err){
-      btn.disabled = false; btn.textContent = 'Sign In';
-      authSetError('auth-login-err',
-        err.code==='auth/user-not-found'||err.code==='auth/wrong-password'||err.code==='auth/invalid-credential'
-          ? 'Invalid email or password.' : err.message);
-    });
+  auth.signInWithEmailAndPassword(email, pass).catch(function(err){
+    btn.disabled = false; btn.textContent = 'Sign In';
+    authSetError('auth-login-err',
+      err.code==='auth/user-not-found'||err.code==='auth/wrong-password'||err.code==='auth/invalid-credential'
+        ? 'Invalid email or password.' : err.message);
+  });
 }
 function doForgotPassword(){
   var email = document.getElementById('auth-forgot-email').value.trim();
@@ -334,32 +498,28 @@ function doForgotPassword(){
     .catch(function(err){ authSetError('auth-forgot-err', err.message); });
 }
 
-// ── SEARCH TYPE ──
-var searchType = 'wo';
-function setType(t){
-  searchType = t;
-  ['wo','so','inc'].forEach(function(k){
-    document.getElementById('btn-'+k).classList.toggle('active', k===t);
+// PAGE NAV
+var currentPage = 'home';
+function showPage(page){
+  ['home','overview','oms'].forEach(function(p){
+    document.getElementById('page-'+p).classList.toggle('active', p===page);
   });
-  var ph = t==='wo' ? 'e.g. 6020183' : t==='so' ? 'e.g. 12345' : 'e.g. EPS-001';
-  document.getElementById('search-input').placeholder = ph;
-  document.getElementById('search-input').focus();
+  currentPage = page;
+  window.scrollTo(0,0);
+  if(page === 'oms') omsRender();
 }
 
-function clearSearch(){
+// Navigate from OMS into Overview with pre-filled search
+function goToOverview(type, num){
+  showPage('overview');
+  setType(type);
   var inp = document.getElementById('search-input');
-  inp.value = '';
-  document.getElementById('search-clear').style.display = 'none';
-  inp.focus();
-  showEmptyState();
+  inp.value = num;
+  document.getElementById('search-clear').style.display = 'block';
+  doSearch();
 }
 
-function showEmptyState(){
-  document.getElementById('results').innerHTML =
-    '<div class="empty-search"><div class="empty-search-icon">🗼</div><div class="empty-search-text">Enter a Work Order, Sales Order or Incoming # above to begin</div></div>';
-}
-
-// ── UTILS ──
+// UTILS
 function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtDate(d){ if(!d) return '—'; var p=d.split('-'); return p.length===3?p[1]+'/'+p[2]+'/'+p[0]:d; }
 function calcDays(start, end){
@@ -399,21 +559,32 @@ function infoRow(lbl, val){
   if(!val && val!==0) return '';
   return '<div class="info-row"><span class="info-lbl">'+escHtml(lbl)+'</span><span class="info-val">'+escHtml(String(val))+'</span></div>';
 }
-function infoRowRaw(lbl, valHtml){
-  return '<div class="info-row"><span class="info-lbl">'+escHtml(lbl)+'</span><span class="info-val">'+valHtml+'</span></div>';
+
+// SEARCH TYPE
+var searchType = 'wo';
+function setType(t){
+  searchType = t;
+  ['wo','so','inc'].forEach(function(k){ document.getElementById('btn-'+k).classList.toggle('active', k===t); });
+  var ph = t==='wo' ? 'e.g. 6020183' : t==='so' ? 'e.g. 12345' : 'e.g. EPS-001';
+  document.getElementById('search-input').placeholder = ph;
+  document.getElementById('search-input').focus();
+}
+function clearSearch(){
+  var inp = document.getElementById('search-input'); inp.value = '';
+  document.getElementById('search-clear').style.display = 'none';
+  inp.focus(); showEmptyState();
+}
+function showEmptyState(){
+  document.getElementById('results').innerHTML =
+    '<div class="empty-search"><div class="empty-search-icon">🗼</div><div class="empty-search-text">Enter a Work Order, Sales Order or Incoming # above to begin</div></div>';
 }
 
-// ── SEARCH ──
+// SEARCH
 function doSearch(){
   var raw = (document.getElementById('search-input').value||'').trim();
-  if(!raw){ return; }
+  if(!raw) return;
   var q = norm(raw);
-
-  var result;
-  if(searchType==='wo')  result = searchByWO(q);
-  else if(searchType==='so') result = searchBySO(q);
-  else result = searchByIncoming(q);
-
+  var result = searchType==='wo' ? searchByWO(q) : searchType==='so' ? searchBySO(q) : searchByIncoming(q);
   renderResults(result, raw);
 }
 
@@ -422,41 +593,40 @@ function searchByWO(q){
   var components = [];
   Object.values(allData.items).forEach(function(doc){
     (doc.lineItems||[]).forEach(function(li){
-      if(norm(li.workOrderNum)===q) components.push({material:li.material||'', qty:li.pc||'', date:doc.date||'', binLocation:li.binLocation||'', binStock:li.binStock||'', area:li.area||'', customer:li.customer||''});
+      if(norm(li.workOrderNum)===q) components.push({material:li.material||'',qty:li.pc||'',date:doc.date||'',binLocation:li.binLocation||'',binStock:li.binStock||'',area:li.area||'',customer:li.customer||''});
     });
   });
   components.sort(function(a,b){ return a.date.localeCompare(b.date); });
-  var process  = Object.values(allData.process).filter(function(r){ return norm(r.wo)===q; });
-  var shipping = Object.values(allData.shipping).filter(function(r){ return (r.workOrders||[]).some(function(w){ return norm(w)===q; }); });
-  var packing  = Object.values(allData.packing).filter(function(r){ return norm(r.orderNum)===q || norm(r.orderNum).includes(q); });
-  return {type:'wo', q:q, incoming:incoming, components:components, process:process, shipping:shipping, packing:packing};
+  return {type:'wo', q:q,
+    incoming: incoming,
+    components: components,
+    process:  Object.values(allData.process).filter(function(r){ return norm(r.wo)===q; }),
+    shipping: Object.values(allData.shipping).filter(function(r){ return (r.workOrders||[]).some(function(w){ return norm(w)===q; }); }),
+    packing:  Object.values(allData.packing).filter(function(r){ return norm(r.orderNum)===q || norm(r.orderNum).includes(q); })
+  };
 }
-
 function searchBySO(q){
   var soItems = [];
   Object.values(allData.items).forEach(function(doc){
     (doc.lineItems||[]).forEach(function(li){
-      if(norm(li.salesOrderNum)===q) soItems.push({material:li.material||'', qty:li.pc||'', date:doc.date||'', binLocation:li.binLocation||'', binStock:li.binStock||'', customer:li.customer||'', area:li.area||''});
+      if(norm(li.salesOrderNum)===q) soItems.push({material:li.material||'',qty:li.pc||'',date:doc.date||'',binLocation:li.binLocation||'',binStock:li.binStock||'',customer:li.customer||'',area:li.area||''});
     });
   });
   soItems.sort(function(a,b){ return a.date.localeCompare(b.date); });
-  var shipping = Object.values(allData.shipping).filter(function(r){ return (r.salesOrders||[]).some(function(s){ return norm(s)===q; }); });
-  var packing  = Object.values(allData.packing).filter(function(r){ return norm(r.orderNum)===q || norm(r.orderNum).includes(q); });
-  var process  = Object.values(allData.process).filter(function(r){ return norm(r.wo)===q; });
-  return {type:'so', q:q, incoming:[], components:soItems, process:process, shipping:shipping, packing:packing};
+  return {type:'so', q:q, incoming:[],
+    components: soItems,
+    process:  Object.values(allData.process).filter(function(r){ return norm(r.wo)===q; }),
+    shipping: Object.values(allData.shipping).filter(function(r){ return (r.salesOrders||[]).some(function(s){ return norm(s)===q; }); }),
+    packing:  Object.values(allData.packing).filter(function(r){ return norm(r.orderNum)===q || norm(r.orderNum).includes(q); })
+  };
 }
-
 function searchByIncoming(q){
   var inc = Object.values(allData.incoming).filter(function(r){ return norm(r.formNum)===q; });
-  if(inc.length && inc[0].wo){
-    var r = searchByWO(norm(inc[0].wo));
-    r.type = 'inc'; r.q = q;
-    return r;
-  }
+  if(inc.length && inc[0].wo){ var r = searchByWO(norm(inc[0].wo)); r.type='inc'; r.q=q; return r; }
   return {type:'inc', q:q, incoming:inc, components:[], process:[], shipping:[], packing:[]};
 }
 
-// ── STATUS ──
+// STATUS
 function getStatus(result){
   if(result.shipping.length) return 'shipped';
   if(result.process.length)  return 'on-hold';
@@ -464,16 +634,15 @@ function getStatus(result){
   if(result.incoming.length || result.components.length) return 'active';
   return 'notfound';
 }
-
 var STATUS_CFG = {
-  shipped:  {color:'#059669', bg:'#f0fdf4', border:'#6ee7b7', icon:'✅', label:'SHIPPED'},
-  'on-hold':{color:'#dc2626', bg:'#fff5f5', border:'#fca5a5', icon:'⏸', label:'SHIPPING ON HOLD'},
-  packing:  {color:'#d97706', bg:'#fffbeb', border:'#fcd34d', icon:'📦', label:'PACKING & HOLD'},
-  active:   {color:'#2563eb', bg:'#eff6ff', border:'#bfdbfe', icon:'⚙️', label:'ACTIVE — IN PROCESS'},
-  notfound: {color:'#6b7280', bg:'#f9fafb', border:'#e5e7eb', icon:'🔍', label:'NOT FOUND'}
+  shipped:  {color:'#059669',bg:'#f0fdf4',border:'#6ee7b7',icon:'✅',label:'SHIPPED'},
+  'on-hold':{color:'#dc2626',bg:'#fff5f5',border:'#fca5a5',icon:'⏸',label:'SHIPPING ON HOLD'},
+  packing:  {color:'#d97706',bg:'#fffbeb',border:'#fcd34d',icon:'📦',label:'PACKING & HOLD'},
+  active:   {color:'#2563eb',bg:'#eff6ff',border:'#bfdbfe',icon:'⚙️',label:'ACTIVE — IN PROCESS'},
+  notfound: {color:'#6b7280',bg:'#f9fafb',border:'#e5e7eb',icon:'🔍',label:'NOT FOUND'}
 };
 
-// ── RENDER ──
+// RENDER OVERVIEW
 function renderResults(result, raw){
   var status = getStatus(result);
   var sc = STATUS_CFG[status];
@@ -481,7 +650,6 @@ function renderResults(result, raw){
   var shpList = result.shipping.slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); });
   var proc = result.process[0] || {};
   var pack = result.packing[0] || {};
-
   var startDate = inc.date || (result.components[0]||{}).date || '';
   var endDate   = shpList.length ? shpList[shpList.length-1].date : null;
   var daysAtSA  = startDate ? calcDays(startDate, endDate) : null;
@@ -497,196 +665,283 @@ function renderResults(result, raw){
   var typeLbl = result.type==='wo' ? 'Work Order #' : result.type==='so' ? 'Sales Order #' : 'Incoming #';
   var h = '';
 
-  // ── STATUS BANNER ──
   h += '<div class="status-banner" style="background:'+sc.bg+';border-color:'+sc.border+'">';
   h += '<div class="sb-left"><div class="sb-icon">'+sc.icon+'</div><div>';
   h += '<div class="sb-status" style="color:'+sc.color+'">'+sc.label+'</div>';
   h += '<div class="sb-title">'+typeLbl+' '+escHtml(result.q)+(inc.customer?' &nbsp;·&nbsp; '+escHtml(inc.customer):'')+'</div>';
   h += '</div></div>';
-  if(daysAtSA!==null){
-    h += '<div class="days-badge" style="background:'+sc.color+'">';
-    h += '<div class="db-num">'+daysAtSA+'</div><div class="db-lbl">Days at SA</div></div>';
-  }
+  if(daysAtSA!==null) h += '<div class="days-badge" style="background:'+sc.color+'"><div class="db-num">'+daysAtSA+'</div><div class="db-lbl">Days at SA</div></div>';
   h += '</div>';
 
-  // ── EQUIPMENT + DETAILS (if incoming record) ──
   if(result.incoming.length){
     h += '<div class="ct-grid'+(result.type!=='so'?'3':'2')+'">';
-    // Equipment
-    h += '<div class="ct-card" style="margin-bottom:0">';
-    h += '<div class="ct-card-title">⚙️ Equipment</div>';
-    h += infoRow('Customer', inc.customer);
-    h += infoRow('Equipment', inc.equipment);
-    h += infoRow('Category', inc.area);
-    h += infoRow('Manufacturer', inc.manufacturer);
-    h += infoRow('Model #', inc.modelNumber);
-    h += infoRow('Serial #', inc.serialNumber);
-    h += infoRow('HP', inc.hp); h += infoRow('KW', inc.kw);
-    h += infoRow('RPM', inc.rpm); h += infoRow('Frame', inc.frame);
-    h += infoRow('Type/Size', inc.typeSize);
+    h += '<div class="ct-card" style="margin-bottom:0"><div class="ct-card-title">⚙️ Equipment</div>';
+    h += infoRow('Customer',inc.customer)+infoRow('Equipment',inc.equipment)+infoRow('Category',inc.area);
+    h += infoRow('Manufacturer',inc.manufacturer)+infoRow('Model #',inc.modelNumber)+infoRow('Serial #',inc.serialNumber);
+    h += infoRow('HP',inc.hp)+infoRow('KW',inc.kw)+infoRow('RPM',inc.rpm)+infoRow('Frame',inc.frame)+infoRow('Type/Size',inc.typeSize);
     h += '</div>';
-    // Details
-    h += '<div class="ct-card" style="margin-bottom:0">';
-    h += '<div class="ct-card-title">📋 Incoming Details</div>';
-    h += infoRow('Incoming #', inc.formNum);
-    h += infoRow('Work Order #', inc.wo);
-    h += infoRow('Previous WO #', inc.prevWo);
-    h += infoRow('Date Received', fmtDate(inc.date));
-    h += infoRow('Job Type', inc.whatToDo);
-    h += infoRow('Cust. Stock #', inc.customerStockNumber);
-    h += infoRow('Delivered by', inc.deliveryBy);
-    h += infoRow('Received by', inc.receivedBy);
-    if(inc.notes) h += infoRow('Notes', inc.notes);
+    h += '<div class="ct-card" style="margin-bottom:0"><div class="ct-card-title">📋 Incoming Details</div>';
+    h += infoRow('Incoming #',inc.formNum)+infoRow('Work Order #',inc.wo)+infoRow('Previous WO #',inc.prevWo);
+    h += infoRow('Date Received',fmtDate(inc.date))+infoRow('Job Type',inc.whatToDo);
+    h += infoRow('Cust. Stock #',inc.customerStockNumber)+infoRow('Delivered by',inc.deliveryBy)+infoRow('Received by',inc.receivedBy);
+    if(inc.notes) h += infoRow('Notes',inc.notes);
     h += '</div>';
-    // Location card
-    if(result.type!=='so'){
-      h += '<div class="ct-card" style="margin-bottom:0">';
-      h += '<div class="ct-card-title">📍 Location</div>';
-      h += infoRow('Location', inc.designatedLocation);
-      h += '</div>';
-    }
-    h += '</div>';  // close grid
+    if(result.type!=='so') h += '<div class="ct-card" style="margin-bottom:0"><div class="ct-card-title">📍 Location</div>'+infoRow('Location',inc.designatedLocation)+'</div>';
+    h += '</div>';
 
-    // ── PHOTOS CARD ──
     var shpPhotosLink = '';
     shpList.forEach(function(s){ if(!shpPhotosLink && s.photosLink) shpPhotosLink = s.photosLink; });
-    var noPhotoHtml = '<span style="font-size:.8rem;color:var(--light);font-style:italic">No Pictures taken</span>';
-    h += '<div class="ct-card">';
-    h += '<div class="ct-card-title">📷 Photos</div>';
+    var noPh = '<span style="font-size:.8rem;color:var(--light);font-style:italic">No Pictures taken</span>';
+    h += '<div class="ct-card"><div class="ct-card-title">📷 Photos</div>';
     h += '<div style="display:flex;gap:24px;flex-wrap:wrap">';
     h += '<div style="flex:1;min-width:180px"><div style="font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Incoming</div>';
-    h += inc.photosLink ? '<a class="ct-btn ct-btn-gray" href="'+escHtml(inc.photosLink)+'" target="_blank">📷 View Incoming Photos</a>' : noPhotoHtml;
-    h += '</div>';
-    h += '<div style="flex:1;min-width:180px"><div style="font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Shipping</div>';
-    h += shpPhotosLink ? '<a class="ct-btn ct-btn-gray" href="'+escHtml(shpPhotosLink)+'" target="_blank">📷 View Shipping Photos</a>' : noPhotoHtml;
-    h += '</div>';
-    h += '</div></div>';
+    h += inc.photosLink ? '<a class="ct-btn ct-btn-gray" href="'+escHtml(inc.photosLink)+'" target="_blank">📷 View Incoming Photos</a>' : noPh;
+    h += '</div><div style="flex:1;min-width:180px"><div style="font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Shipping</div>';
+    h += shpPhotosLink ? '<a class="ct-btn ct-btn-gray" href="'+escHtml(shpPhotosLink)+'" target="_blank">📷 View Shipping Photos</a>' : noPh;
+    h += '</div></div></div>';
   }
 
-  // ── COMPONENTS / ITEMS ──
   if(result.components.length){
     var compTitle = result.type==='so' ? '📦 Items — Sales Order' : '📦 Components Received';
-    h += '<div class="ct-card">';
-    h += '<div class="ct-card-title">'+compTitle+' ('+result.components.length+')</div>';
-    h += '<table class="ct-table"><thead><tr>';
-    h += '<th>Material / Description</th><th>Qty</th><th>Date Received</th>';
-    if(result.type==='so') h += '<th>Bin Location</th><th>Customer</th>';
-    else h += '<th>Location</th>';
+    h += '<div class="ct-card"><div class="ct-card-title">'+compTitle+' ('+result.components.length+')</div>';
+    h += '<table class="ct-table"><thead><tr><th>Material / Description</th><th>Qty</th><th>Date Received</th>';
+    h += result.type==='so' ? '<th>Bin Location</th><th>Customer</th>' : '<th>Location</th>';
     h += '</tr></thead><tbody>';
     result.components.forEach(function(c){
-      var binHtml;
-      if(c.binLocation==='WIP'){
-        binHtml = '<span class="bin-badge bin-wip">WIP</span>';
-      } else if(c.binLocation==='Stock'){
-        binHtml = '<span class="bin-badge bin-stock">Stock'+(c.binStock?' — '+escHtml(c.binStock):'')+'</span>';
-      } else if(c.binLocation){
-        binHtml = '<span class="bin-badge bin-nobin">'+escHtml(c.binLocation)+'</span>';
-      } else {
-        binHtml = '—';
-      }
+      var binHtml = c.binLocation==='WIP' ? '<span class="bin-badge bin-wip">WIP</span>'
+        : c.binLocation==='Stock' ? '<span class="bin-badge bin-stock">Stock'+(c.binStock?' — '+escHtml(c.binStock):'')+'</span>'
+        : c.binLocation ? '<span class="bin-badge bin-nobin">'+escHtml(c.binLocation)+'</span>' : '—';
       h += '<tr><td>'+escHtml(c.material||'—')+'</td><td>'+escHtml(c.qty||'—')+'</td><td>'+fmtDate(c.date)+'</td>';
-      if(result.type==='so') h += '<td>'+binHtml+'</td><td>'+escHtml(c.customer||'—')+'</td>';
-      else h += '<td>'+binHtml+'</td>';
+      h += result.type==='so' ? '<td>'+binHtml+'</td><td>'+escHtml(c.customer||'—')+'</td>' : '<td>'+binHtml+'</td>';
       h += '</tr>';
     });
     h += '</tbody></table></div>';
   }
 
-  // ── SHIPPING ON HOLD ──
   if(result.process.length){
     var holdDays = calcDays(proc.receivedDate);
-    h += '<div class="ct-card card-danger">';
-    h += '<div class="ct-card-title">⏸ Shipping On Hold</div>';
+    h += '<div class="ct-card card-danger"><div class="ct-card-title">⏸ Shipping On Hold</div>';
     h += '<div style="display:flex;align-items:flex-start;gap:28px;flex-wrap:wrap">';
-    if(holdDays!==null){
-      h += '<div style="text-align:center;flex-shrink:0"><div class="hold-days" style="color:#dc2626">'+holdDays+'</div><div class="hold-lbl">Days on Hold</div></div>';
-    }
-    h += '<div style="flex:1">';
-    h += infoRow('Date Received in Hold', fmtDate(proc.receivedDate));
-    h += infoRow('Work Order #', proc.wo);
-    h += infoRow('Customer', proc.customer);
-    h += infoRow('Customer PO #', proc.po);
-    h += infoRow('Outgoing #', proc.outgoing);
-    h += infoRow('Material', proc.material);
-    if(proc.notes) h += infoRow('Notes', proc.notes);
-    h += '</div></div>';
-    h += '</div>';
+    if(holdDays!==null) h += '<div style="text-align:center;flex-shrink:0"><div class="hold-days" style="color:#dc2626">'+holdDays+'</div><div class="hold-lbl">Days on Hold</div></div>';
+    h += '<div style="flex:1">'+infoRow('Date Received in Hold',fmtDate(proc.receivedDate))+infoRow('Work Order #',proc.wo)+infoRow('Customer',proc.customer)+infoRow('Customer PO #',proc.po)+infoRow('Outgoing #',proc.outgoing)+infoRow('Material',proc.material)+(proc.notes?infoRow('Notes',proc.notes):'')+'</div></div></div>';
   }
 
-  // ── PACKING & HOLD ──
   if(result.packing.length){
     var packDays = calcDays(pack.pickDate);
-    h += '<div class="ct-card card-warning">';
-    h += '<div class="ct-card-title">📦 Packing & Hold</div>';
+    h += '<div class="ct-card card-warning"><div class="ct-card-title">📦 Packing & Hold</div>';
     h += '<div style="display:flex;align-items:flex-start;gap:28px;flex-wrap:wrap">';
-    if(packDays!==null){
-      h += '<div style="text-align:center;flex-shrink:0"><div class="hold-days" style="color:#d97706">'+packDays+'</div><div class="hold-lbl">Days on Hold</div></div>';
+    if(packDays!==null) h += '<div style="text-align:center;flex-shrink:0"><div class="hold-days" style="color:#d97706">'+packDays+'</div><div class="hold-lbl">Days on Hold</div></div>';
+    h += '<div style="flex:1">'+infoRow('Order #',pack.orderNum)+infoRow('Customer',pack.customer)+infoRow('Pick Date',fmtDate(pack.pickDate))+'</div></div></div>';
+  }
+
+  shpList.forEach(function(s){
+    var carrierName = s.carrier==='Other' ? (s.carrierOther||'Other') : (s.carrier||'—');
+    var trackNum = formatTrackNum(s.trackingNum);
+    var trackUrl = getTrackingUrl(s.carrier||'', s.carrierOther||'', trackNum);
+    var allOrders = [].concat(
+      (s.workOrders||[]).map(function(o){ return 'WO: '+o; }),
+      (s.salesOrders||[]).map(function(o){ return 'SO: '+o; }),
+      (s.transferNums||[]).map(function(o){ return 'TR: '+o; })
+    ).filter(Boolean);
+    h += '<div class="ct-card card-success"><div class="ct-card-title">🚚 Shipment — '+fmtDate(s.date)+'</div>';
+    h += '<div class="ct-grid2" style="margin-bottom:0"><div>';
+    h += infoRow('Ship Date',fmtDate(s.date))+infoRow('Customer',s.customer)+infoRow('Destination',[s.city,s.province,s.country].filter(Boolean).join(', ')||null)+infoRow('Outgoing #',s.outgoing)+infoRow('Orders',allOrders.join('  ·  ')||null)+infoRow('Notes',s.notes);
+    h += '</div><div>';
+    h += infoRow('Carrier',carrierName)+infoRow('Tracking #',trackNum)+infoRow('Freight Type',s.freightType)+infoRow('Pieces',s.pc)+infoRow('Weight',s.lb?s.lb+' lb':null)+infoRow('Material',s.material);
+    h += '</div></div>';
+    if(trackNum && trackUrl){
+      h += '<div class="btn-row"><button class="ct-btn ct-btn-blue" onclick="doTrack(\''+trackUrl.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\''+trackNum.replace(/'/g,"\\'")+'\')">🔍 Track — '+escHtml(carrierName)+'</button></div>';
     }
-    h += '<div style="flex:1">';
-    h += infoRow('Order #', pack.orderNum);
-    h += infoRow('Customer', pack.customer);
-    h += infoRow('Pick Date', fmtDate(pack.pickDate));
-    h += '</div></div></div>';
-  }
+    h += '</div>';
+  });
 
-  // ── SHIPPING RECORDS ──
-  if(shpList.length){
-    shpList.forEach(function(s){
-      var carrierName = s.carrier==='Other' ? (s.carrierOther||'Other') : (s.carrier||'—');
-      var trackNum = formatTrackNum(s.trackingNum);
-      var trackUrl = getTrackingUrl(s.carrier||'', s.carrierOther||'', trackNum);
-      var allOrders = [].concat(
-        (s.workOrders||[]).map(function(o){ return 'WO: '+o; }),
-        (s.salesOrders||[]).map(function(o){ return 'SO: '+o; }),
-        (s.transferNums||[]).map(function(o){ return 'TR: '+o; })
-      ).filter(Boolean);
-
-      h += '<div class="ct-card card-success">';
-      h += '<div class="ct-card-title">🚚 Shipment — '+fmtDate(s.date)+'</div>';
-      h += '<div class="ct-grid2" style="margin-bottom:0">';
-      // Left column
-      h += '<div>';
-      h += infoRow('Ship Date', fmtDate(s.date));
-      h += infoRow('Customer', s.customer);
-      h += infoRow('Destination', [s.city,s.province,s.country].filter(Boolean).join(', ')||null);
-      h += infoRow('Outgoing #', s.outgoing);
-      h += infoRow('Orders', allOrders.join('  ·  ')||null);
-      h += infoRow('Notes', s.notes);
-      h += '</div>';
-      // Right column
-      h += '<div>';
-      h += infoRow('Carrier', carrierName);
-      h += infoRow('Tracking #', trackNum);
-      h += infoRow('Freight Type', s.freightType);
-      h += infoRow('Pieces', s.pc);
-      h += infoRow('Weight', s.lb ? s.lb+' lb' : null);
-      h += infoRow('Material', s.material);
-      h += '</div>';
-      h += '</div>';
-
-      // Action buttons — Track only (photos are in the dedicated Photos card)
-      if(trackNum && trackUrl){
-        h += '<div class="btn-row">';
-        h += '<button class="ct-btn ct-btn-blue" onclick="doTrack(\''+trackUrl.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\''+trackNum.replace(/'/g,"\\'")+'\')">🔍 Track — '+escHtml(carrierName)+'</button>';
-        h += '</div>';
-      }
-      h += '</div>';
-    });
-  }
-
-  // Multiple incoming records
   if(result.incoming.length > 1){
-    h += '<div class="ct-card">';
-    h += '<div class="ct-card-title">📋 Additional Incoming Records ('+result.incoming.length+')</div>';
+    h += '<div class="ct-card"><div class="ct-card-title">📋 Additional Incoming Records ('+result.incoming.length+')</div>';
     h += '<table class="ct-table"><thead><tr><th>Incoming #</th><th>Date</th><th>Equipment</th><th>Job Type</th></tr></thead><tbody>';
-    result.incoming.forEach(function(r){
-      h += '<tr><td>'+escHtml(r.formNum||'—')+'</td><td>'+fmtDate(r.date)+'</td><td>'+escHtml(r.equipment||'—')+'</td><td>'+escHtml(r.whatToDo||'—')+'</td></tr>';
-    });
+    result.incoming.forEach(function(r){ h += '<tr><td>'+escHtml(r.formNum||'—')+'</td><td>'+fmtDate(r.date)+'</td><td>'+escHtml(r.equipment||'—')+'</td><td>'+escHtml(r.whatToDo||'—')+'</td></tr>'; });
     h += '</tbody></table></div>';
   }
-
   document.getElementById('results').innerHTML = h;
 }
+
+// ══════════════════════════
+// ORDER & MATERIAL STATUS
+// ══════════════════════════
+var omsSection = 'incoming';
+var omsArea    = 'all';
+var omsItemCat = 'wip';
+
+function omsDateMatch(dateISO){
+  if(!dateISO) return false;
+  var yr = document.getElementById('oms-year').value;
+  var mo = document.getElementById('oms-month').value;
+  var dy = document.getElementById('oms-day').value;
+  if(yr && !dateISO.startsWith(yr)) return false;
+  if(mo && dateISO.slice(5,7) !== mo) return false;
+  if(dy && dateISO.slice(8,10) !== dy.padStart(2,'0')) return false;
+  return true;
+}
+
+function omsPopulateDays(){
+  var yr = parseInt(document.getElementById('oms-year').value) || 0;
+  var mo = parseInt(document.getElementById('oms-month').value) || 0;
+  var sel = document.getElementById('oms-day');
+  var curVal = sel.value;
+  var days = (yr && mo) ? new Date(yr, mo, 0).getDate() : 31;
+  var opts = '<option value="">All Days</option>';
+  for(var d=1; d<=days; d++) opts += '<option value="'+d+'"'+(String(d)===curVal?' selected':'')+'>'+d+'</option>';
+  sel.innerHTML = opts;
+}
+
+function omsSetSection(s){
+  omsSection = s;
+  ['incoming','items','shipping'].forEach(function(k){
+    document.getElementById('oms-stab-'+k).classList.toggle('active', k===s);
+    document.getElementById('oms-sec-'+k).style.display = k===s ? '' : 'none';
+  });
+  omsRenderSection();
+}
+
+function omsSetArea(a){
+  omsArea = a;
+  ['all','electrical','mechanical','aircompressor','generator'].forEach(function(k){
+    document.getElementById('oms-area-'+k).classList.toggle('active', k===a);
+  });
+  omsRenderIncoming();
+}
+
+function omsSetItemCat(c){
+  omsItemCat = c;
+  ['wip','so','other'].forEach(function(k){
+    document.getElementById('oms-item-'+k).classList.toggle('active', k===c);
+  });
+  omsRenderItems();
+}
+
+function omsReset(){
+  document.getElementById('oms-year').value  = '';
+  document.getElementById('oms-month').value = '';
+  omsPopulateDays();
+  document.getElementById('oms-day').value = '';
+  omsRender();
+}
+
+function omsApply(){
+  omsPopulateDays();
+  omsRender();
+}
+
+function omsRender(){
+  omsRenderKPIs();
+  omsRenderSection();
+}
+
+function omsRenderSection(){
+  if(omsSection==='incoming')  omsRenderIncoming();
+  else if(omsSection==='items') omsRenderItems();
+  else omsRenderShipping();
+}
+
+function omsRenderKPIs(){
+  var incCount = Object.values(allData.incoming).filter(function(r){ return omsDateMatch(r.date); }).length;
+  var wipCount = 0, salesCount = 0, otherCount = 0;
+  Object.values(allData.items).forEach(function(doc){
+    if(!omsDateMatch(doc.date)) return;
+    (doc.lineItems||[]).forEach(function(li){
+      if(li.binLocation==='WIP') wipCount++;
+      else if(li.applicationType==='Sales Order') salesCount++;
+      else otherCount++;
+    });
+  });
+  var shpCount = Object.values(allData.shipping).filter(function(r){ return omsDateMatch(r.date); }).length;
+  document.getElementById('oms-kpis').innerHTML =
+    '<div class="oms-kpi"><div class="oms-kpi-num">'+incCount+'</div><div class="oms-kpi-lbl">Incoming Forms</div></div>'+
+    '<div class="oms-kpi"><div class="oms-kpi-num">'+wipCount+'</div><div class="oms-kpi-lbl">WIP Items</div></div>'+
+    '<div class="oms-kpi"><div class="oms-kpi-num">'+salesCount+'</div><div class="oms-kpi-lbl">Sales Order Items</div></div>'+
+    '<div class="oms-kpi"><div class="oms-kpi-num">'+shpCount+'</div><div class="oms-kpi-lbl">Shipments</div></div>';
+}
+
+function normArea(a){
+  var s = (a||'').toLowerCase();
+  if(s.includes('electric')) return 'electrical';
+  if(s.includes('mechanic')) return 'mechanical';
+  if(s.includes('compressor')||s.includes('air comp')) return 'aircompressor';
+  if(s.includes('generator')) return 'generator';
+  return 'other';
+}
+
+function omsRenderIncoming(){
+  var rows = Object.values(allData.incoming)
+    .filter(function(r){ return omsDateMatch(r.date); })
+    .sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  if(omsArea !== 'all') rows = rows.filter(function(r){ return normArea(r.area) === omsArea; });
+  var tbody = document.getElementById('oms-incoming-body');
+  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="7" class="oms-empty">No records found for this filter</td></tr>'; return; }
+  tbody.innerHTML = rows.map(function(r){
+    var woLink = r.wo ? '<button class="order-link" onclick="goToOverview(\'wo\',\''+escHtml(r.wo)+'\')">'+escHtml(r.wo)+'</button>' : '—';
+    return '<tr><td>'+fmtDate(r.date)+'</td><td>'+escHtml(r.formNum||'—')+'</td><td>'+woLink+'</td>'+
+      '<td>'+escHtml(r.customer||'—')+'</td><td>'+escHtml(r.equipment||'—')+'</td>'+
+      '<td><span class="area-badge">'+escHtml(r.area||'—')+'</span></td>'+
+      '<td>'+escHtml(r.whatToDo||'—')+'</td></tr>';
+  }).join('');
+}
+
+function omsRenderItems(){
+  var allRows = [];
+  Object.values(allData.items).forEach(function(doc){
+    if(!omsDateMatch(doc.date)) return;
+    (doc.lineItems||[]).forEach(function(li){
+      allRows.push({date:doc.date, docNum:doc.docNum||'',
+        material:li.material||'', qty:li.pc||'',
+        binLocation:li.binLocation||'', binStock:li.binStock||'',
+        area:li.area||'', customer:li.customer||'',
+        wo:li.workOrderNum||'', so:li.salesOrderNum||'',
+        appType:li.applicationType||''});
+    });
+  });
+  var rows;
+  if(omsItemCat==='wip')        rows = allRows.filter(function(r){ return r.binLocation==='WIP'; });
+  else if(omsItemCat==='so')    rows = allRows.filter(function(r){ return r.appType==='Sales Order' && r.binLocation!=='WIP'; });
+  else                          rows = allRows.filter(function(r){ return r.binLocation!=='WIP' && r.appType!=='Sales Order'; });
+  rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  var tbody = document.getElementById('oms-items-body');
+  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="9" class="oms-empty">No items found for this filter</td></tr>'; return; }
+  tbody.innerHTML = rows.map(function(r){
+    var binHtml = r.binLocation==='WIP' ? '<span class="bin-badge bin-wip">WIP</span>'
+      : r.binLocation==='Stock' ? '<span class="bin-badge bin-stock">Stock'+(r.binStock?' — '+escHtml(r.binStock):'')+'</span>'
+      : r.binLocation ? '<span class="bin-badge bin-nobin">'+escHtml(r.binLocation)+'</span>' : '—';
+    var woLink = r.wo ? '<button class="order-link" onclick="goToOverview(\'wo\',\''+escHtml(r.wo)+'\')">'+escHtml(r.wo)+'</button>' : '—';
+    var soLink = r.so ? '<button class="order-link" onclick="goToOverview(\'so\',\''+escHtml(r.so)+'\')">'+escHtml(r.so)+'</button>' : '—';
+    return '<tr><td>'+fmtDate(r.date)+'</td><td>'+escHtml(r.docNum||'—')+'</td>'+
+      '<td>'+escHtml(r.material||'—')+'</td><td style="text-align:center">'+escHtml(r.qty||'—')+'</td>'+
+      '<td>'+woLink+'</td><td>'+soLink+'</td>'+
+      '<td>'+escHtml(r.area||'—')+'</td><td>'+escHtml(r.customer||'—')+'</td><td>'+binHtml+'</td></tr>';
+  }).join('');
+}
+
+function omsRenderShipping(){
+  var rows = Object.values(allData.shipping)
+    .filter(function(r){ return omsDateMatch(r.date); })
+    .sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  var tbody = document.getElementById('oms-shipping-body');
+  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="9" class="oms-empty">No shipments found for this filter</td></tr>'; return; }
+  tbody.innerHTML = rows.map(function(r){
+    var carrierName = r.carrier==='Other' ? (r.carrierOther||'Other') : (r.carrier||'—');
+    var trackNum = formatTrackNum(r.trackingNum);
+    var dest = [r.city,r.province,r.country].filter(Boolean).join(', ')||'—';
+    var wos = (r.workOrders||[]).filter(Boolean);
+    var sos = (r.salesOrders||[]).filter(Boolean);
+    var woHtml = wos.length ? wos.map(function(w){ return '<button class="order-link" onclick="goToOverview(\'wo\',\''+escHtml(w)+'\')">'+escHtml(w)+'</button>'; }).join('<br>') : '—';
+    var soHtml = sos.length ? sos.map(function(s){ return '<button class="order-link" onclick="goToOverview(\'so\',\''+escHtml(s)+'\')">'+escHtml(s)+'</button>'; }).join('<br>') : '—';
+    return '<tr><td>'+fmtDate(r.date)+'</td><td>'+escHtml(r.customer||'—')+'</td><td>'+escHtml(dest)+'</td>'+
+      '<td>'+woHtml+'</td><td>'+soHtml+'</td>'+
+      '<td>'+escHtml(carrierName)+'</td><td style="font-size:.72rem">'+escHtml(trackNum||'—')+'</td>'+
+      '<td style="text-align:center">'+escHtml(r.pc||'—')+'</td>'+
+      '<td style="text-align:center">'+escHtml(r.lb||'—')+'</td></tr>';
+  }).join('');
+}
+
+omsPopulateDays();
 </script>
 </body>
 </html>
