@@ -410,7 +410,8 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     <!-- INCOMING ITEMS -->
     <div id="oms-sec-items" style="display:none">
       <div class="oms-pill-row">
-        <button class="oms-pill p-wip active" id="oms-item-wip" onclick="omsSetItemCat('wip')">🟣 WIP</button>
+        <button class="oms-pill active" id="oms-item-all" onclick="omsSetItemCat('all')">All</button>
+        <button class="oms-pill p-wip" id="oms-item-wip" onclick="omsSetItemCat('wip')">🟣 WIP</button>
         <button class="oms-pill p-so" id="oms-item-so" onclick="omsSetItemCat('so')">🟢 Sales Order</button>
         <button class="oms-pill" id="oms-item-other" onclick="omsSetItemCat('other')">⚪ Others</button>
       </div>
@@ -791,7 +792,7 @@ function renderResults(result, raw){
 // ══════════════════════════
 var omsSection = 'incoming';
 var omsArea    = 'all';
-var omsItemCat  = 'wip';
+var omsItemCat  = 'all';
 var omsItemArea = 'all';
 
 function omsDateMatch(dateISO){
@@ -841,7 +842,7 @@ function omsSetArea(a){
 
 function omsSetItemCat(c){
   omsItemCat = c;
-  ['wip','so','other'].forEach(function(k){
+  ['all','wip','so','other'].forEach(function(k){
     document.getElementById('oms-item-'+k).classList.toggle('active', k===c);
   });
   omsRenderItems();
@@ -860,6 +861,10 @@ function omsReset(){
   omsPopulateDays();
   document.getElementById('oms-day-from').value = '';
   document.getElementById('oms-day-to').value   = '';
+  omsItemCat = 'all';
+  ['all','wip','so','other'].forEach(function(k){
+    document.getElementById('oms-item-'+k).classList.toggle('active', k==='all');
+  });
   omsItemArea = 'all';
   ['all','electrical','mechanical','aircompressor','generator'].forEach(function(k){
     document.getElementById('oms-iarea-'+k).classList.toggle('active', k==='all');
@@ -943,7 +948,8 @@ function omsRenderItems(){
   var rows;
   if(omsItemCat==='wip')        rows = allRows.filter(function(r){ return r.binLocation==='WIP'; });
   else if(omsItemCat==='so')    rows = allRows.filter(function(r){ return r.appType==='Sales Order' && r.binLocation!=='WIP'; });
-  else                          rows = allRows.filter(function(r){ return r.binLocation!=='WIP' && r.appType!=='Sales Order'; });
+  else if(omsItemCat==='other') rows = allRows.filter(function(r){ return r.binLocation!=='WIP' && r.appType!=='Sales Order'; });
+  else                          rows = allRows;
   if(omsItemArea !== 'all') rows = rows.filter(function(r){ return normArea(r.area) === omsItemArea; });
   rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
   var tbody = document.getElementById('oms-items-body');
