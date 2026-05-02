@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
 :root{
@@ -149,9 +150,53 @@ tbody tr.row-click:hover{background:#f0f7ff}
   .r2.g6040,.r2.g5545{grid-template-columns:1fr}
   .body{padding:14px 16px 32px}
 }
+#auth-overlay{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;padding:20px;background:url('warehouse-bg.jpg') center center/cover no-repeat}
+#auth-overlay::before{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(10,25,60,.82) 0%,rgba(15,40,90,.75) 50%,rgba(20,55,110,.70) 100%);backdrop-filter:blur(2px)}
+.auth-box{position:relative;z-index:1;background:#fff;border-radius:16px;width:100%;max-width:420px;box-shadow:0 25px 50px rgba(0,0,0,.35);overflow:hidden}
+.auth-box-header{background:linear-gradient(160deg,#0f172a,#1d4ed8);padding:30px 28px 22px;text-align:center}
+.auth-box-logo{display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.auth-box-title{color:#fff;font-size:1.05rem;font-weight:800}
+.auth-box-sub{color:rgba(255,255,255,.55);font-size:.75rem;margin-top:5px}
+.auth-box-body{padding:26px 28px 30px}
+.auth-screen{display:none}.auth-screen.active{display:block}
+.auth-field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.auth-field label{font-size:.67rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px}
+.auth-field input{padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.88rem;font-family:inherit;outline:none;transition:all .18s;color:#0f172a}
+.auth-field input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.auth-btn{width:100%;padding:12px;background:linear-gradient(160deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:8px;font-size:.88rem;font-weight:800;cursor:pointer;font-family:inherit;margin-top:6px}
+.auth-btn:disabled{background:#93c5fd;cursor:not-allowed}
+.auth-link{background:none;border:none;color:#2563eb;cursor:pointer;font-size:.8rem;font-weight:700;font-family:inherit;text-decoration:underline;padding:0}
+.auth-error{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:8px;padding:10px 13px;font-size:.79rem;font-weight:600;margin-bottom:14px;display:none}
+.auth-footer{display:flex;justify-content:center;gap:6px;align-items:center;margin-top:18px;font-size:.78rem;color:#94a3b8}
 </style>
 </head>
 <body>
+
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-box-header">
+      <div class="auth-box-logo"><img src="logo.png" alt="SA" style="height:44px;border-radius:8px;background:#fff;padding:6px 12px"></div>
+      <div class="auth-box-title">📊 Operations Dashboard</div>
+      <div class="auth-box-sub">Source Atlantic — Industrial Services</div>
+    </div>
+    <div class="auth-box-body">
+      <div class="auth-screen active" id="auth-login">
+        <div class="auth-error" id="auth-login-err"></div>
+        <div class="auth-field"><label>Email</label><input type="email" id="auth-login-email" placeholder="your@email.com" autocomplete="email"></div>
+        <div class="auth-field"><label>Password</label><input type="password" id="auth-login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <button class="auth-btn" id="auth-login-btn" onclick="doLogin()">Sign In</button>
+        <div class="auth-footer"><button class="auth-link" onclick="authShow('forgot')">Forgot password?</button></div>
+      </div>
+      <div class="auth-screen" id="auth-forgot">
+        <div class="auth-error" id="auth-forgot-err"></div>
+        <div class="auth-field"><label>Email</label><input type="email" id="auth-forgot-email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doForgotPassword()"></div>
+        <button class="auth-btn" onclick="doForgotPassword()">Send Reset Email</button>
+        <div class="auth-footer"><button class="auth-link" onclick="authShow('login')">Back to Sign In</button></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="hdr">
   <div class="hdr-inner">
@@ -227,7 +272,8 @@ var firebaseConfig = {
   appId:             '1:953329380095:web:f7865dda88a33ff9457aca'
 };
 firebase.initializeApp(firebaseConfig);
-var db = firebase.database();
+var db   = firebase.database();
+var auth = firebase.auth();
 
 var MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 var allData = {incoming:{}, items:{}, shipping:{}, process:{}};
@@ -242,10 +288,40 @@ document.getElementById('hdr-date').textContent =
   'As of ' + now.toLocaleDateString('en-CA',{year:'numeric',month:'long',day:'numeric'});
 
 function onLoad(){ loaded++; if(loaded>=4) render(); }
-db.ref('shipping_receiving/incoming').on('value',function(s){ allData.incoming=s.val()||{}; onLoad(); });
-db.ref('shipping_receiving/items').on('value',function(s){ allData.items=s.val()||{}; onLoad(); });
-db.ref('shipping_receiving/shipping').on('value',function(s){ allData.shipping=s.val()||{}; onLoad(); });
-db.ref('shipping_receiving/process').on('value',function(s){ allData.process=s.val()||{}; onLoad(); });
+
+function startDataLoad(){
+  db.ref('shipping_receiving/incoming').on('value',function(s){ allData.incoming=s.val()||{}; onLoad(); });
+  db.ref('shipping_receiving/items').on('value',function(s){ allData.items=s.val()||{}; onLoad(); });
+  db.ref('shipping_receiving/shipping').on('value',function(s){ allData.shipping=s.val()||{}; onLoad(); });
+  db.ref('shipping_receiving/process').on('value',function(s){ allData.process=s.val()||{}; onLoad(); });
+}
+
+auth.onAuthStateChanged(function(user){
+  if(user && user.emailVerified){
+    document.getElementById('auth-overlay').style.display = 'none';
+    startDataLoad();
+  } else {
+    document.getElementById('auth-overlay').style.display = 'flex';
+  }
+});
+
+function authShow(s){ ['login','forgot'].forEach(function(k){ document.getElementById('auth-'+k).classList.toggle('active',k===s); }); }
+function authSetError(id,msg){ var el=document.getElementById(id); if(!el)return; el.textContent=msg; el.style.display=msg?'block':'none'; }
+function doLogin(){
+  var email=document.getElementById('auth-login-email').value.trim();
+  var pass=document.getElementById('auth-login-pass').value;
+  if(!email||!pass){ authSetError('auth-login-err','Please enter email and password.'); return; }
+  var btn=document.getElementById('auth-login-btn'); btn.disabled=true; btn.textContent='Please wait…';
+  auth.signInWithEmailAndPassword(email,pass).catch(function(err){
+    btn.disabled=false; btn.textContent='Sign In';
+    authSetError('auth-login-err', err.code==='auth/user-not-found'||err.code==='auth/wrong-password'||err.code==='auth/invalid-credential' ? 'Invalid email or password.' : err.message);
+  });
+}
+function doForgotPassword(){
+  var email=document.getElementById('auth-forgot-email').value.trim();
+  if(!email){ authSetError('auth-forgot-err','Please enter your email.'); return; }
+  auth.sendPasswordResetEmail(email).then(function(){ alert('Reset email sent to '+email); authShow('login'); }).catch(function(err){ authSetError('auth-forgot-err',err.message); });
+}
 
 function computeTurnaround(cYr, moFrom, moTo, inRangeFn){
   var woProcDate = {};
