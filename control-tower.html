@@ -7,6 +7,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
   --blue:#1e40af;--blue2:#2563eb;--blue3:#3b82f6;
@@ -166,7 +167,11 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .oms-kpi-num{font-size:1.7rem;font-weight:900;color:var(--text)}
 .oms-kpi-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:3px}
 
-.oms-stab-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.oms-stab-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.oms-stab-left{display:flex;gap:6px;flex-wrap:wrap}
+.btn-excel{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border-radius:8px;background:#16a34a;color:#fff;border:none;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;box-shadow:0 2px 6px rgba(22,163,74,.3)}
+.btn-excel:hover{background:#15803d;box-shadow:0 4px 12px rgba(22,163,74,.4);transform:translateY(-1px)}
+.btn-excel:active{transform:translateY(0)}
 .oms-stab{padding:8px 18px;border-radius:8px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:.8rem;font-weight:700;color:var(--muted);transition:all .15s;font-family:inherit}
 .oms-stab:hover{border-color:var(--blue3);color:var(--blue)}
 .oms-stab.active{border-color:var(--blue);background:#eff6ff;color:var(--blue)}
@@ -366,9 +371,12 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 
     <!-- Section Tabs -->
     <div class="oms-stab-row">
-      <button class="oms-stab active" id="oms-stab-incoming" onclick="omsSetSection('incoming')">📋 Incoming Forms</button>
-      <button class="oms-stab" id="oms-stab-items" onclick="omsSetSection('items')">📦 Incoming Items</button>
-      <button class="oms-stab" id="oms-stab-shipping" onclick="omsSetSection('shipping')">🚚 Shipping</button>
+      <div class="oms-stab-left">
+        <button class="oms-stab active" id="oms-stab-incoming" onclick="omsSetSection('incoming')">📋 Incoming Forms</button>
+        <button class="oms-stab" id="oms-stab-items" onclick="omsSetSection('items')">📦 Incoming Items</button>
+        <button class="oms-stab" id="oms-stab-shipping" onclick="omsSetSection('shipping')">🚚 Shipping</button>
+      </div>
+      <button class="btn-excel" onclick="downloadOmsExcel()">⬇ Download Excel</button>
     </div>
 
     <!-- INCOMING FORMS -->
@@ -942,6 +950,71 @@ function omsRenderShipping(){
 }
 
 omsPopulateDays();
+
+// EXCEL EXPORT
+function downloadOmsExcel(){
+  var wb = XLSX.utils.book_new();
+
+  var yr = document.getElementById('oms-year').value;
+  var mo = document.getElementById('oms-month').value;
+  var dy = document.getElementById('oms-day').value;
+  var MO_NAME = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var periodLabel = (yr||'All') + (mo ? '-'+MO_NAME[parseInt(mo,10)-1] : '') + (dy ? '-'+dy.padStart(2,'0') : '');
+
+  // ── Sheet 1: Incoming Forms ──
+  var incRows = Object.values(allData.incoming)
+    .filter(function(r){ return omsDateMatch(r.date); })
+    .sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  var incData = [['Date','Incoming #','Work Order #','Customer','Equipment','Category','Job Type','Manufacturer','Model #','Serial #','HP','KW','RPM','Frame','Delivered By','Received By','Notes']];
+  incRows.forEach(function(r){
+    incData.push([fmtDate(r.date),r.formNum||'',r.wo||'',r.customer||'',r.equipment||'',r.area||'',r.whatToDo||'',r.manufacturer||'',r.modelNumber||'',r.serialNumber||'',r.hp||'',r.kw||'',r.rpm||'',r.frame||'',r.deliveryBy||'',r.receivedBy||'',r.notes||'']);
+  });
+  var wsInc = XLSX.utils.aoa_to_sheet(incData);
+  wsInc['!cols'] = [8,10,12,18,20,14,14,16,13,13,5,5,6,7,14,14,24].map(function(w){ return {wch:w}; });
+  XLSX.utils.book_append_sheet(wb, wsInc, 'Incoming Forms');
+
+  // ── Sheet 2: WIP Items ──
+  var wipData = [['Date','Receipt #','Material / Description','Qty','Work Order #','Sales Order #','Area','Customer','Bin']];
+  // ── Sheet 3: Sales Order Items ──
+  var soData  = [['Date','Receipt #','Material / Description','Qty','Work Order #','Sales Order #','Area','Customer','Bin']];
+  // ── Sheet 4: Other Items ──
+  var otherData = [['Date','Receipt #','Material / Description','Qty','Work Order #','Sales Order #','Area','Customer','Bin']];
+
+  Object.values(allData.items).forEach(function(doc){
+    if(!omsDateMatch(doc.date)) return;
+    (doc.lineItems||[]).forEach(function(li){
+      var bin = li.binLocation==='Stock' ? 'Stock'+(li.binStock?' — '+li.binStock:'') : (li.binLocation||'');
+      var row = [fmtDate(doc.date),doc.docNum||'',li.material||'',li.pc||'',li.workOrderNum||'',li.salesOrderNum||'',li.area||'',li.customer||'',bin];
+      if(li.binLocation==='WIP') wipData.push(row);
+      else if(li.applicationType==='Sales Order') soData.push(row);
+      else otherData.push(row);
+    });
+  });
+
+  var itemCols = [8,10,26,5,12,12,14,18,14].map(function(w){ return {wch:w}; });
+  var wsWip = XLSX.utils.aoa_to_sheet(wipData); wsWip['!cols'] = itemCols;
+  var wsSo  = XLSX.utils.aoa_to_sheet(soData);  wsSo['!cols']  = itemCols;
+  var wsOther = XLSX.utils.aoa_to_sheet(otherData); wsOther['!cols'] = itemCols;
+  XLSX.utils.book_append_sheet(wb, wsWip,   'WIP Items');
+  XLSX.utils.book_append_sheet(wb, wsSo,    'Sales Order Items');
+  XLSX.utils.book_append_sheet(wb, wsOther, 'Other Items');
+
+  // ── Sheet 5: Shipping ──
+  var shpRows = Object.values(allData.shipping)
+    .filter(function(r){ return omsDateMatch(r.date); })
+    .sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  var shpData = [['Date','Customer','City','Province','Country','Work Orders','Sales Orders','Transfer #s','Carrier','Tracking #','Freight Type','Pieces','Weight (lb)','Material','Outgoing #','Notes']];
+  shpRows.forEach(function(r){
+    var carrierName = r.carrier==='Other' ? (r.carrierOther||'Other') : (r.carrier||'');
+    var trackNum = formatTrackNum(r.trackingNum);
+    shpData.push([fmtDate(r.date),r.customer||'',r.city||'',r.province||'',r.country||'',(r.workOrders||[]).join(', '),(r.salesOrders||[]).join(', '),(r.transferNums||[]).join(', '),carrierName,trackNum,r.freightType||'',r.pc||'',r.lb||'',r.material||'',r.outgoing||'',r.notes||'']);
+  });
+  var wsShp = XLSX.utils.aoa_to_sheet(shpData);
+  wsShp['!cols'] = [8,18,14,10,10,16,14,12,14,18,12,7,10,20,10,24].map(function(w){ return {wch:w}; });
+  XLSX.utils.book_append_sheet(wb, wsShp, 'Shipping');
+
+  XLSX.writeFile(wb, 'OMS-'+periodLabel+'.xlsx');
+}
 </script>
 </body>
 </html>
