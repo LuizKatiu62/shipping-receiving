@@ -2954,8 +2954,7 @@ function getTrackingUrl(carrier, carrierOther, trackingNum){
   if(cl.includes('fedex'))           return 'https://www.fedex.com/apps/fedextrack/?action=track&trackingnumber='+t;
   if(cl.includes('ups'))             return 'https://www.ups.com/track?tracknum='+t;
   if(cl.includes('day') && cl.includes('ross')) return 'https://dayross.com/track-shipments';
-  if(cl.includes('midland') && cl.includes('courier')) return 'https://cssportal.midlandcourier.com/CSSPortal/static/application.html#/track/trackShipment';
-  if(cl.includes('midland'))         return 'https://legacy.midlandtransport.com/';
+  if(cl.includes('midland')) return 'https://cssportal.midlandcourier.com/CSSPortal/static/application.html#/track/trackShipment';
   return 'https://www.google.com/search?q=track+shipment+'+t;
 }
 
