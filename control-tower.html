@@ -517,6 +517,7 @@ function renderResults(result, raw){
     h += infoRow('Delivered by', inc.deliveryBy);
     h += infoRow('Received by', inc.receivedBy);
     if(inc.notes) h += infoRow('Notes', inc.notes);
+    if(inc.photosLink) h += '<div class="btn-row"><a class="ct-btn ct-btn-gray" href="'+escHtml(inc.photosLink)+'" target="_blank">📷 Incoming Photos</a></div>';
     h += '</div>';
     // Location card
     if(result.type!=='so'){
@@ -574,7 +575,9 @@ function renderResults(result, raw){
     h += infoRow('Outgoing #', proc.outgoing);
     h += infoRow('Material', proc.material);
     if(proc.notes) h += infoRow('Notes', proc.notes);
-    h += '</div></div></div>';
+    h += '</div></div>';
+    if(proc.photosLink) h += '<div class="btn-row"><a class="ct-btn ct-btn-gray" href="'+escHtml(proc.photosLink)+'" target="_blank">📷 View Photos</a></div>';
+    h += '</div>';
   }
 
   // ── PACKING & HOLD ──
@@ -632,7 +635,7 @@ function renderResults(result, raw){
       if(trackNum || s.photosLink){
         h += '<div class="btn-row">';
         if(trackNum && trackUrl) h += '<a class="ct-btn ct-btn-blue" href="'+escHtml(trackUrl)+'" target="_blank">🔍 Track — '+escHtml(carrierName)+'</a>';
-        if(s.photosLink) h += '<a class="ct-btn ct-btn-gray" href="'+escHtml(s.photosLink)+'" target="_blank">📷 View Photos</a>';
+        if(s.photosLink) h += '<a class="ct-btn ct-btn-gray" href="'+escHtml(s.photosLink)+'" target="_blank">📷 Shipping Photos</a>';
         h += '</div>';
       }
       h += '</div>';
