@@ -372,8 +372,12 @@ function getTrackingUrl(carrier, carrierOther, trackingNum){
   if(cl.includes('ups'))             return 'https://www.ups.com/track?tracknum='+t;
   if(cl.includes('day') && cl.includes('ross')) return 'https://dayross.com/track-shipments';
   if(cl.includes('midland') && cl.includes('courier')) return 'https://cssportal.midlandcourier.com/CSSPortal/static/application.html#/track/trackShipment';
-  if(cl.includes('midland'))         return 'https://www.midlandtransport.com/MultiTrack.aspx';
+  if(cl.includes('midland'))         return 'https://legacy.midlandtransport.com/';
   return 'https://www.google.com/search?q=track+shipment+'+t;
+}
+function doTrack(url, trackNum){
+  if(trackNum && navigator.clipboard) navigator.clipboard.writeText(trackNum).catch(function(){});
+  window.open(url, '_blank');
 }
 function infoRow(lbl, val){
   if(!val && val!==0) return '';
@@ -634,7 +638,7 @@ function renderResults(result, raw){
       // Action buttons — show Track whenever tracking# exists, Photos whenever link exists
       if(trackNum || s.photosLink){
         h += '<div class="btn-row">';
-        if(trackNum && trackUrl) h += '<a class="ct-btn ct-btn-blue" href="'+escHtml(trackUrl)+'" target="_blank">🔍 Track — '+escHtml(carrierName)+'</a>';
+        if(trackNum && trackUrl) h += '<button class="ct-btn ct-btn-blue" onclick="doTrack(\''+trackUrl.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\''+trackNum.replace(/'/g,"\\'")+'\')">🔍 Track — '+escHtml(carrierName)+'</button>';
         if(s.photosLink) h += '<a class="ct-btn ct-btn-gray" href="'+escHtml(s.photosLink)+'" target="_blank">📷 Shipping Photos</a>';
         h += '</div>';
       }
