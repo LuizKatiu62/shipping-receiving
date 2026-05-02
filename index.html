@@ -1687,6 +1687,7 @@ var currentUser = null;
 var isAdmin = false;
 var ADMIN_EMAILS = ['dasilva.luiz@sourceatlantic.ca', 'lcdsilva@hotmail.com'];
 var PAYMENTS_EMAILS = ['gardner.christine@sourceatlantic.ca','renouf.holly@sourceatlantic.ca','koncovy.josef@sourceatlantic.ca'];
+var ALLOWED_EMAILS = ['dasilva.luiz.c@outlook.com'];
 var SR_PATH = 'shipping_receiving';
 var incomingData = {};
 var incomingFiltered = [];
@@ -1906,7 +1907,8 @@ function doRegister(){
   if(pass !== pass2){ authSetError('auth-reg-err','Passwords do not match.'); return; }
   if(pass.length < 6){ authSetError('auth-reg-err','Password must be at least 6 characters.'); return; }
   var isAdmin = ADMIN_EMAILS.map(function(e){return e.toLowerCase();}).indexOf(email.toLowerCase()) !== -1;
-  if(!isAdmin && !email.toLowerCase().endsWith('@sourceatlantic.ca')){
+  var isAllowed = ALLOWED_EMAILS.map(function(e){return e.toLowerCase();}).indexOf(email.toLowerCase()) !== -1;
+  if(!isAdmin && !isAllowed && !email.toLowerCase().endsWith('@sourceatlantic.ca')){
     authSetError('auth-reg-err','Registration is restricted to @sourceatlantic.ca email addresses.');
     return;
   }
