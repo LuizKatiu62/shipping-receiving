@@ -522,7 +522,6 @@ function renderResults(result, raw){
     h += infoRow('Delivered by', inc.deliveryBy);
     h += infoRow('Received by', inc.receivedBy);
     if(inc.notes) h += infoRow('Notes', inc.notes);
-    if(inc.photosLink) h += '<div class="btn-row"><a class="ct-btn ct-btn-gray" href="'+escHtml(inc.photosLink)+'" target="_blank">📷 Incoming Photos</a></div>';
     h += '</div>';
     // Location card
     if(result.type!=='so'){
@@ -532,6 +531,21 @@ function renderResults(result, raw){
       h += '</div>';
     }
     h += '</div>';  // close grid
+
+    // ── PHOTOS CARD ──
+    var shpPhotosLink = '';
+    shpList.forEach(function(s){ if(!shpPhotosLink && s.photosLink) shpPhotosLink = s.photosLink; });
+    var noPhotoHtml = '<span style="font-size:.8rem;color:var(--light);font-style:italic">No Pictures taken</span>';
+    h += '<div class="ct-card">';
+    h += '<div class="ct-card-title">📷 Photos</div>';
+    h += '<div style="display:flex;gap:24px;flex-wrap:wrap">';
+    h += '<div style="flex:1;min-width:180px"><div style="font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Incoming</div>';
+    h += inc.photosLink ? '<a class="ct-btn ct-btn-gray" href="'+escHtml(inc.photosLink)+'" target="_blank">📷 View Incoming Photos</a>' : noPhotoHtml;
+    h += '</div>';
+    h += '<div style="flex:1;min-width:180px"><div style="font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Shipping</div>';
+    h += shpPhotosLink ? '<a class="ct-btn ct-btn-gray" href="'+escHtml(shpPhotosLink)+'" target="_blank">📷 View Shipping Photos</a>' : noPhotoHtml;
+    h += '</div>';
+    h += '</div></div>';
   }
 
   // ── COMPONENTS / ITEMS ──
@@ -581,7 +595,6 @@ function renderResults(result, raw){
     h += infoRow('Material', proc.material);
     if(proc.notes) h += infoRow('Notes', proc.notes);
     h += '</div></div>';
-    if(proc.photosLink) h += '<div class="btn-row"><a class="ct-btn ct-btn-gray" href="'+escHtml(proc.photosLink)+'" target="_blank">📷 View Photos</a></div>';
     h += '</div>';
   }
 
@@ -636,11 +649,10 @@ function renderResults(result, raw){
       h += '</div>';
       h += '</div>';
 
-      // Action buttons — show Track whenever tracking# exists, Photos whenever link exists
-      if(trackNum || s.photosLink){
+      // Action buttons — Track only (photos are in the dedicated Photos card)
+      if(trackNum && trackUrl){
         h += '<div class="btn-row">';
-        if(trackNum && trackUrl) h += '<button class="ct-btn ct-btn-blue" onclick="doTrack(\''+trackUrl.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\''+trackNum.replace(/'/g,"\\'")+'\')">🔍 Track — '+escHtml(carrierName)+'</button>';
-        if(s.photosLink) h += '<a class="ct-btn ct-btn-gray" href="'+escHtml(s.photosLink)+'" target="_blank">📷 Shipping Photos</a>';
+        h += '<button class="ct-btn ct-btn-blue" onclick="doTrack(\''+trackUrl.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\''+trackNum.replace(/'/g,"\\'")+'\')">🔍 Track — '+escHtml(carrierName)+'</button>';
         h += '</div>';
       }
       h += '</div>';
