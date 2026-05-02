@@ -378,8 +378,17 @@ function dlt(p){
   return '<td class="dlt '+(p>0?'up':p<0?'dn':'eq')+'">'+(p>0?'▲ ':'▼ ')+Math.abs(p)+'%</td>';
 }
 function dc(id){ if(CH[id]){ CH[id].destroy(); delete CH[id]; } }
+function destKey(r){
+  var prov = (r.province||'').trim();
+  var ctry = (r.country||'').trim();
+  var ctryUp = ctry.toUpperCase();
+  if(!prov && !ctry) return 'Unknown';
+  if(!prov) return ctry;
+  if(!ctry || ctryUp==='CANADA' || ctryUp==='CA') return prov;
+  return prov + ' · ' + ctry;
+}
 
-var activeFilters = {month:null, carrier:null, customer:null, dest:null, area:null};
+var activeFilters = {month:null, carrier:null, customer:null, dest:null, area:null, province:null};
 
 function toggleFilter(key, val){
   activeFilters[key] = (activeFilters[key] === val) ? null : val;
@@ -402,6 +411,7 @@ function updateChips(){
   if(activeFilters.customer)          h += mkChip('👤 '+activeFilters.customer,"clearFilter('customer')");
   if(activeFilters.dest)              h += mkChip('📦 '+activeFilters.dest,"clearFilter('dest')");
   if(activeFilters.area)              h += mkChip('🏷️ '+activeFilters.area,"clearFilter('area')");
+  if(activeFilters.province)          h += mkChip('📍 '+activeFilters.province,"clearFilter('province')");
   el.innerHTML = h;
 }
 function mkChip(lbl, fn){
@@ -444,6 +454,7 @@ function render(){
   }
   function inAreaInc(r){ return !activeFilters.area || (r.area||'') === activeFilters.area; }
   function inAreaShp(r){ return !activeFilters.area || (r.workOrders||[]).some(function(wo){ return areaWOs[wo.trim().toUpperCase()]; }); }
+  function inProvShp(r){ return !activeFilters.province || destKey(r) === activeFilters.province; }
   function inAreaItm(r){ return !activeFilters.area || (r.lineItems||[]).some(function(li){ return areaWOs[(li.workOrderNum||'').trim().toUpperCase()]; }); }
   function inAreaMo(r, mo){ return activeFilters.month === null || parseInt((r.date||'').slice(5,7),10)-1 === mo; }
 
@@ -497,6 +508,7 @@ function render(){
       if(yearFilter){ if(!inRange(r.date, yearFilter, from, to)) return; }
       if(activeFilters.customer && normName(r.customer||'')!==activeFilters.customer) return;
       if(!inAreaShp(r)) return;
+      if(!inProvShp(r)) return;
       var raw = r.carrier||''; if(!raw) return;
       var name = normName(raw==='Other' ? (r.carrierOther||'Other') : raw);
       cc[name] = (cc[name]||0)+1;
@@ -519,6 +531,7 @@ function render(){
     if(!inRange(r.date, cYr, effFrom, effTo)) return;
     if(activeFilters.carrier && normName(r.carrier||'')!==activeFilters.carrier && normName(r.carrierOther||'')!==activeFilters.carrier) return;
     if(!inAreaShp(r)) return;
+    if(!inProvShp(r)) return;
     if(r.customer){ var cname=normName(r.customer); cc[cname]=(cc[cname]||0)+1; }
   });
   var top = Object.entries(cc).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
@@ -658,6 +671,24 @@ function render(){
       '</div>'+
     '</div>'+
   '</div>';
+
+  /* Province / State chart */
+  var provCount = {};
+  Object.values(allData.shipping).forEach(function(r){
+    if(!inRange(r.date, cYr, effFrom, effTo)) return;
+    if(activeFilters.customer && normName(r.customer||'')!==activeFilters.customer) return;
+    if(activeFilters.carrier && normName(r.carrier||'')!==activeFilters.carrier && normName(r.carrierOther||'')!==activeFilters.carrier) return;
+    if(!inAreaShp(r)) return;
+    var key = destKey(r);
+    provCount[key] = (provCount[key]||0)+1;
+  });
+  var topProvs = Object.entries(provCount).sort(function(a,b){return b[1]-a[1];});
+
+  h += '<div class="r1"><div class="card">'+
+    '<div class="ch"><div><div class="ct">📍 Shipments by Province / State / Country</div>'+
+    '<div class="cs">'+cYr+' '+periodLbl+'&nbsp;&nbsp;<span style="color:var(--blue3);font-style:italic">· Click to filter</span></div></div></div>'+
+    '<div class="cb"><div class="cw" style="height:'+Math.max(180, topProvs.length*30)+'px"><canvas id="c-prov"></canvas></div></div>'+
+  '</div></div>';
 
   /* WIP / Sales Order / Estoque chart */
   var destTotal = destWip.reduce(function(a,b){return a+b;},0)+destSO.reduce(function(a,b){return a+b;},0)+destStk.reduce(function(a,b){return a+b;},0);
@@ -888,6 +919,52 @@ function render(){
       }
     }
   });
+
+  // Province / State chart
+  dc('prov');
+  var provColors = ['#1e40af','#1d4ed8','#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#dbeafe'];
+  if(topProvs.length){
+    CH['prov'] = new Chart(document.getElementById('c-prov').getContext('2d'),{
+      type:'bar',
+      plugins:[ChartDataLabels],
+      data:{
+        labels: topProvs.map(function(e){ return e[0]; }),
+        datasets:[{
+          label:'Shipments',
+          data: topProvs.map(function(e){ return e[1]; }),
+          backgroundColor: topProvs.map(function(e,i){
+            var base = provColors[Math.min(i, provColors.length-1)];
+            return (activeFilters.province && e[0]!==activeFilters.province) ? 'rgba(148,163,184,.2)' : base;
+          }),
+          borderRadius:4, borderWidth:0
+        }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        layout:{padding:{right:28}},
+        onClick:function(evt,elements){ if(elements.length) toggleFilter('province', topProvs[elements[0].index][0]); },
+        onHover:function(evt,elements){ evt.native.target.style.cursor=elements.length?'pointer':'default'; },
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:function(ctx){return ' '+ctx.parsed.x+' shipments';}}},
+          datalabels:{
+            anchor:'end', align:'end',
+            font:{size:10, weight:'700'},
+            color:function(ctx){ return (activeFilters.province && topProvs[ctx.dataIndex][0]!==activeFilters.province) ? '#94a3b8' : '#1e40af'; },
+            formatter:function(v){ return v>0 ? v : ''; }
+          }
+        },
+        scales:{
+          x:{ beginAtZero:true, grid:{color:'#f0f4f8'}, ticks:{font:{size:10}, stepSize:1} },
+          y:{ grid:{display:false}, ticks:{font:{size:10.5}} }
+        }
+      }
+    });
+  } else {
+    var elProv = document.getElementById('c-prov');
+    if(elProv) elProv.parentElement.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:center;height:180px;color:#94a3b8;font-size:.8rem">No shipping data for this period</div>';
+  }
 
   updateChips();
 }
