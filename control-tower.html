@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Control Tower — Source Atlantic SR</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+:root{
+  --blue:#1e40af;--blue2:#2563eb;--blue3:#3b82f6;
+  --green:#059669;--red:#dc2626;--amber:#d97706;
+  --text:#0f172a;--muted:#64748b;--light:#94a3b8;
+  --border:#e2e8f0;--bg:#f0f4f8;--card:#fff;
+  --shadow:0 1px 3px rgba(0,0,0,.09),0 1px 2px rgba(0,0,0,.06);
+  --r:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-bottom:1px solid rgba(255,255,255,.08)}
+.hdr-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:14px 24px;gap:12px;flex-wrap:wrap}
+.hdr-title{font-size:.98rem;font-weight:700;color:#fff;line-height:1.2}
+.hdr-sub{font-size:.66rem;color:rgba(255,255,255,.4);margin-top:1px}
+.btn-nav{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8);padding:6px 13px;border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;text-decoration:none;font-family:inherit;transition:all .18s}
+.btn-nav:hover{background:rgba(255,255,255,.2);color:#fff}
+.ready-dot{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;color:rgba(255,255,255,.5)}
+.ready-dot span{width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block;box-shadow:0 0 0 2px rgba(16,185,129,.3);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* SEARCH SECTION */
+.search-wrap{max-width:1100px;margin:0 auto;padding:32px 24px 0}
+.search-card{background:var(--card);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,.1);border:1px solid var(--border);padding:28px 28px 24px}
+.search-title{font-size:1.15rem;font-weight:800;color:var(--text);margin-bottom:4px}
+.search-sub{font-size:.75rem;color:var(--muted);margin-bottom:20px}
+.type-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.type-btn{display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:.8rem;font-weight:700;color:var(--muted);transition:all .15s;font-family:inherit}
+.type-btn:hover{border-color:var(--blue3);color:var(--blue)}
+.type-btn.active{border-color:var(--blue);background:#eff6ff;color:var(--blue)}
+.type-btn .dot{width:8px;height:8px;border-radius:50%;border:2px solid currentColor;flex-shrink:0}
+.type-btn.active .dot{background:var(--blue);border-color:var(--blue)}
+.search-row{display:flex;gap:10px}
+.search-input{flex:1;padding:12px 16px;border:2px solid var(--border);border-radius:10px;font-size:.95rem;font-family:inherit;color:var(--text);outline:none;transition:border-color .15s}
+.search-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.search-btn{padding:12px 24px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.search-btn:hover{background:var(--blue2)}
+
+/* BODY */
+.body{max-width:1100px;margin:0 auto;padding:20px 24px 60px}
+
+/* NOT FOUND */
+.not-found{text-align:center;padding:60px 20px;color:var(--light)}
+.not-found-icon{font-size:3rem;margin-bottom:12px}
+.not-found-title{font-size:1rem;font-weight:700;color:var(--muted);margin-bottom:6px}
+.not-found-sub{font-size:.8rem}
+
+/* STATUS BANNER */
+.status-banner{border-radius:var(--r);padding:16px 22px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;border:1.5px solid}
+.status-banner .sb-left{display:flex;align-items:center;gap:14px}
+.status-banner .sb-icon{font-size:1.9rem;line-height:1}
+.status-banner .sb-status{font-size:.65rem;font-weight:900;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:3px}
+.status-banner .sb-title{font-size:1.05rem;font-weight:800;color:#0f172a}
+.days-badge{text-align:center;border-radius:10px;padding:10px 18px;color:#fff;min-width:90px}
+.days-badge .db-num{font-size:1.9rem;font-weight:900;line-height:1}
+.days-badge .db-lbl{font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;opacity:.88;margin-top:1px}
+
+/* CARDS */
+.ct-card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--border);padding:18px 20px;margin-bottom:16px}
+.ct-card-title{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.ct-grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.ct-grid3{display:grid;grid-template-columns:1fr 1fr 280px;gap:16px;margin-bottom:16px}
+.info-row{display:flex;gap:8px;margin-bottom:8px;font-size:.8rem;align-items:flex-start}
+.info-lbl{color:var(--light);font-weight:600;min-width:110px;flex-shrink:0;padding-top:1px}
+.info-val{color:var(--text);font-weight:600;flex:1;word-break:break-word}
+.info-val.empty{color:var(--light);font-style:italic}
+
+/* HOLD CARDS */
+.card-danger{border-color:#fca5a5;background:#fff5f5}
+.card-danger .ct-card-title{color:#dc2626;border-color:#fca5a5}
+.card-warning{border-color:#fcd34d;background:#fffbeb}
+.card-warning .ct-card-title{color:#d97706;border-color:#fcd34d}
+.card-success{border-color:#6ee7b7;background:#f0fdf4}
+.card-success .ct-card-title{color:#059669;border-color:#6ee7b7}
+.hold-days{font-size:2.2rem;font-weight:900;line-height:1}
+.hold-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:2px}
+
+/* TABLE */
+.ct-table{width:100%;border-collapse:collapse;font-size:.77rem}
+.ct-table thead tr{background:linear-gradient(180deg,#1e3a8a,#2563eb)}
+.ct-table thead th{color:rgba(255,255,255,.9);padding:8px 12px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:left;white-space:nowrap}
+.ct-table tbody tr{border-bottom:1px solid #f1f5f9;transition:background .1s}
+.ct-table tbody tr:hover{background:#f8faff}
+.ct-table td{padding:8px 12px;color:var(--text)}
+.ct-table td:first-child{font-weight:600}
+
+/* BUTTONS */
+.ct-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;border:none;font-family:inherit;text-decoration:none;transition:all .15s}
+.ct-btn-blue{background:var(--blue);color:#fff}
+.ct-btn-blue:hover{background:var(--blue2)}
+.ct-btn-gray{background:#f1f5f9;color:#334155;border:1px solid var(--border)}
+.ct-btn-gray:hover{background:#e2e8f0}
+.ct-btn-green{background:#059669;color:#fff}
+.ct-btn-green:hover{background:#047857}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+
+/* BADGE */
+.area-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.67rem;font-weight:700;background:#eff6ff;color:var(--blue)}
+.bin-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.67rem;font-weight:700}
+.bin-wip{background:#ede9fe;color:#7c3aed}
+.bin-stock{background:#dcfce7;color:#16a34a}
+.bin-nobin{background:#f1f5f9;color:#64748b}
+
+/* LOADING */
+.loading{text-align:center;padding:80px 20px;color:var(--light)}
+.ld-spinner{width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* EMPTY SEARCH */
+.empty-search{text-align:center;padding:48px 20px}
+.empty-search-icon{font-size:3rem;margin-bottom:12px;opacity:.4}
+.empty-search-text{font-size:.88rem;color:var(--muted);font-weight:600}
+
+@media(max-width:760px){
+  .ct-grid2,.ct-grid3{grid-template-columns:1fr}
+  .search-row{flex-direction:column}
+  .type-row{gap:4px}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-inner">
+    <div style="display:flex;align-items:center;gap:12px">
+      <img src="logo.png" alt="SA" style="height:34px;border-radius:5px;background:#fff;padding:2px 6px">
+      <div>
+        <div class="hdr-title">🗼 Control Tower</div>
+        <div class="hdr-sub">Source Atlantic — Full Order Visibility</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="ready-dot" id="ready-dot" style="display:none"><span></span>Live data</span>
+      <a class="btn-nav" href="stats.html" target="sa-dashboard">📊 Dashboard</a>
+      <a class="btn-nav" href="index.html">← App</a>
+    </div>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div class="search-wrap">
+  <div class="search-card">
+    <div class="search-title">🔍 Order Lookup</div>
+    <div class="search-sub">Enter a Work Order, Sales Order or Incoming # to see the complete status</div>
+    <div class="type-row">
+      <button class="type-btn active" id="btn-wo" onclick="setType('wo')">
+        <span class="dot"></span>Work Order #
+      </button>
+      <button class="type-btn" id="btn-so" onclick="setType('so')">
+        <span class="dot"></span>Sales Order #
+      </button>
+      <button class="type-btn" id="btn-inc" onclick="setType('inc')">
+        <span class="dot"></span>Incoming #
+      </button>
+    </div>
+    <div class="search-row">
+      <input class="search-input" id="search-input" type="text" placeholder="e.g. 6020183"
+        onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="search-btn" onclick="doSearch()">Search</button>
+    </div>
+  </div>
+</div>
+
+<div class="body">
+  <div id="results">
+    <div class="loading" id="loading-state">
+      <div class="ld-spinner"></div>
+      <div>Loading data…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+var firebaseConfig = {
+  apiKey:            'AIzaSyBuS3afVcx3W-zfgZfDYIutNltuEfP8Fhc',
+  authDomain:        'source-atlantic-sr.firebaseapp.com',
+  databaseURL:       'https://source-atlantic-sr-default-rtdb.firebaseio.com',
+  projectId:         'source-atlantic-sr',
+  storageBucket:     'source-atlantic-sr.firebasestorage.app',
+  messagingSenderId: '953329380095',
+  appId:             '1:953329380095:web:f7865dda88a33ff9457aca'
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
+
+// ── DATA ──
+var allData = {incoming:{}, items:{}, shipping:{}, process:{}, packing:{}};
+var loadedCount = 0;
+var TOTAL = 5;
+
+Object.keys(allData).forEach(function(key){
+  db.ref('shipping_receiving/'+key).on('value', function(snap){
+    allData[key] = snap.val() || {};
+    loadedCount++;
+    if(loadedCount >= TOTAL){
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('ready-dot').style.display = 'inline-flex';
+      showEmptyState();
+    }
+  });
+});
+
+// ── SEARCH TYPE ──
+var searchType = 'wo';
+function setType(t){
+  searchType = t;
+  ['wo','so','inc'].forEach(function(k){
+    document.getElementById('btn-'+k).classList.toggle('active', k===t);
+  });
+  var ph = t==='wo' ? 'e.g. 6020183' : t==='so' ? 'e.g. 12345' : 'e.g. EPS-001';
+  document.getElementById('search-input').placeholder = ph;
+  document.getElementById('search-input').focus();
+}
+
+function showEmptyState(){
+  document.getElementById('results').innerHTML =
+    '<div class="empty-search"><div class="empty-search-icon">🗼</div><div class="empty-search-text">Enter a Work Order, Sales Order or Incoming # above to begin</div></div>';
+}
+
+// ── UTILS ──
+function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(d){ if(!d) return '—'; var p=d.split('-'); return p.length===3?p[1]+'/'+p[2]+'/'+p[0]:d; }
+function calcDays(start, end){
+  if(!start) return null;
+  var e = end ? new Date(end+'T00:00:00') : new Date();
+  var s = new Date(start+'T00:00:00');
+  return Math.max(0, Math.floor((e-s)/86400000));
+}
+function norm(s){ return (s||'').trim().toUpperCase(); }
+function getTrackingUrl(carrier, other, num){
+  if(!num) return '';
+  var c = (carrier+' '+other).toLowerCase();
+  var t = encodeURIComponent(num.trim());
+  if(c.includes('fedex'))       return 'https://www.fedex.com/fedextrack/?trknbr='+t;
+  if(c.includes('ups'))         return 'https://www.ups.com/track?tracknum='+t;
+  if(c.includes('purolator'))   return 'https://www.purolator.com/en/ship-track/tracking-summary.page?pin='+t;
+  if(c.includes('canada post')||c.includes('canadapost')) return 'https://www.canadapost-postescanada.ca/track-reperage/en#'+t;
+  return '';
+}
+function infoRow(lbl, val){
+  if(!val && val!==0) return '';
+  return '<div class="info-row"><span class="info-lbl">'+escHtml(lbl)+'</span><span class="info-val">'+escHtml(String(val))+'</span></div>';
+}
+function infoRowRaw(lbl, valHtml){
+  return '<div class="info-row"><span class="info-lbl">'+escHtml(lbl)+'</span><span class="info-val">'+valHtml+'</span></div>';
+}
+
+// ── SEARCH ──
+function doSearch(){
+  var raw = (document.getElementById('search-input').value||'').trim();
+  if(!raw){ return; }
+  var q = norm(raw);
+
+  var result;
+  if(searchType==='wo')  result = searchByWO(q);
+  else if(searchType==='so') result = searchBySO(q);
+  else result = searchByIncoming(q);
+
+  renderResults(result, raw);
+}
+
+function searchByWO(q){
+  var incoming = Object.values(allData.incoming).filter(function(r){ return norm(r.wo)===q; });
+  var components = [];
+  Object.values(allData.items).forEach(function(doc){
+    (doc.lineItems||[]).forEach(function(li){
+      if(norm(li.workOrderNum)===q) components.push({material:li.material||'', qty:li.pc||'', date:doc.date||'', binLocation:li.binLocation||'', binStock:li.binStock||'', area:li.area||'', customer:li.customer||''});
+    });
+  });
+  components.sort(function(a,b){ return a.date.localeCompare(b.date); });
+  var process  = Object.values(allData.process).filter(function(r){ return norm(r.wo)===q; });
+  var shipping = Object.values(allData.shipping).filter(function(r){ return (r.workOrders||[]).some(function(w){ return norm(w)===q; }); });
+  var packing  = Object.values(allData.packing).filter(function(r){ return norm(r.orderNum)===q || norm(r.orderNum).includes(q); });
+  return {type:'wo', q:q, incoming:incoming, components:components, process:process, shipping:shipping, packing:packing};
+}
+
+function searchBySO(q){
+  var soItems = [];
+  Object.values(allData.items).forEach(function(doc){
+    (doc.lineItems||[]).forEach(function(li){
+      if(norm(li.salesOrderNum)===q) soItems.push({material:li.material||'', qty:li.pc||'', date:doc.date||'', binLocation:li.binLocation||'', binStock:li.binStock||'', customer:li.customer||'', area:li.area||''});
+    });
+  });
+  soItems.sort(function(a,b){ return a.date.localeCompare(b.date); });
+  var shipping = Object.values(allData.shipping).filter(function(r){ return (r.salesOrders||[]).some(function(s){ return norm(s)===q; }); });
+  var packing  = Object.values(allData.packing).filter(function(r){ return norm(r.orderNum)===q || norm(r.orderNum).includes(q); });
+  var process  = Object.values(allData.process).filter(function(r){ return norm(r.wo)===q; });
+  return {type:'so', q:q, incoming:[], components:soItems, process:process, shipping:shipping, packing:packing};
+}
+
+function searchByIncoming(q){
+  var inc = Object.values(allData.incoming).filter(function(r){ return norm(r.formNum)===q; });
+  if(inc.length && inc[0].wo){
+    var r = searchByWO(norm(inc[0].wo));
+    r.type = 'inc'; r.q = q;
+    return r;
+  }
+  return {type:'inc', q:q, incoming:inc, components:[], process:[], shipping:[], packing:[]};
+}
+
+// ── STATUS ──
+function getStatus(result){
+  if(result.shipping.length) return 'shipped';
+  if(result.process.length)  return 'on-hold';
+  if(result.packing.length)  return 'packing';
+  if(result.incoming.length || result.components.length) return 'active';
+  return 'notfound';
+}
+
+var STATUS_CFG = {
+  shipped:  {color:'#059669', bg:'#f0fdf4', border:'#6ee7b7', icon:'✅', label:'SHIPPED'},
+  'on-hold':{color:'#dc2626', bg:'#fff5f5', border:'#fca5a5', icon:'⏸', label:'SHIPPING ON HOLD'},
+  packing:  {color:'#d97706', bg:'#fffbeb', border:'#fcd34d', icon:'📦', label:'PACKING & HOLD'},
+  active:   {color:'#2563eb', bg:'#eff6ff', border:'#bfdbfe', icon:'⚙️', label:'ACTIVE — IN PROCESS'},
+  notfound: {color:'#6b7280', bg:'#f9fafb', border:'#e5e7eb', icon:'🔍', label:'NOT FOUND'}
+};
+
+// ── RENDER ──
+function renderResults(result, raw){
+  var status = getStatus(result);
+  var sc = STATUS_CFG[status];
+  var inc  = result.incoming[0] || {};
+  var shpList = result.shipping.slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); });
+  var proc = result.process[0] || {};
+  var pack = result.packing[0] || {};
+
+  var startDate = inc.date || (result.components[0]||{}).date || '';
+  var endDate   = shpList.length ? shpList[shpList.length-1].date : null;
+  var daysAtSA  = startDate ? calcDays(startDate, endDate) : null;
+
+  if(status==='notfound'){
+    document.getElementById('results').innerHTML =
+      '<div class="not-found"><div class="not-found-icon">🔍</div>'+
+      '<div class="not-found-title">No records found for "'+escHtml(raw)+'"</div>'+
+      '<div class="not-found-sub">Check the number and try again, or switch the search type above.</div></div>';
+    return;
+  }
+
+  var typeLbl = result.type==='wo' ? 'Work Order #' : result.type==='so' ? 'Sales Order #' : 'Incoming #';
+  var h = '';
+
+  // ── STATUS BANNER ──
+  h += '<div class="status-banner" style="background:'+sc.bg+';border-color:'+sc.border+'">';
+  h += '<div class="sb-left"><div class="sb-icon">'+sc.icon+'</div><div>';
+  h += '<div class="sb-status" style="color:'+sc.color+'">'+sc.label+'</div>';
+  h += '<div class="sb-title">'+typeLbl+' '+escHtml(result.q)+(inc.customer?' &nbsp;·&nbsp; '+escHtml(inc.customer):'')+'</div>';
+  h += '</div></div>';
+  if(daysAtSA!==null){
+    h += '<div class="days-badge" style="background:'+sc.color+'">';
+    h += '<div class="db-num">'+daysAtSA+'</div><div class="db-lbl">Days at SA</div></div>';
+  }
+  h += '</div>';
+
+  // ── EQUIPMENT + DETAILS (if incoming record) ──
+  if(result.incoming.length){
+    h += '<div class="ct-grid'+(result.type!=='so'?'3':'2')+'">';
+    // Equipment
+    h += '<div class="ct-card" style="margin-bottom:0">';
+    h += '<div class="ct-card-title">⚙️ Equipment</div>';
+    h += infoRow('Customer', inc.customer);
+    h += infoRow('Equipment', inc.equipment);
+    h += infoRow('Category', inc.area);
+    h += infoRow('Manufacturer', inc.manufacturer);
+    h += infoRow('Model #', inc.modelNumber);
+    h += infoRow('Serial #', inc.serialNumber);
+    h += infoRow('HP', inc.hp); h += infoRow('KW', inc.kw);
+    h += infoRow('RPM', inc.rpm); h += infoRow('Frame', inc.frame);
+    h += infoRow('Type/Size', inc.typeSize);
+    h += '</div>';
+    // Details
+    h += '<div class="ct-card" style="margin-bottom:0">';
+    h += '<div class="ct-card-title">📋 Incoming Details</div>';
+    h += infoRow('Incoming #', inc.formNum);
+    h += infoRow('Work Order #', inc.wo);
+    h += infoRow('Previous WO #', inc.prevWo);
+    h += infoRow('Date Received', fmtDate(inc.date));
+    h += infoRow('Job Type', inc.whatToDo);
+    h += infoRow('Cust. Stock #', inc.customerStockNumber);
+    h += infoRow('Delivered by', inc.deliveryBy);
+    h += infoRow('Received by', inc.receivedBy);
+    if(inc.notes) h += infoRow('Notes', inc.notes);
+    h += '</div>';
+    // Location card
+    if(result.type!=='so'){
+      h += '<div class="ct-card" style="margin-bottom:0">';
+      h += '<div class="ct-card-title">📍 Location</div>';
+      h += infoRow('Location', inc.designatedLocation);
+      h += '</div>';
+    }
+    h += '</div>';  // close grid
+  }
+
+  // ── COMPONENTS / ITEMS ──
+  if(result.components.length){
+    var compTitle = result.type==='so' ? '📦 Items — Sales Order' : '📦 Components Received';
+    h += '<div class="ct-card">';
+    h += '<div class="ct-card-title">'+compTitle+' ('+result.components.length+')</div>';
+    h += '<table class="ct-table"><thead><tr>';
+    h += '<th>Material / Description</th><th>Qty</th><th>Date Received</th>';
+    if(result.type==='so') h += '<th>Bin Location</th><th>Customer</th>';
+    else h += '<th>Location</th>';
+    h += '</tr></thead><tbody>';
+    result.components.forEach(function(c){
+      var binHtml;
+      if(c.binLocation==='WIP'){
+        binHtml = '<span class="bin-badge bin-wip">WIP</span>';
+      } else if(c.binLocation==='Stock'){
+        binHtml = '<span class="bin-badge bin-stock">Stock'+(c.binStock?' — '+escHtml(c.binStock):'')+'</span>';
+      } else if(c.binLocation){
+        binHtml = '<span class="bin-badge bin-nobin">'+escHtml(c.binLocation)+'</span>';
+      } else {
+        binHtml = '—';
+      }
+      h += '<tr><td>'+escHtml(c.material||'—')+'</td><td>'+escHtml(c.qty||'—')+'</td><td>'+fmtDate(c.date)+'</td>';
+      if(result.type==='so') h += '<td>'+binHtml+'</td><td>'+escHtml(c.customer||'—')+'</td>';
+      else h += '<td>'+binHtml+'</td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table></div>';
+  }
+
+  // ── SHIPPING ON HOLD ──
+  if(result.process.length){
+    var holdDays = calcDays(proc.receivedDate);
+    h += '<div class="ct-card card-danger">';
+    h += '<div class="ct-card-title">⏸ Shipping On Hold</div>';
+    h += '<div style="display:flex;align-items:flex-start;gap:28px;flex-wrap:wrap">';
+    if(holdDays!==null){
+      h += '<div style="text-align:center;flex-shrink:0"><div class="hold-days" style="color:#dc2626">'+holdDays+'</div><div class="hold-lbl">Days on Hold</div></div>';
+    }
+    h += '<div style="flex:1">';
+    h += infoRow('Date Received in Hold', fmtDate(proc.receivedDate));
+    h += infoRow('Work Order #', proc.wo);
+    h += infoRow('Customer', proc.customer);
+    h += infoRow('Customer PO #', proc.po);
+    h += infoRow('Outgoing #', proc.outgoing);
+    h += infoRow('Material', proc.material);
+    if(proc.notes) h += infoRow('Notes', proc.notes);
+    h += '</div></div></div>';
+  }
+
+  // ── PACKING & HOLD ──
+  if(result.packing.length){
+    var packDays = calcDays(pack.pickDate);
+    h += '<div class="ct-card card-warning">';
+    h += '<div class="ct-card-title">📦 Packing & Hold</div>';
+    h += '<div style="display:flex;align-items:flex-start;gap:28px;flex-wrap:wrap">';
+    if(packDays!==null){
+      h += '<div style="text-align:center;flex-shrink:0"><div class="hold-days" style="color:#d97706">'+packDays+'</div><div class="hold-lbl">Days on Hold</div></div>';
+    }
+    h += '<div style="flex:1">';
+    h += infoRow('Order #', pack.orderNum);
+    h += infoRow('Customer', pack.customer);
+    h += infoRow('Pick Date', fmtDate(pack.pickDate));
+    h += '</div></div></div>';
+  }
+
+  // ── SHIPPING RECORDS ──
+  if(shpList.length){
+    shpList.forEach(function(s){
+      var carrierName = s.carrier==='Other' ? (s.carrierOther||'Other') : (s.carrier||'—');
+      var trackUrl = getTrackingUrl(s.carrier||'', s.carrierOther||'', s.trackingNum||'');
+      var allOrders = [].concat(
+        (s.workOrders||[]).map(function(o){ return 'WO: '+o; }),
+        (s.salesOrders||[]).map(function(o){ return 'SO: '+o; }),
+        (s.transferNums||[]).map(function(o){ return 'TR: '+o; })
+      ).filter(Boolean);
+
+      h += '<div class="ct-card card-success">';
+      h += '<div class="ct-card-title">🚚 Shipment — '+fmtDate(s.date)+'</div>';
+      h += '<div class="ct-grid2" style="margin-bottom:0">';
+      // Left column
+      h += '<div>';
+      h += infoRow('Ship Date', fmtDate(s.date));
+      h += infoRow('Customer', s.customer);
+      h += infoRow('Destination', [s.city,s.province,s.country].filter(Boolean).join(', ')||null);
+      h += infoRow('Outgoing #', s.outgoing);
+      h += infoRow('Orders', allOrders.join('  ·  ')||null);
+      h += infoRow('Notes', s.notes);
+      h += '</div>';
+      // Right column
+      h += '<div>';
+      h += infoRow('Carrier', carrierName);
+      h += infoRow('Tracking #', s.trackingNum);
+      h += infoRow('Freight Type', s.freightType);
+      h += infoRow('Pieces', s.pc);
+      h += infoRow('Weight', s.lb ? s.lb+' lb' : null);
+      h += infoRow('Material', s.material);
+      h += '</div>';
+      h += '</div>';
+
+      // Action buttons
+      if(trackUrl || s.photosLink){
+        h += '<div class="btn-row">';
+        if(trackUrl) h += '<button class="ct-btn ct-btn-blue" onclick="window.open(\''+trackUrl.replace(/'/g,"\\'")+'\'  ,\'_blank\')">🔍 Track Shipment — '+escHtml(carrierName)+'</button>';
+        if(s.photosLink) h += '<a class="ct-btn ct-btn-gray" href="'+escHtml(s.photosLink)+'" target="_blank">📷 View Photos</a>';
+        h += '</div>';
+      }
+      h += '</div>';
+    });
+  }
+
+  // Multiple incoming records
+  if(result.incoming.length > 1){
+    h += '<div class="ct-card">';
+    h += '<div class="ct-card-title">📋 Additional Incoming Records ('+result.incoming.length+')</div>';
+    h += '<table class="ct-table"><thead><tr><th>Incoming #</th><th>Date</th><th>Equipment</th><th>Job Type</th></tr></thead><tbody>';
+    result.incoming.forEach(function(r){
+      h += '<tr><td>'+escHtml(r.formNum||'—')+'</td><td>'+fmtDate(r.date)+'</td><td>'+escHtml(r.equipment||'—')+'</td><td>'+escHtml(r.whatToDo||'—')+'</td></tr>';
+    });
+    h += '</tbody></table></div>';
+  }
+
+  document.getElementById('results').innerHTML = h;
+}
+</script>
+</body>
+</html>

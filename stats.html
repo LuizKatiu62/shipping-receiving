@@ -165,6 +165,7 @@ tbody tr.row-click:hover{background:#f0f7ff}
     <div style="display:flex;align-items:center;gap:12px">
       <span class="hdr-date" id="hdr-date"></span>
       <a class="btn-back" href="map.html" target="sa-map">🗺️ Map</a>
+      <a class="btn-back" href="control-tower.html" target="sa-control">🗼 Control Tower</a>
       <a class="btn-back" href="index.html">← Back to App</a>
     </div>
   </div>
@@ -275,9 +276,10 @@ function computeTurnaround(cYr, moFrom, moTo, inRangeFn){
     });
 }
 
-function byMonth(data, yr){
+function byMonth(data, yr, filterFn){
   var c = new Array(12).fill(0);
   Object.values(data).forEach(function(r){
+    if(filterFn && !filterFn(r)) return;
     var d = r.date||''; if(!d.startsWith(yr)) return;
     var m = parseInt(d.slice(5,7),10)-1; if(m>=0&&m<12) c[m]++;
   }); return c;
@@ -349,14 +351,28 @@ function render(){
     return m>=from && m<=to;
   }
 
+  // ── AREA CROSS-FILTER: build WO set for selected area ──
+  var areaWOs = {};
+  if(activeFilters.area){
+    Object.values(allData.incoming).forEach(function(r){
+      if((r.area||'') === activeFilters.area && r.wo)
+        areaWOs[r.wo.trim().toUpperCase()] = true;
+    });
+  }
+  function inAreaInc(r){ return !activeFilters.area || (r.area||'') === activeFilters.area; }
+  function inAreaShp(r){ return !activeFilters.area || (r.workOrders||[]).some(function(wo){ return areaWOs[wo.trim().toUpperCase()]; }); }
+  function inAreaItm(r){ return !activeFilters.area || (r.lineItems||[]).some(function(li){ return areaWOs[(li.workOrderNum||'').trim().toUpperCase()]; }); }
+  function inAreaMo(r, mo){ return activeFilters.month === null || parseInt((r.date||'').slice(5,7),10)-1 === mo; }
+
   var cats = [
     {key:'incoming', lbl:'Incoming Form',  col:'#1e40af', lt:'#3b82f6', cls:'blue',   icon:'📋'},
     {key:'items',    lbl:'Incoming Items', col:'#0891b2', lt:'#22d3ee', cls:'cyan',   icon:'📦'},
     {key:'shipping', lbl:'Shipping',        col:'#7c3aed', lt:'#a78bfa', cls:'purple', icon:'🚚'}
   ];
   cats.forEach(function(c){
-    c.curr = byMonth(allData[c.key], cYr);
-    c.prev = byMonth(allData[c.key], pYr);
+    var fn = c.key==='incoming' ? inAreaInc : c.key==='shipping' ? inAreaShp : c.key==='items' ? inAreaItm : null;
+    c.curr = byMonth(allData[c.key], cYr, fn);
+    c.prev = byMonth(allData[c.key], pYr, fn);
     c.ytdC = sum(c.curr, moFrom, moToCurr);
     c.ytdP = sum(c.prev, moFrom, moTo);
     c.totC = sum(c.curr,0,11);
@@ -371,9 +387,13 @@ function render(){
   var destStk = new Array(12).fill(0);
   Object.values(allData.items).forEach(function(r){
     if(!inRange(r.date, cYr, moFrom, moToCurr)) return;
+    if(!inAreaItm(r)) return;
+    if(activeFilters.month!==null && !inAreaMo(r, activeFilters.month)) return;
     var m = parseInt((r.date||'').slice(5,7),10)-1;
     if(m<0||m>11) return;
     (r.lineItems||[]).forEach(function(li){
+      var liWO = (li.workOrderNum||'').trim().toUpperCase();
+      if(activeFilters.area && !areaWOs[liWO]) return;
       if(li.binLocation==='WIP')            destWip[m]++;
       else if(li.applicationType==='Sales Order') destSO[m]++;
       else if(li.binLocation==='Stock')     destStk[m]++;
@@ -394,6 +414,7 @@ function render(){
       if(yearFilter){ if(!inRange(r.date, yearFilter, from, to)) return; }
       if(activeFilters.month!==null){ var rm=parseInt((r.date||'').slice(5,7),10)-1; if(rm!==activeFilters.month) return; }
       if(activeFilters.customer && normName(r.customer||'')!==activeFilters.customer) return;
+      if(!inAreaShp(r)) return;
       var raw = r.carrier||''; if(!raw) return;
       var name = normName(raw==='Other' ? (r.carrierOther||'Other') : raw);
       cc[name] = (cc[name]||0)+1;
@@ -414,6 +435,7 @@ function render(){
     if(!inRange(r.date, cYr, moFrom, moToCurr)) return;
     if(activeFilters.month!==null){ var rm=parseInt((r.date||'').slice(5,7),10)-1; if(rm!==activeFilters.month) return; }
     if(activeFilters.carrier && normName(r.carrier||'')!==activeFilters.carrier && normName(r.carrierOther||'')!==activeFilters.carrier) return;
+    if(!inAreaShp(r)) return;
     if(r.customer){ var cname=normName(r.customer); cc[cname]=(cc[cname]||0)+1; }
   });
   var top = Object.entries(cc).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
