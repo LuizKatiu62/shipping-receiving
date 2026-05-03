@@ -972,7 +972,7 @@ function render(){
           if(!elements.length) return;
           var prov = topProvs[elements[0].index][0];
           toggleFilter('province', prov);
-          if(confirm('Ver todos os shipments de "'+prov+'" no Control Tower?\n\nClique OK para abrir Order & Material Status com a lista filtrada.')){
+          if(confirm('View all shipments for "'+prov+'" in Control Tower?\n\nClick OK to open Order & Material Status with the filtered list.')){
             window.open('control-tower.html?page=oms&section=shipping&province='+encodeURIComponent(prov),'sa-control');
           }
         },
