@@ -153,6 +153,25 @@ tbody tr.row-dim{opacity:.28}
 tbody tr.row-click{cursor:pointer}
 tbody tr.row-click:hover{background:#f0f7ff}
 
+/* ── PROVINCE DRILL-THROUGH MODAL ── */
+#prov-modal-overlay{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(15,23,42,.62);backdrop-filter:blur(5px)}
+#prov-modal-overlay.open{display:flex}
+#prov-modal{background:#fff;border-radius:18px;width:100%;max-width:420px;box-shadow:0 32px 72px rgba(0,0,0,.28);overflow:hidden;animation:pmIn .22s cubic-bezier(.34,1.4,.64,1)}
+@keyframes pmIn{from{opacity:0;transform:translateY(-18px) scale(.95)}to{opacity:1;transform:none}}
+.pm-header{background:linear-gradient(155deg,#0f172a 0%,#1e3a8a 60%,#2563eb 100%);padding:24px 26px 20px;display:flex;align-items:center;gap:16px}
+.pm-icon{width:48px;height:48px;background:rgba(255,255,255,.13);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.55rem;flex-shrink:0;border:1px solid rgba(255,255,255,.18)}
+.pm-htitle{color:#fff;font-size:1rem;font-weight:800;line-height:1.2}
+.pm-hsub{color:rgba(255,255,255,.48);font-size:.68rem;margin-top:3px;font-weight:500}
+.pm-body{padding:22px 26px 16px}
+.pm-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid #93c5fd;border-radius:24px;padding:6px 18px;font-size:.9rem;font-weight:800;color:#1d4ed8;margin-bottom:14px;letter-spacing:.3px}
+.pm-desc{font-size:.83rem;color:#475569;line-height:1.6}
+.pm-desc strong{color:#1e293b}
+.pm-footer{padding:14px 26px 24px;display:flex;gap:10px;justify-content:flex-end}
+.pm-cancel{padding:10px 20px;border:1.5px solid #e2e8f0;border-radius:9px;background:#fff;color:#64748b;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+.pm-cancel:hover{border-color:#94a3b8;color:#334155;background:#f8fafc}
+.pm-confirm{padding:10px 22px;background:linear-gradient(160deg,#1d4ed8,#2563eb);border:none;border-radius:9px;color:#fff;font-size:.82rem;font-weight:800;cursor:pointer;font-family:inherit;transition:all .16s;display:flex;align-items:center;gap:7px;box-shadow:0 4px 14px rgba(37,99,235,.38)}
+.pm-confirm:hover{background:linear-gradient(160deg,#1e40af,#1d4ed8);transform:translateY(-1px);box-shadow:0 6px 18px rgba(37,99,235,.46)}
+
 @media(max-width:960px){
   .kpi-row{grid-template-columns:1fr}
   .r2.g6040,.r2.g5545{grid-template-columns:1fr}
@@ -202,6 +221,31 @@ tbody tr.row-click:hover{background:#f0f7ff}
         <button class="auth-btn" onclick="doForgotPassword()">Send Reset Email</button>
         <div class="auth-footer"><button class="auth-link" onclick="authShow('login')">Back to Sign In</button></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROVINCE DRILL-THROUGH MODAL -->
+<div id="prov-modal-overlay" onclick="if(event.target===this)closeProvModal()">
+  <div id="prov-modal">
+    <div class="pm-header">
+      <div class="pm-icon">📍</div>
+      <div>
+        <div class="pm-htitle">Shipments by Destination</div>
+        <div class="pm-hsub">Open filtered list in Control Tower</div>
+      </div>
+    </div>
+    <div class="pm-body">
+      <div class="pm-badge">🚚 <span id="prov-modal-name"></span></div>
+      <div class="pm-desc">
+        Would you like to view all shipments for this destination in
+        <strong>Order &amp; Material Status</strong>?<br>
+        The list will be pre-filtered and ready for you.
+      </div>
+    </div>
+    <div class="pm-footer">
+      <button class="pm-cancel" onclick="closeProvModal()">Cancel</button>
+      <button class="pm-confirm" onclick="confirmProvModal()">View Shipments &rarr;</button>
     </div>
   </div>
 </div>
@@ -972,9 +1016,7 @@ function render(){
           if(!elements.length) return;
           var prov = topProvs[elements[0].index][0];
           toggleFilter('province', prov);
-          if(confirm('View all shipments for "'+prov+'" in Control Tower?\n\nClick OK to open Order & Material Status with the filtered list.')){
-            window.open('control-tower.html?page=oms&section=shipping&province='+encodeURIComponent(prov),'sa-control');
-          }
+          openProvModal(prov);
         },
         onHover:function(evt,elements){ evt.native.target.style.cursor=elements.length?'pointer':'default'; },
         plugins:{
@@ -1064,6 +1106,23 @@ function buildTable(cats, cYr, pYr, lastMo, live){
   }
   h += '</tbody></table></div>';
   return h;
+}
+
+// ── PROVINCE DRILL-THROUGH MODAL ──
+var _provModalTarget = null;
+function openProvModal(prov){
+  _provModalTarget = prov;
+  document.getElementById('prov-modal-name').textContent = prov;
+  document.getElementById('prov-modal-overlay').classList.add('open');
+}
+function closeProvModal(){
+  document.getElementById('prov-modal-overlay').classList.remove('open');
+  _provModalTarget = null;
+}
+function confirmProvModal(){
+  if(_provModalTarget)
+    window.open('control-tower.html?page=oms&section=shipping&province='+encodeURIComponent(_provModalTarget),'sa-control');
+  closeProvModal();
 }
 </script>
 </body>
