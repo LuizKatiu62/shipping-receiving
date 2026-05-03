@@ -968,7 +968,14 @@ function render(){
       options:{
         indexAxis:'y', responsive:true, maintainAspectRatio:false,
         layout:{padding:{right:28}},
-        onClick:function(evt,elements){ if(elements.length) toggleFilter('province', topProvs[elements[0].index][0]); },
+        onClick:function(evt,elements){
+          if(!elements.length) return;
+          var prov = topProvs[elements[0].index][0];
+          toggleFilter('province', prov);
+          if(confirm('Ver todos os shipments de "'+prov+'" no Control Tower?\n\nClique OK para abrir Order & Material Status com a lista filtrada.')){
+            window.open('control-tower.html?page=oms&section=shipping&province='+encodeURIComponent(prov),'sa-control');
+          }
+        },
         onHover:function(evt,elements){ evt.native.target.style.cursor=elements.length?'pointer':'default'; },
         plugins:{
           legend:{display:false},

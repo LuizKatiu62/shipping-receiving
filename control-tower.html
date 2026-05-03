@@ -436,6 +436,10 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 
     <!-- SHIPPING -->
     <div id="oms-sec-shipping" style="display:none">
+      <div id="oms-prov-banner" style="display:none;margin-bottom:10px;padding:9px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:.82rem;color:#1e40af">📍 Filtrando por: <strong id="oms-prov-label" style="color:#1d4ed8"></strong></span>
+        <button onclick="clearOmsProvince()" style="margin-left:auto;background:#dbeafe;border:1px solid #93c5fd;color:#1e40af;font-size:.78rem;font-weight:600;cursor:pointer;padding:3px 10px;border-radius:6px">✕ Limpar filtro</button>
+      </div>
       <div class="oms-table-wrap">
         <div class="oms-table-scroll">
           <table class="ct-table">
@@ -477,6 +481,7 @@ function startDataLoad(){
       loadedCount++;
       if(loadedCount >= TOTAL){
         document.getElementById('ready-dot').style.display = 'inline-flex';
+        if(!urlParamsApplied){ urlParamsApplied = true; applyUrlParams(); }
         if(currentPage === 'oms') omsRender();
       }
     });
@@ -790,10 +795,50 @@ function renderResults(result, raw){
 // ══════════════════════════
 // ORDER & MATERIAL STATUS
 // ══════════════════════════
-var omsSection = 'incoming';
-var omsArea    = 'all';
+var omsSection  = 'incoming';
+var omsArea     = 'all';
 var omsItemCat  = 'all';
 var omsItemArea = 'all';
+var omsProvince = null;
+var urlParamsApplied = false;
+
+var PROV_ABBR = {
+  'NEW BRUNSWICK':'NB','NOVA SCOTIA':'NS','PRINCE EDWARD ISLAND':'PE',
+  'PEI':'PE','NEWFOUNDLAND AND LABRADOR':'NL','NEWFOUNDLAND':'NL','NF':'NL',
+  'QUÉBEC':'QC','QUEBEC':'QC','ONTARIO':'ON','ALBERTA':'AB',
+  'BRITISH COLUMBIA':'BC','MANITOBA':'MB','SASKATCHEWAN':'SK',
+  'YUKON':'YT','NORTHWEST TERRITORIES':'NT','NUNAVUT':'NU'
+};
+var CA_PROVS_CT = {NB:1,NS:1,PE:1,NL:1,QC:1,ON:1,AB:1,BC:1,MB:1,SK:1,YT:1,NT:1,NU:1};
+function destKeyCT(r){
+  var raw  = (r.province||'').trim();
+  var ctry = (r.country||'').trim();
+  var ctryUp = ctry.toUpperCase();
+  if(!raw && !ctry) return 'Unknown';
+  var norm = PROV_ABBR[raw.toUpperCase()] || raw;
+  if(!norm) return ctry || 'Unknown';
+  var isCanada = !ctry || ctryUp==='CANADA' || ctryUp==='CA' || CA_PROVS_CT[norm.toUpperCase()];
+  if(isCanada) return norm.toUpperCase();
+  var isUSA = ctryUp==='USA'||ctryUp==='US'||ctryUp==='UNITED STATES';
+  return norm.toUpperCase() + ' · ' + (isUSA ? 'USA' : ctry);
+}
+
+function clearOmsProvince(){
+  omsProvince = null;
+  document.getElementById('oms-prov-banner').style.display = 'none';
+  omsRenderShipping();
+}
+
+function applyUrlParams(){
+  var params = new URLSearchParams(window.location.search);
+  if(params.get('page') === 'oms'){
+    var prov    = params.get('province');
+    var section = params.get('section');
+    if(prov){ omsProvince = prov; }
+    showPage('oms');
+    if(section) omsSetSection(section);
+  }
+}
 
 function omsDateMatch(dateISO){
   if(!dateISO) return false;
@@ -861,6 +906,8 @@ function omsReset(){
   omsPopulateDays();
   document.getElementById('oms-day-from').value = '';
   document.getElementById('oms-day-to').value   = '';
+  omsProvince = null;
+  var b = document.getElementById('oms-prov-banner'); if(b) b.style.display = 'none';
   omsItemCat = 'all';
   ['all','wip','so','other'].forEach(function(k){
     document.getElementById('oms-item-'+k).classList.toggle('active', k==='all');
@@ -968,8 +1015,16 @@ function omsRenderItems(){
 }
 
 function omsRenderShipping(){
+  var banner = document.getElementById('oms-prov-banner');
+  if(omsProvince){
+    banner.style.display = 'flex';
+    document.getElementById('oms-prov-label').textContent = omsProvince;
+  } else {
+    banner.style.display = 'none';
+  }
   var rows = Object.values(allData.shipping)
     .filter(function(r){ return omsDateMatch(r.date); })
+    .filter(function(r){ return !omsProvince || destKeyCT(r) === omsProvince; })
     .sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
   var tbody = document.getElementById('oms-shipping-body');
   if(!rows.length){ tbody.innerHTML = '<tr><td colspan="9" class="oms-empty">No shipments found for this filter</td></tr>'; return; }
