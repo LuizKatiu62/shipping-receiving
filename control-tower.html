@@ -19,7 +19,8 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;position:relative}
-body::before{content:'';position:fixed;inset:0;background:url('warehouse-interior.jpg') center 40%/cover no-repeat;opacity:.13;z-index:0;pointer-events:none}
+body::before{content:'';position:fixed;inset:0;background:url('warehouse-interior.jpg') center 40%/cover no-repeat;opacity:.13;z-index:0;pointer-events:none;transition:opacity .3s}
+body.has-results::before{opacity:0}
 body>*{position:relative;z-index:1}
 
 /* HEADER */
@@ -606,6 +607,7 @@ function clearSearch(){
   inp.focus(); showEmptyState();
 }
 function showEmptyState(){
+  document.body.classList.remove('has-results');
   document.getElementById('results').innerHTML =
     '<div class="empty-search"><div class="empty-search-icon">🗼</div><div class="empty-search-text">Enter a Work Order, Sales Order, Incoming # or Outgoing # above to begin</div></div>';
 }
@@ -690,6 +692,7 @@ var STATUS_CFG = {
 
 // RENDER OVERVIEW
 function renderResults(result, raw){
+  document.body.classList.add('has-results');
   var status = getStatus(result);
   var sc = STATUS_CFG[status];
   var inc  = result.incoming[0] || {};
