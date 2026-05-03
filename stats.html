@@ -127,13 +127,47 @@ td.dlt.up{color:#16a34a}
 td.dlt.dn{color:#dc2626}
 td.dlt.eq{color:#94a3b8}
 
+/* ── SECTION LABELS ── */
+.section-label{display:flex;align-items:center;gap:10px;margin:28px 0 14px;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted)}
+.section-label:first-child{margin-top:0}
+.section-label .sl-bar{width:4px;height:18px;border-radius:3px;flex-shrink:0}
+.section-label .sl-bar.blue{background:linear-gradient(180deg,#1e3a8a,#3b82f6)}
+.section-label .sl-bar.cyan{background:linear-gradient(180deg,#0891b2,#22d3ee)}
+.section-label .sl-bar.purple{background:linear-gradient(180deg,#7c3aed,#a78bfa)}
+.section-label .sl-bar.green{background:linear-gradient(180deg,#059669,#34d399)}
+.section-label .sl-bar.amber{background:linear-gradient(180deg,#b45309,#fbbf24)}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
 /* ── EXEC OVERVIEW ── */
 .exec-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.exec-metric{border-radius:10px;padding:16px 18px;border-left:4px solid;background:#f8fafc;transition:transform .15s}
-.exec-metric:hover{transform:translateY(-2px)}
-.exec-metric-lbl{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:6px}
-.exec-metric-num{font-size:2rem;font-weight:900;line-height:1;letter-spacing:-1px}
-.exec-metric-sub{font-size:.65rem;color:var(--light);margin-top:4px;font-weight:600}
+.exec-metric{border-radius:10px;padding:18px 20px;border-left:4px solid;background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.exec-metric:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.exec-metric-lbl{font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px}
+.exec-metric-num{font-size:2.2rem;font-weight:900;line-height:1;letter-spacing:-1.5px}
+.exec-metric-sub{font-size:.62rem;color:var(--light);margin-top:5px;font-weight:600}
+
+/* ── CARD HEADER BAND ── */
+.card-hdr{background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 60%,#1d4ed8 100%);padding:14px 20px;border-radius:var(--r) var(--r) 0 0}
+.card-hdr .ct{color:#fff;font-size:.82rem}
+.card-hdr .cs{color:rgba(255,255,255,.45);font-size:.63rem;margin-top:2px}
+
+/* ── AREA CARDS ── */
+.area-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:0}
+.area-card{border-radius:var(--r);background:var(--card);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:all .2s}
+.area-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.1);transform:translateY(-1px)}
+.area-card.sel{transform:translateY(-2px)}
+.area-card.dim{opacity:.3;pointer-events:none}
+.area-card-top{height:4px}
+.area-card-body{padding:16px 18px 14px}
+.area-card-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.area-card-name{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.area-card-num{font-size:2.4rem;font-weight:900;line-height:1;letter-spacing:-1.5px}
+.area-card-lbl{font-size:.6rem;color:var(--light);margin-top:2px;margin-bottom:12px}
+.area-card-stats{display:flex;border-top:1px solid var(--border);padding-top:10px;gap:0}
+.area-stat{flex:1;text-align:center}
+.area-stat+.area-stat{border-left:1px solid var(--border)}
+.area-stat-num{font-size:1rem;font-weight:800}
+.area-stat-lbl{font-size:.54rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--light);margin-top:2px}
 
 /* ── LOADING ── */
 .loading{text-align:center;padding:70px;color:var(--light);font-size:.85rem}
@@ -600,9 +634,13 @@ function render(){
   var top = Object.entries(cc).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
 
   /* ── BUILD HTML ── */
+  function sl(color, title){
+    return '<div class="section-label"><div class="sl-bar '+color+'"></div><span>'+title+'</span></div>';
+  }
   var h = '';
 
-  /* KPI row */
+  /* ══ SECTION 1 · PERFORMANCE SUMMARY ══ */
+  h += sl('blue','Performance Summary');
   h += '<div class="kpi-row">';
   cats.forEach(function(c){
     var p = pct(c.ytdC, c.ytdP);
@@ -620,7 +658,37 @@ function render(){
   });
   h += '</div>';
 
-  /* Area banners — Electrical / Mechanical / Air Compressor / Generator */
+  /* ══ SECTION 2 · EXECUTIVE OVERVIEW ══ */
+  var areaMonths = {};
+  AREAS.forEach(function(a){ areaMonths[a] = new Array(12).fill(0); });
+  Object.values(allData.incoming).forEach(function(r){
+    if(!inRange(r.date, cYr, moFrom, moToCurr)) return;
+    if(!inAreaInc(r)) return;
+    var a = r.area||''; if(!areaMonths[a]) return;
+    var m = parseInt((r.date||'').slice(5,7),10)-1; if(m>=0&&m<12) areaMonths[a][m]++;
+  });
+  var incFormsYTD = cats[0].ytdC;
+  var incItemsYTD = cats[1].ytdC;
+  var incYTD  = incFormsYTD + incItemsYTD;
+  var shpYTD  = cats[2].ytdC;
+  var onHold  = Object.values(allData.process).filter(function(r){ return !r.shipped; }).length;
+  var shipRate = incYTD > 0 ? Math.round(shpYTD / incYTD * 100) : 0;
+
+  h += sl('cyan','Executive Overview');
+  h += '<div class="r1"><div class="card">';
+  h += '<div class="card-hdr"><div class="ct">Shipping &amp; Receiving — Management View</div>'+
+       '<div class="cs">'+cYr+' '+periodLbl+' &nbsp;·&nbsp; Receiving by area (stacked bars) vs Outgoing shipments (line)</div></div>';
+  h += '<div class="cb">';
+  h += '<div class="exec-metrics">';
+  h += execMetric('Total Received', incYTD, '#1e40af', 'Forms ('+incFormsYTD+') + Items ('+incItemsYTD+') · '+cYr+' '+periodLbl);
+  h += execMetric('Total Shipped',  shpYTD, '#059669', 'Outgoing shipments · '+cYr+' '+periodLbl);
+  h += execMetric('On Hold',        onHold, '#dc2626', 'Records currently in Shipping On Hold');
+  h += execMetric('Ship Rate',      shipRate+'%', '#7c3aed', 'Shipped ÷ (Forms + Items) · YTD');
+  h += '</div>';
+  h += '<div class="cw" style="height:268px"><canvas id="c-exec"></canvas></div>';
+  h += '</div></div></div>';
+
+  /* ══ SECTION 3 · AREA OPERATIONS ══ */
   var woProcDateA = {};
   Object.values(allData.process).forEach(function(r){
     if(!r.wo||!r.receivedDate) return;
@@ -648,94 +716,41 @@ function render(){
     else areaStats[a].active++;
   });
   var areaIcons={'Electrical':'⚡','Mechanical':'⚙️','Air Compressor':'💨','Generator':'🔋'};
-  h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px">';
+  h += sl('amber','Area Operations — '+cYr+' '+periodLbl+' &nbsp;·&nbsp; Click a card to filter all charts');
+  h += '<div class="area-grid" style="margin-bottom:0">';
   AREAS.forEach(function(a){
     var st=areaStats[a]; var col=AREA_COLS[a];
     var asel = activeFilters.area === a;
     var adim = activeFilters.area && !asel;
-    var cardStyle = 'overflow:hidden;cursor:pointer;transition:all .2s;'+(asel?'box-shadow:0 0 0 3px '+col+',0 4px 16px rgba(0,0,0,.15);transform:translateY(-2px);':'')+(adim?'opacity:.35;':'');
-    h += '<div class="card" style="'+cardStyle+'" onclick="toggleAreaFilter(\''+a+'\')" title="Click to filter by '+a+'">'+
-      '<div style="height:3px;background:'+col+'"></div>'+
-      '<div style="padding:14px 16px 12px">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
-          '<span style="font-size:.63rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">'+a+'</span>'+
-          '<span style="font-size:1.1rem">'+areaIcons[a]+'</span>'+
+    var ringStyle = asel ? 'box-shadow:0 0 0 3px '+col+',0 6px 20px rgba(0,0,0,.14);' : '';
+    h += '<div class="area-card'+(asel?' sel':'')+(adim?' dim':'')+'" style="'+ringStyle+'" onclick="toggleAreaFilter(\''+a+'\')" title="Click to filter by '+a+'">'+
+      '<div class="area-card-top" style="background:'+col+'"></div>'+
+      '<div class="area-card-body">'+
+        '<div class="area-card-row">'+
+          '<span class="area-card-name">'+a+'</span>'+
+          '<span style="font-size:1.2rem">'+areaIcons[a]+'</span>'+
         '</div>'+
-        '<div style="font-size:2.2rem;font-weight:800;line-height:1;letter-spacing:-1px;color:'+col+'">'+st.total+'</div>'+
-        '<div style="font-size:.61rem;color:var(--light);margin-top:2px;margin-bottom:10px">Equipment received · '+cYr+' '+periodLbl+'</div>'+
-        '<div style="display:flex;gap:0;border-top:1px solid var(--border);padding-top:8px">'+
-          '<div style="flex:1;text-align:center">'+
-            '<div style="font-size:.95rem;font-weight:800;color:#059669">'+st.shipped+'</div>'+
-            '<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--light)">Shipped</div>'+
-          '</div>'+
-          '<div style="width:1px;background:var(--border)"></div>'+
-          '<div style="flex:1;text-align:center">'+
-            '<div style="font-size:.95rem;font-weight:800;color:#dc2626">'+st.onHold+'</div>'+
-            '<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--light)">On Hold</div>'+
-          '</div>'+
-          '<div style="width:1px;background:var(--border)"></div>'+
-          '<div style="flex:1;text-align:center">'+
-            '<div style="font-size:.95rem;font-weight:800;color:#d97706">'+st.active+'</div>'+
-            '<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--light)">Active</div>'+
-          '</div>'+
+        '<div class="area-card-num" style="color:'+col+'">'+st.total+'</div>'+
+        '<div class="area-card-lbl">Equipment received</div>'+
+        '<div class="area-card-stats">'+
+          '<div class="area-stat"><div class="area-stat-num" style="color:#059669">'+st.shipped+'</div><div class="area-stat-lbl">Shipped</div></div>'+
+          '<div class="area-stat"><div class="area-stat-num" style="color:#dc2626">'+st.onHold+'</div><div class="area-stat-lbl">On Hold</div></div>'+
+          '<div class="area-stat"><div class="area-stat-num" style="color:#d97706">'+st.active+'</div><div class="area-stat-lbl">Active</div></div>'+
         '</div>'+
       '</div>'+
     '</div>';
   });
   h += '</div>';
 
-  /* Executive Overview data */
-  var areaMonths = {};
-  AREAS.forEach(function(a){ areaMonths[a] = new Array(12).fill(0); });
-  Object.values(allData.incoming).forEach(function(r){
-    if(!inRange(r.date, cYr, moFrom, moToCurr)) return;
-    if(!inAreaInc(r)) return;
-    var a = r.area||''; if(!areaMonths[a]) return;
-    var m = parseInt((r.date||'').slice(5,7),10)-1; if(m>=0&&m<12) areaMonths[a][m]++;
-  });
-  var incFormsYTD = cats[0].ytdC;
-  var incItemsYTD = cats[1].ytdC;
-  var incYTD  = incFormsYTD + incItemsYTD;
-  var shpYTD  = cats[2].ytdC;
-  var onHold  = Object.values(allData.process).filter(function(r){ return !r.shipped; }).length;
-  var shipRate = incYTD > 0 ? Math.round(shpYTD / incYTD * 100) : 0;
-
-  h += '<div class="r1"><div class="card">';
-  h += '<div class="ch" style="border-bottom:1px solid var(--border);padding-bottom:14px"><div>'+
-    '<div class="ct" style="font-size:.9rem">📊 Executive Overview — Shipping &amp; Receiving Volume</div>'+
-    '<div class="cs">'+cYr+' '+periodLbl+' &nbsp;·&nbsp; Receiving by area (stacked) vs Shipping (line)</div>'+
-    '</div></div>';
-  h += '<div class="cb">';
-  h += '<div class="exec-metrics">';
-  h += execMetric('📋 Received YTD', incYTD, '#1e40af', 'Forms ('+incFormsYTD+') + Items ('+incItemsYTD+') · '+cYr+' '+periodLbl);
-  h += execMetric('🚚 Shipped YTD',  shpYTD, '#059669', 'Outgoing shipments · '+cYr+' '+periodLbl);
-  h += execMetric('⏸ On Hold',      onHold,  '#dc2626', 'Records in Shipping On Hold');
-  h += execMetric('📈 Ship Rate',    shipRate+'%', '#7c3aed', 'Shipped ÷ (Forms + Items) YTD');
-  h += '</div>';
-  h += '<div class="cw" style="height:260px"><canvas id="c-exec"></canvas></div>';
-  h += '</div></div></div>';
-
-  /* Trend line (full width) */
+  /* ══ SECTION 4 · VOLUME TRENDS ══ */
+  h += sl('blue','Volume Trends');
   h += '<div class="r1"><div class="card">'+
-    '<div class="ch"><div><div class="ct">Monthly Volume Trend</div><div class="cs">Solid — '+cYr+' &nbsp;|&nbsp; Dashed — '+pYr+'&nbsp;&nbsp;<span style="color:var(--blue3);font-style:italic">· Click a month to filter</span></div></div></div>'+
-    '<div class="cb"><div class="cw" style="height:230px"><canvas id="c-trend"></canvas></div></div>'+
+    '<div class="ch"><div><div class="ct">Monthly Volume — All Categories</div>'+
+    '<div class="cs">Solid lines — '+cYr+' &nbsp;|&nbsp; Dashed — '+pYr+'&nbsp;&nbsp;<span style="color:var(--blue3);font-style:italic">· Click a data point to filter by month</span></div></div></div>'+
+    '<div class="cb"><div class="cw" style="height:240px"><canvas id="c-trend"></canvas></div></div>'+
   '</div></div>';
 
-  /* Top customers + Freight */
-  h += '<div class="r2 g5545">'+
-    '<div class="card">'+
-      '<div class="ch"><div><div class="ct">Top Customers — Shipping</div><div class="cs">By number of outgoing shipments &nbsp;·&nbsp; '+cYr+' '+periodLbl+'&nbsp;&nbsp;<span style="color:var(--blue3);font-style:italic">· Click to filter</span></div></div></div>'+
-      '<div class="cb"><div class="cw" style="height:'+Math.max(180, top.length*34)+'px"><canvas id="c-cust"></canvas></div></div>'+
-    '</div>'+
-    '<div class="card">'+
-      '<div class="ch"><div><div class="ct">Carrier</div><div class="cs">By number of shipments &nbsp;·&nbsp; '+carrierLabel+'&nbsp;&nbsp;<span style="color:var(--blue3);font-style:italic">· Click to filter</span></div></div></div>'+
-      '<div class="cb">'+
-        '<div class="cw" style="height:'+(Math.max(160, topCarriers.length*34))+'px"><canvas id="c-fr"></canvas></div>'+
-      '</div>'+
-    '</div>'+
-  '</div>';
-
-  /* Province / State chart */
+  /* ══ SECTION 5 · SHIPPING INTELLIGENCE ══ */
   var provCount = {};
   Object.values(allData.shipping).forEach(function(r){
     if(!inRange(r.date, cYr, effFrom, effTo)) return;
@@ -754,30 +769,47 @@ function render(){
     return b[1] - a[1];
   });
 
+  h += sl('purple','Shipping Intelligence');
   h += '<div class="r1"><div class="card">'+
-    '<div class="ch"><div><div class="ct">📍 Shipments by Province / State / Country</div>'+
-    '<div class="cs">'+cYr+' '+periodLbl+'&nbsp;&nbsp;<span style="color:var(--blue3);font-style:italic">· Click to filter</span></div></div></div>'+
-    '<div class="cb"><div class="cw" style="height:'+Math.max(180, topProvs.length*30)+'px"><canvas id="c-prov"></canvas></div></div>'+
+    '<div class="ch"><div>'+
+      '<div class="ct">Shipment Distribution — Province / State / Country</div>'+
+      '<div class="cs">'+cYr+' '+periodLbl+'&nbsp;&nbsp;<span style="color:var(--blue3);font-style:italic">· Click a bar to filter · Click again to view full list in Control Tower</span></div>'+
+    '</div></div>'+
+    '<div class="cb"><div class="cw" style="height:'+Math.max(180, topProvs.length*32)+'px"><canvas id="c-prov"></canvas></div></div>'+
   '</div></div>';
 
-  /* WIP / Sales Order / Estoque chart */
+  h += '<div class="r2 g5545">'+
+    '<div class="card">'+
+      '<div class="ch"><div><div class="ct">Top Customers — Outgoing Shipments</div>'+
+      '<div class="cs">By number of shipments &nbsp;·&nbsp; '+cYr+' '+periodLbl+'&nbsp;&nbsp;<span style="color:var(--blue3);font-style:italic">· Click to filter</span></div></div></div>'+
+      '<div class="cb"><div class="cw" style="height:'+Math.max(180, top.length*34)+'px"><canvas id="c-cust"></canvas></div></div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="ch"><div><div class="ct">Carrier Mix</div>'+
+      '<div class="cs">By number of shipments &nbsp;·&nbsp; '+carrierLabel+'&nbsp;&nbsp;<span style="color:var(--blue3);font-style:italic">· Click to filter</span></div></div></div>'+
+      '<div class="cb"><div class="cw" style="height:'+(Math.max(160, topCarriers.length*34))+'px"><canvas id="c-fr"></canvas></div></div>'+
+    '</div>'+
+  '</div>';
+
+  /* ══ SECTION 6 · RECEIVING BREAKDOWN ══ */
   var destTotal = destWip.reduce(function(a,b){return a+b;},0)+destSO.reduce(function(a,b){return a+b;},0)+destStk.reduce(function(a,b){return a+b;},0);
   var dWip=destWip.reduce(function(a,b){return a+b;},0), dSO=destSO.reduce(function(a,b){return a+b;},0), dStk=destStk.reduce(function(a,b){return a+b;},0);
+  h += sl('green','Receiving Breakdown — Incoming Items');
   h += '<div class="r1"><div class="card">'+
-    '<div class="ch"><div><div class="ct">Volume por Destino — Incoming Items</div><div class="cs">'+cYr+' · '+periodLbl+'</div></div></div>'+
-    '<div class="cb" style="display:flex;align-items:center;gap:32px;flex-wrap:wrap">'+
-      '<div style="flex:0 0 200px"><div class="cw" style="height:200px"><canvas id="c-dest"></canvas></div></div>'+
-      '<div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:16px">'+
+    '<div class="ch"><div><div class="ct">Incoming Items by Destination Type</div><div class="cs">'+cYr+' · '+periodLbl+' &nbsp;·&nbsp; WIP, Sales Order &amp; Stock distribution</div></div></div>'+
+    '<div class="cb" style="display:flex;align-items:center;gap:40px;flex-wrap:wrap;padding-top:16px;padding-bottom:8px">'+
+      '<div style="flex:0 0 210px"><div class="cw" style="height:210px"><canvas id="c-dest"></canvas></div></div>'+
+      '<div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:18px">'+
         destStatRow('WIP','#1e40af',dWip,destTotal)+
         destStatRow('Sales Order','#0891b2',dSO,destTotal)+
-        destStatRow('Estoque','#7c3aed',dStk,destTotal)+
+        destStatRow('Stock','#7c3aed',dStk,destTotal)+
       '</div>'+
     '</div>'+
   '</div></div>';
 
-  /* Table */
+  /* ══ SECTION 7 · MONTHLY DETAIL ══ */
+  h += sl('blue','Monthly Detail — '+cYr+' vs '+pYr);
   h += '<div class="r1"><div class="card">'+
-    '<div class="ch"><div><div class="ct">Month-by-Month Detail</div><div class="cs">'+cYr+' vs '+pYr+'</div></div></div>'+
     '<div class="cb" style="padding-top:10px">'+buildTable(cats,cYr,pYr,lastMo,live)+'</div>'+
   '</div></div>';
 
