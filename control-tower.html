@@ -299,11 +299,12 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
   <div class="search-wrap">
     <div class="search-card">
       <div class="search-title">🔍 Order Lookup</div>
-      <div class="search-sub">Enter a Work Order, Sales Order or Incoming # to see the complete status</div>
+      <div class="search-sub">Enter a Work Order, Sales Order, Incoming # or Outgoing # to see the complete status</div>
       <div class="type-row">
         <button class="type-btn active" id="btn-wo" onclick="setType('wo')"><span class="dot"></span>Work Order #</button>
         <button class="type-btn" id="btn-so" onclick="setType('so')"><span class="dot"></span>Sales Order #</button>
         <button class="type-btn" id="btn-inc" onclick="setType('inc')"><span class="dot"></span>Incoming #</button>
+        <button class="type-btn" id="btn-out" onclick="setType('out')"><span class="dot"></span>Outgoing #</button>
       </div>
       <div class="search-row">
         <div class="search-input-wrap">
@@ -320,7 +321,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
     <div id="results">
       <div class="empty-search">
         <div class="empty-search-icon">🗼</div>
-        <div class="empty-search-text">Enter a Work Order, Sales Order or Incoming # above to begin</div>
+        <div class="empty-search-text">Enter a Work Order, Sales Order, Incoming # or Outgoing # above to begin</div>
       </div>
     </div>
   </div>
@@ -592,8 +593,8 @@ function infoRow(lbl, val){
 var searchType = 'wo';
 function setType(t){
   searchType = t;
-  ['wo','so','inc'].forEach(function(k){ document.getElementById('btn-'+k).classList.toggle('active', k===t); });
-  var ph = t==='wo' ? 'e.g. 6020183' : t==='so' ? 'e.g. 12345' : 'e.g. EPS-001';
+  ['wo','so','inc','out'].forEach(function(k){ document.getElementById('btn-'+k).classList.toggle('active', k===t); });
+  var ph = t==='wo' ? 'e.g. 6020183' : t==='so' ? 'e.g. 12345' : t==='out' ? 'e.g. 42500' : 'e.g. EPS-001';
   document.getElementById('search-input').placeholder = ph;
   document.getElementById('search-input').focus();
 }
@@ -604,7 +605,7 @@ function clearSearch(){
 }
 function showEmptyState(){
   document.getElementById('results').innerHTML =
-    '<div class="empty-search"><div class="empty-search-icon">🗼</div><div class="empty-search-text">Enter a Work Order, Sales Order or Incoming # above to begin</div></div>';
+    '<div class="empty-search"><div class="empty-search-icon">🗼</div><div class="empty-search-text">Enter a Work Order, Sales Order, Incoming # or Outgoing # above to begin</div></div>';
 }
 
 // SEARCH
@@ -612,7 +613,7 @@ function doSearch(){
   var raw = (document.getElementById('search-input').value||'').trim();
   if(!raw) return;
   var q = norm(raw);
-  var result = searchType==='wo' ? searchByWO(q) : searchType==='so' ? searchBySO(q) : searchByIncoming(q);
+  var result = searchType==='wo' ? searchByWO(q) : searchType==='so' ? searchBySO(q) : searchType==='out' ? searchByOutgoing(q) : searchByIncoming(q);
   renderResults(result, raw);
 }
 
@@ -653,6 +654,21 @@ function searchByIncoming(q){
   if(inc.length && inc[0].wo){ var r = searchByWO(norm(inc[0].wo)); r.type='inc'; r.q=q; return r; }
   return {type:'inc', q:q, incoming:inc, components:[], process:[], shipping:[], packing:[]};
 }
+function searchByOutgoing(q){
+  var shp = Object.values(allData.shipping).filter(function(r){ return norm(r.outgoing)===q; });
+  if(!shp.length) return {type:'out', q:q, incoming:[], components:[], process:[], shipping:[], packing:[]};
+  var allWOs = [];
+  shp.forEach(function(r){ (r.workOrders||[]).forEach(function(w){ if(w && allWOs.indexOf(norm(w))<0) allWOs.push(norm(w)); }); });
+  var incoming = [], components = [], process = [], packing = [];
+  allWOs.forEach(function(wo){
+    var r = searchByWO(wo);
+    r.incoming.forEach(function(x){ incoming.push(x); });
+    r.components.forEach(function(x){ components.push(x); });
+    r.process.forEach(function(x){ process.push(x); });
+    r.packing.forEach(function(x){ packing.push(x); });
+  });
+  return {type:'out', q:q, incoming:incoming, components:components, process:process, shipping:shp, packing:packing};
+}
 
 // STATUS
 function getStatus(result){
@@ -690,7 +706,7 @@ function renderResults(result, raw){
     return;
   }
 
-  var typeLbl = result.type==='wo' ? 'Work Order #' : result.type==='so' ? 'Sales Order #' : 'Incoming #';
+  var typeLbl = result.type==='wo' ? 'Work Order #' : result.type==='so' ? 'Sales Order #' : result.type==='out' ? 'Outgoing #' : 'Incoming #';
   var h = '';
 
   h += '<div class="status-banner" style="background:'+sc.bg+';border-color:'+sc.border+'">';
