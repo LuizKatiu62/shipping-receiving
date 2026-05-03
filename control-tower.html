@@ -18,7 +18,9 @@
   --r:12px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;position:relative}
+body::before{content:'';position:fixed;inset:0;background:url('warehouse-interior.jpg') center 40%/cover no-repeat;opacity:.13;z-index:0;pointer-events:none}
+body>*{position:relative;z-index:1}
 
 /* HEADER */
 .hdr{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:500}
