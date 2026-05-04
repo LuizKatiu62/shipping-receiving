@@ -3627,7 +3627,7 @@ function renderItmLines(){
       '<td style="padding:4px 3px;width:48px"><input type="number" id="itm-l'+i+'-rl" placeholder="0" min="0" value="'+escAttr(item.rl||'')+'" style="'+fi+';text-align:center"></td>'+
       '<td style="padding:4px 6px;width:145px">'+
         '<select id="itm-l'+i+'-bin" onchange="toggleLineStock('+i+')" style="'+fi+'"><option value="">— BIN —</option>'+binSel+'</select>'+
-        '<input type="text" id="itm-l'+i+'-binstock" placeholder="Stock #" oninput="enforceUpper(this)" value="'+escAttr(item.binStock||'')+'" style="'+fi+';margin-top:3px;display:'+(isStock?'block':'none')+'">'+
+        '<input type="text" id="itm-l'+i+'-binstock" placeholder="BIN Location" oninput="enforceUpper(this)" value="'+escAttr(item.binStock||'')+'" style="'+fi+';margin-top:3px;display:'+(isStock?'block':'none')+'">'+
         '<button type="button" id="itm-l'+i+'-wipbtn" class="btn btn-secondary btn-sm" onclick="printItemWipLabel('+i+')" style="margin-top:3px;font-size:.65rem;padding:2px 6px;display:'+(isWIP?'block':'none')+'">🏷️ WIP Label</button>'+
         '<button type="button" id="itm-l'+i+'-labelbtn" class="btn btn-secondary btn-sm" onclick="printItemGenericLabel('+i+')" style="margin-top:3px;font-size:.65rem;padding:2px 6px;display:'+((isNOBIN||isOther)?'block':'none')+'">🏷️ Print Label</button>'+
       '</td>'+
