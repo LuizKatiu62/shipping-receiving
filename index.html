@@ -4999,11 +4999,11 @@ function sendWipEmail(){
     return b;
   })();
 
-  // Convert ; or , separated addresses to RFC comma-separated for mailto URL
-  var toAddrs = notif.to.split(/[;,]/).map(function(a){ return a.trim(); }).filter(Boolean).join(',');
-  var mailto = 'mailto:' + toAddrs
-    + '?subject=' + encodeURIComponent(subject)
-    + '&body='    + encodeURIComponent(body);
+  var toAddrs = notif.to.split(/[;,]/).map(function(a){ return a.trim(); }).filter(Boolean);
+  var mailto = 'mailto:' + toAddrs[0]
+    + (toAddrs.slice(1).length ? '?to=' + toAddrs.slice(1).join('%3B') + '&' : '?')
+    + 'subject=' + encodeURIComponent(subject)
+    + '&body='   + encodeURIComponent(body);
 
   window.location.href = mailto;
   // closeWipEmailModal advances to next in queue
