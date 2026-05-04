@@ -314,14 +314,6 @@ body.readonly-mode .nav-tabs{display:none!important}
 body.readonly-mode .main{display:none!important}
 body.readonly-mode #app-loading{display:none!important}
 
-/* ── PAYMENTS VIEWER OVERRIDES ── */
-body.payments-viewer.readonly-mode .nav-tabs{display:flex!important}
-body.payments-viewer.readonly-mode .main{display:block!important}
-body.payments-viewer.readonly-mode #app-loading{display:flex!important}
-body.payments-viewer.readonly-mode #viewer-portal{display:none!important}
-body.payments-viewer.readonly-mode .nav-tab:not(#nav-tab-payments){display:none!important}
-body.payments-viewer.readonly-mode #nav-tab-payments{display:inline-flex!important}
-
 /* ── VIEWER PORTAL ── */
 #viewer-portal{display:none;align-items:center;justify-content:center;min-height:calc(100vh - 72px);padding:40px 24px;background:var(--bg);position:relative;overflow:hidden}
 #viewer-portal::before{content:'';position:absolute;inset:0;background:url('warehouse-bg.jpg') 68% 42%/cover no-repeat;opacity:.22;z-index:0;pointer-events:none}
@@ -339,6 +331,8 @@ body.readonly-mode #viewer-portal{display:flex!important}
 .vp-card-oms:hover{box-shadow:0 18px 52px rgba(15,52,96,.55),0 4px 12px rgba(0,0,0,.14)}
 .vp-card-dash{background:linear-gradient(160deg,#0f172a 0%,#1e293b 100%);box-shadow:0 8px 32px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.1)}
 .vp-card-dash:hover{box-shadow:0 18px 52px rgba(0,0,0,.32),0 4px 12px rgba(0,0,0,.14)}
+.vp-card-pay{background:linear-gradient(160deg,#064e3b 0%,#065f46 100%);box-shadow:0 8px 32px rgba(6,78,59,.4),0 2px 6px rgba(0,0,0,.1)}
+.vp-card-pay:hover{box-shadow:0 18px 52px rgba(6,78,59,.55),0 4px 12px rgba(0,0,0,.14)}
 .vp-icon{font-size:2.6rem;margin-bottom:18px;line-height:1}
 .vp-card-name{font-size:1.28rem;font-weight:800;color:#fff;margin-bottom:10px;letter-spacing:-.2px}
 .vp-card-desc{font-size:.78rem;color:rgba(255,255,255,.62);line-height:1.6;flex:1}
@@ -534,6 +528,12 @@ document.addEventListener('keydown', function(ev){
         <div class="vp-card-desc">Browse Incoming Forms, WIP components and Shipping activity — filter by year, month and day</div>
         <div class="vp-arrow">→</div>
       </a>
+      <div id="vp-card-payments" class="vp-card vp-card-pay" onclick="openPaymentsPortal()" style="display:none;cursor:pointer">
+        <div class="vp-icon">💰</div>
+        <div class="vp-card-name">Payments</div>
+        <div class="vp-card-desc">View and manage daily payment records — cash, cheque, card and debit transactions</div>
+        <div class="vp-arrow">→</div>
+      </div>
       <a href="stats.html" target="sa-dashboard" class="vp-card vp-card-dash">
         <div class="vp-icon">📊</div>
         <div class="vp-card-name">Dashboard</div>
@@ -1776,16 +1776,21 @@ function canAccessPayments(email){
       || PAYMENTS_EMAILS.map(function(x){return x.toLowerCase();}).indexOf(e) !== -1;
 }
 
+function openPaymentsPortal(){
+  document.getElementById('viewer-portal').style.display = 'none';
+  document.querySelector('.main').style.display = 'block';
+  document.querySelector('.nav-tabs').style.display = 'flex';
+  gotoSection('payments');
+}
+
 function processAuthUser(user){
   currentUser = user;
   isAdmin = ADMIN_EMAILS.indexOf(user.email.toLowerCase()) !== -1;
   var isPaymentsViewer = !isAdmin && canAccessPayments(user.email);
   if(isAdmin){
     document.body.classList.remove('readonly-mode');
-    document.body.classList.remove('payments-viewer');
   } else {
     document.body.classList.add('readonly-mode');
-    if(isPaymentsViewer) document.body.classList.add('payments-viewer');
   }
   var bar = document.getElementById('user-bar');
   bar.style.display = 'flex';
@@ -1795,14 +1800,14 @@ function processAuthUser(user){
   badge.className   = 'user-bar-badge' + (isAdmin ? ' admin' : '');
   var payTab = document.getElementById('nav-tab-payments');
   if(payTab) payTab.style.display = canAccessPayments(user.email) ? '' : 'none';
+  var vpPay = document.getElementById('vp-card-payments');
+  if(vpPay) vpPay.style.display = isPaymentsViewer ? 'flex' : 'none';
   document.getElementById('auth-overlay').style.display = 'none';
   if(!isAdmin && !isPaymentsViewer){
-    // Pure viewers see only the portal — no data loading needed
     return;
   }
   document.getElementById('app-loading').style.display = 'flex';
   initDataListeners();
-  if(isPaymentsViewer) gotoSection('payments');
 }
 
 function buildMonthSelects(){
