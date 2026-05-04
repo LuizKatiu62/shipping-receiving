@@ -1656,37 +1656,43 @@ document.addEventListener('keydown', function(ev){
           <label>Requested By — Name</label>
           <input type="text" id="itm-reqby-other" placeholder="Type the name">
         </div>
-        <div class="form-section-header">Order Details</div>
-        <div class="form-group" id="itm-so-group">
-          <label>Sales Order #</label>
-          <input type="text" id="itm-so" oninput="enforceUpper(this);toggleItmSoWo()" placeholder="SO #">
-        </div>
-        <div class="form-group" id="itm-wo-group">
-          <label>Work Order #</label>
-          <input type="text" id="itm-wo" maxlength="7" oninput="enforceUpper(this)" placeholder="WO #">
-        </div>
-        <div class="form-group">
-          <label>Area</label>
-          <select id="itm-area">
-            <option value="">— Area —</option>
-            <option>Electrical</option>
-            <option>Mechanical</option>
-            <option>Air Compressor</option>
-            <option>Generator</option>
-          </select>
-        </div>
-        <div class="form-group" id="itm-cust-group">
-          <label>Customer</label>
-          <input type="text" id="itm-cust" list="customer-suggestions" autocomplete="off" oninput="enforceUpper(this)" placeholder="Customer">
-        </div>
       </div>
 
-      <!-- Dynamic line items -->
+      <!-- Dynamic line items (Materials Received — shown first) -->
       <div style="margin-top:18px">
         <div style="padding-bottom:8px;border-top:2px solid #e3f2fd;padding-top:10px">
           <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#1565c0">Materials Received</span>
         </div>
         <div id="itm-lines-container"></div>
+      </div>
+
+      <!-- Order Details — only visible when BIN = WIP or Service Order -->
+      <div id="itm-order-details-section" style="display:none;margin-top:4px">
+        <div class="form-grid">
+          <div class="form-section-header">Order Details</div>
+          <div class="form-group" id="itm-so-group">
+            <label>Sales Order #</label>
+            <input type="text" id="itm-so" oninput="enforceUpper(this);toggleItmSoWo()" placeholder="SO #">
+          </div>
+          <div class="form-group" id="itm-wo-group">
+            <label>Work Order #</label>
+            <input type="text" id="itm-wo" maxlength="7" oninput="enforceUpper(this)" placeholder="WO #">
+          </div>
+          <div class="form-group">
+            <label>Area</label>
+            <select id="itm-area">
+              <option value="">— Area —</option>
+              <option>Electrical</option>
+              <option>Mechanical</option>
+              <option>Air Compressor</option>
+              <option>Generator</option>
+            </select>
+          </div>
+          <div class="form-group" id="itm-cust-group">
+            <label>Customer</label>
+            <input type="text" id="itm-cust" list="customer-suggestions" autocomplete="off" oninput="enforceUpper(this)" placeholder="Customer">
+          </div>
+        </div>
       </div>
 
       <div class="form-actions">
@@ -3687,7 +3693,27 @@ function toggleLineStock(i){
   if(wipBtn)   wipBtn.style.display   = val==='WIP'   ? 'block' : 'none';
   var showLabel = val!=='' && val!=='Stock' && val!=='WIP';
   if(labelBtn) labelBtn.style.display = showLabel ? 'block' : 'none';
-  // No app dropdown anymore — SO/WO fields are always visible
+  toggleOrderDetails();
+}
+
+function toggleOrderDetails(){
+  var show = itmLines.some(function(_,i){
+    var el = document.getElementById('itm-l'+i+'-bin');
+    if(!el) return false;
+    return el.value==='WIP' || el.value==='Service Order';
+  });
+  var sec = document.getElementById('itm-order-details-section');
+  if(!sec) return;
+  if(show){
+    sec.style.display='';
+  } else {
+    sec.style.display='none';
+    ['itm-so','itm-wo','itm-area','itm-cust'].forEach(function(id){
+      var el=document.getElementById(id); if(!el) return;
+      if(el.tagName==='SELECT') el.value=''; else el.value='';
+    });
+    toggleItmSoWo();
+  }
 }
 
 function toggleItmPoTransfer(){
@@ -3803,6 +3829,7 @@ function openItemModal(key){
     document.getElementById('itm-del-btn').style.display='none';
   }
   renderItmLines();
+  toggleOrderDetails();
   document.getElementById('itm-modal').style.display='flex';
 }
 
