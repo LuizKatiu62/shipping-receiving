@@ -625,7 +625,6 @@ function calcBusinessDays(start, end){
     nbHolidays(y).forEach(function(d){ holidays[d]=1; });
   }
   var days=0, cur=new Date(s);
-  cur.setDate(cur.getDate()+1); // start counting day after received
   while(cur < e){
     var wd=cur.getDay();
     var iso=cur.toISOString().slice(0,10);
