@@ -1368,7 +1368,7 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="form-group">
           <label>Shipping Area Received Date *</label>
-          <input type="date" id="proc-received-date" oninput="updateProcDays();checkProcEquipex()">
+          <input type="date" id="proc-received-date" oninput="updateProcDays();checkProcEquipex()" onchange="updateProcDays();checkProcEquipex()">
         </div>
         <div class="form-group" id="proc-equipex-group" style="display:none">
           <label style="color:#b45309;font-weight:800">Next Shipping Date (Equipex)</label>
@@ -3973,6 +3973,8 @@ function procLookupOrder(){
       if(hit && !outEl.value) outEl.value = r.outgoing||'';
     });
   }
+  // Re-check Equipex whenever customer may have been auto-filled
+  checkProcEquipex();
 }
 
 function updateProcDays(){
@@ -4217,7 +4219,7 @@ function checkProcEquipex(){
   var grp  = document.getElementById('proc-equipex-group');
   var nsd  = document.getElementById('proc-next-ship');
   if(!isEq){ if(grp) grp.style.display='none'; if(nsd) nsd.value=''; return; }
-  if(grp) grp.style.display='';
+  if(grp) grp.style.display='flex';
   var recVal = document.getElementById('proc-received-date').value;
   if(!recVal){ if(nsd) nsd.value=''; return; }
   var d = new Date(recVal + 'T00:00:00');
