@@ -3860,6 +3860,36 @@ function saveItem(){
     toDisplay: 'Mark Northrup, Logan Northrup, Sara Templeton',
     greeting: getGreeting('Team')
   });
+  // Work Order requested by Harold Gould → notify Harold
+  var isHaroldWO = record.requestedBy === 'Harold Gould' && docApp === 'Work Order';
+  if(isHaroldWO) wipEmailQueue.push({
+    items: lineItems,
+    to: 'gould.harold@sourceatlantic.ca',
+    toDisplay: 'Harold Gould',
+    greeting: getGreeting('Harold'),
+    subjectOverride: 'Work Order Items Received — Doc #'+(record.docNum||'')+' — '+(record.date||''),
+    bodyOverride: function(r){
+      var b = getGreeting('Harold') + '\n\n';
+      b += 'The following Work Order items have been received:\n\n';
+      b += 'Document #:  ' + (r.docNum||'—') + '\n';
+      b += 'Date:        ' + (r.date||'—') + '\n';
+      if(r.poNum)       b += 'PO #:        ' + r.poNum + '\n';
+      if(r.transferNum) b += 'Transfer #:  ' + r.transferNum + '\n';
+      if(r.supplier)    b += 'Supplier:    ' + r.supplier + '\n';
+      b += '\n';
+      lineItems.forEach(function(li, i){
+        b += '--- Item ' + (i+1) + ' ---\n';
+        b += 'Material:     ' + (li.material||'—') + '\n';
+        if(li.workOrderNum) b += 'Work Order #: ' + li.workOrderNum + '\n';
+        if(li.area)         b += 'Area:         ' + li.area + '\n';
+        if(li.pc)           b += 'Qty (Pc):     ' + li.pc + '\n';
+        if(li.binLocation)  b += 'BIN:          ' + li.binLocation + (li.binStock?' — '+li.binStock:'') + '\n';
+        b += '\n';
+      });
+      b += '—\nSource Atlantic — Shipping & Receiving System';
+      return b;
+    }
+  });
   if(wipEmailQueue.length) setTimeout(function(){ showNextWipEmail(record); }, 80);
 }
 
@@ -4904,23 +4934,28 @@ function showNextWipEmail(record){
   pendingWipEmailRec = {record: record, notif: notif};
 
   var lines = [
-    '<strong>Receipt #:</strong> '+escHtml(record.docNum||'—'),
-    '<strong>Date:</strong> '     +fmtDate(record.date),
-    '<strong>Supplier:</strong> ' +escHtml(record.supplier||'—')
+    '<strong>Document #:</strong> '+escHtml(record.docNum||'—'),
+    '<strong>Date:</strong> '      +fmtDate(record.date),
+    '<strong>Supplier:</strong> '  +escHtml(record.supplier||'—')
   ];
   if(record.poNum)       lines.push('<strong>PO #:</strong> '+escHtml(record.poNum));
   if(record.transferNum) lines.push('<strong>Transfer #:</strong> '+escHtml(record.transferNum));
   lines.push('<hr style="border:none;border-top:1px solid #e3f2fd;margin:6px 0">');
+  var itemLabel = notif.bodyOverride ? 'Item' : 'WIP Item';
   notif.items.forEach(function(li, i){
-    lines.push('<strong>WIP Item '+(i+1)+':</strong> '+escHtml(li.material||'—'));
+    lines.push('<strong>'+itemLabel+' '+(i+1)+':</strong> '+escHtml(li.material||'—'));
     if(li.workOrderNum) lines.push('&nbsp;&nbsp;<strong>Work Order #:</strong> '+escHtml(li.workOrderNum));
     if(li.area)         lines.push('&nbsp;&nbsp;<strong>Area:</strong> '+escHtml(li.area));
     if(li.customer)     lines.push('&nbsp;&nbsp;<strong>Customer:</strong> '+escHtml(li.customer));
     if(li.pc)           lines.push('&nbsp;&nbsp;<strong>Qty:</strong> '+escHtml(li.pc)+' pc');
+    if(li.binLocation)  lines.push('&nbsp;&nbsp;<strong>BIN:</strong> '+escHtml(li.binLocation)+(li.binStock?' — '+escHtml(li.binStock):''));
     if(i < notif.items.length-1) lines.push('<hr style="border:none;border-top:1px dashed #e3f2fd;margin:4px 0">');
   });
 
-  document.getElementById('wip-email-title').textContent = '📧 WIP Notification — '+notif.items[0].area;
+  var title = notif.bodyOverride
+    ? '📧 Work Order Notification — '+notif.toDisplay
+    : '📧 WIP Notification — '+notif.items[0].area;
+  document.getElementById('wip-email-title').textContent = title;
   document.getElementById('wip-email-to-display').textContent = notif.toDisplay;
   document.getElementById('wip-email-preview').innerHTML = lines.join('<br>');
   document.getElementById('wip-email-modal').style.display = 'flex';
@@ -4939,29 +4974,31 @@ function sendWipEmail(){
   var record = pendingWipEmailRec.record;
   var notif  = pendingWipEmailRec.notif;
 
-  var subject = 'WIP Material Received — '+notif.items[0].area+' — Receipt #'+(record.docNum||'')+' — '+(record.date||'');
+  var subject = notif.subjectOverride
+    || ('WIP Material Received — '+notif.items[0].area+' — Doc #'+(record.docNum||'')+' — '+(record.date||''));
 
-  var body = notif.greeting + '\n\n';
-  body += 'The following WIP material has been received:\n\n';
-  body += 'Receipt #:  ' + (record.docNum||'—') + '\n';
-  body += 'Date:       ' + (record.date||'—') + '\n';
-  body += 'Supplier:   ' + (record.supplier||'—') + '\n';
-  if(record.poNum)       body += 'PO #:       ' + record.poNum + '\n';
-  if(record.transferNum) body += 'Transfer #: ' + record.transferNum + '\n';
-  body += '\n';
-
-  notif.items.forEach(function(li, i){
-    body += '--- WIP Item ' + (i+1) + ' ---\n';
-    body += 'Material:     ' + (li.material||'—') + '\n';
-    if(li.workOrderNum) body += 'Work Order #: ' + li.workOrderNum + '\n';
-    if(li.area)         body += 'Area:         ' + li.area + '\n';
-    if(li.customer)     body += 'Customer:     ' + li.customer + '\n';
-    if(li.pc)           body += 'Qty (Pc):     ' + li.pc + '\n';
-    if(li.lb)           body += 'Weight (Lb):  ' + li.lb + '\n';
-    body += '\n';
-  });
-
-  body += '—\nSource Atlantic — Shipping & Receiving System';
+  var body = notif.bodyOverride ? notif.bodyOverride(record) : (function(){
+    var b = notif.greeting + '\n\n';
+    b += 'The following WIP material has been received:\n\n';
+    b += 'Document #: ' + (record.docNum||'—') + '\n';
+    b += 'Date:       ' + (record.date||'—') + '\n';
+    b += 'Supplier:   ' + (record.supplier||'—') + '\n';
+    if(record.poNum)       b += 'PO #:       ' + record.poNum + '\n';
+    if(record.transferNum) b += 'Transfer #: ' + record.transferNum + '\n';
+    b += '\n';
+    notif.items.forEach(function(li, i){
+      b += '--- WIP Item ' + (i+1) + ' ---\n';
+      b += 'Material:     ' + (li.material||'—') + '\n';
+      if(li.workOrderNum) b += 'Work Order #: ' + li.workOrderNum + '\n';
+      if(li.area)         b += 'Area:         ' + li.area + '\n';
+      if(li.customer)     b += 'Customer:     ' + li.customer + '\n';
+      if(li.pc)           b += 'Qty (Pc):     ' + li.pc + '\n';
+      if(li.lb)           b += 'Weight (Lb):  ' + li.lb + '\n';
+      b += '\n';
+    });
+    b += '—\nSource Atlantic — Shipping & Receiving System';
+    return b;
+  })();
 
   var mailto = 'mailto:' + notif.to
     + '?subject=' + encodeURIComponent(subject)
