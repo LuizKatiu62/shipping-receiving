@@ -1189,15 +1189,11 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="form-group">
           <label>Customer</label>
-          <input type="text" id="pkg-customer" list="customer-suggestions" placeholder="Customer name" oninput="checkPkgEquipex()" onchange="checkPkgEquipex()">
+          <input type="text" id="pkg-customer" list="customer-suggestions" placeholder="Customer name">
         </div>
         <div class="form-group">
           <label>Pick Date *</label>
-          <input type="date" id="pkg-pick-date" oninput="updateDaysOnHold();checkPkgEquipex()">
-        </div>
-        <div class="form-group" id="pkg-equipex-group" style="display:none">
-          <label style="color:#b45309;font-weight:800">Next Shipping Date (Equipex)</label>
-          <input type="date" id="pkg-next-ship" readonly style="background:#fffbeb;color:#92400e;font-weight:700;cursor:default;border-color:#f59e0b">
+          <input type="date" id="pkg-pick-date" oninput="updateDaysOnHold()">
         </div>
         <div class="form-group">
           <label>Current Date</label>
@@ -1208,12 +1204,6 @@ document.addEventListener('keydown', function(ev){
           <div style="font-size:.75rem;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.4px">Days On Hold</div>
           <div id="pkg-days-badge" style="display:none"></div>
           <div id="pkg-days-pending" style="font-size:.82rem;color:#9ca3af;font-style:italic">Pick a pick date to calculate</div>
-        </div>
-        <div class="full" style="display:flex;align-items:center;gap:10px;padding:4px 0">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.8rem;font-weight:700;color:#b91c1c;user-select:none">
-            <input type="checkbox" id="pkg-not-shipped" style="width:16px;height:16px;accent-color:#b91c1c;cursor:pointer">
-            Override: Not shipped yet (ignore automatic shipping detection)
-          </label>
         </div>
 
       </div>
@@ -4276,13 +4266,11 @@ function printProcLabel(){
 }
 
 function printPackLabel(){
-  var orderNum  = document.getElementById('pkg-order').value.trim();
-  var customer  = document.getElementById('pkg-customer').value.trim();
-  var pickDate  = document.getElementById('pkg-pick-date').value;
-  var currDate  = today();
-  var days      = calcDaysOnHold(pickDate);
-  var nextShip  = document.getElementById('pkg-next-ship').value;
-  var isEquipex = customer.toUpperCase().includes('EQUIPEX') && !!nextShip;
+  var orderNum = document.getElementById('pkg-order').value.trim();
+  var customer = document.getElementById('pkg-customer').value.trim();
+  var pickDate = document.getElementById('pkg-pick-date').value;
+  var currDate = today();
+  var days     = calcDaysOnHold(pickDate);
 
   var daysBg = days === null ? '#1565c0'
              : days > 30 ? '#c62828'
@@ -4323,7 +4311,6 @@ function printPackLabel(){
       '<div class="field"><span class="f-label">Pick Date</span><span class="f-value">'+(pickDate?fmtDate(pickDate):'—')+'</span></div>'+
       '<div class="field"><span class="f-label">Days on Hold</span><span class="f-value"><span class="days-val">'+daysText+'</span></span></div>'+
       '<div class="field"><span class="f-label">Printed</span><span class="f-value">'+(fmtDate(currDate))+'</span></div>'+
-      (isEquipex?'<div class="field" style="grid-column:1/-1;margin-top:4px;background:#fffbeb;border:1.5px solid #f59e0b;border-radius:4px;padding:3px 6px"><span class="f-label" style="color:#92400e">Next Shipping Date (Equipex)</span><span class="f-value" style="color:#92400e;font-size:11pt">'+fmtDate(nextShip)+'</span></div>':'')+
     '</div>'+
   '</div>'+
   '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>'+
@@ -4408,13 +4395,11 @@ function daysOnHoldBadge(days, frozen){
 function findPkgShipDate(orderNum){
   if(!orderNum) return null;
   var num = orderNum.trim().toUpperCase();
-  var todayStr = today();
   var found = null;
   Object.values(shpData).forEach(function(r){
-    if(!r.date || r.date > todayStr) return; // ignore future-dated shipping records
     var all = [].concat(r.salesOrders||[], r.transferNums||[], r.workOrders||[]);
     if(all.some(function(o){ return (o||'').trim().toUpperCase()===num; })){
-      if(!found || r.date < found) found = r.date;
+      if(!found || (r.date && r.date < found)) found = r.date||null;
     }
   });
   return found;
@@ -4432,7 +4417,7 @@ function renderPacking(){
   if(!yr && !mo && !dy){
     var curYM = today().slice(0,7);
     rows = rows.filter(function(r){
-      var sd = r.notShipped ? null : findPkgShipDate(r.orderNum);
+      var sd = findPkgShipDate(r.orderNum);
       return !sd || sd.slice(0,7) >= curYM;
     });
   }
@@ -4448,7 +4433,7 @@ function renderPacking(){
     renderPkgStats(rows); return;
   }
   tbody.innerHTML = pkgFiltered.map(function(r){
-    var shipDate = r.notShipped ? null : findPkgShipDate(r.orderNum);
+    var shipDate = findPkgShipDate(r.orderNum);
     var frozen   = !!shipDate;
     var endDate  = frozen ? shipDate : today();
     var days     = calcDaysOnHold(r.pickDate, endDate);
@@ -4469,12 +4454,12 @@ function renderPacking(){
 
 function renderPkgStats(rows){
   var total   = rows.length;
-  var shipped = rows.filter(function(r){ return !r.notShipped && !!findPkgShipDate(r.orderNum); }).length;
+  var shipped = rows.filter(function(r){ return !!findPkgShipDate(r.orderNum); }).length;
   var onHold  = total - shipped;
   var avgDays = 0;
   if(total){
     avgDays = Math.round(rows.reduce(function(s,r){
-      var sd = r.notShipped ? null : findPkgShipDate(r.orderNum);
+      var sd = findPkgShipDate(r.orderNum);
       return s + (calcDaysOnHold(r.pickDate, sd||today())||0);
     },0)/total);
   }
@@ -4503,23 +4488,6 @@ function updateDaysOnHold(){
   pending.style.display='none';
 }
 
-function checkPkgEquipex(){
-  var cust = (document.getElementById('pkg-customer').value||'').trim().toUpperCase();
-  var isEq = cust.replace(/[\s.,-]/g,'').includes('EQUIPEXINC') || cust.includes('EQUIPEX');
-  var grp  = document.getElementById('pkg-equipex-group');
-  var nsd  = document.getElementById('pkg-next-ship');
-  if(!isEq){ if(grp) grp.style.display='none'; if(nsd) nsd.value=''; return; }
-  if(grp) grp.style.display='';
-  var pickVal = document.getElementById('pkg-pick-date').value;
-  if(!pickVal){ if(nsd) nsd.value=''; return; }
-  // Find the next Wednesday (day 3) after pickDate
-  var d = new Date(pickVal + 'T00:00:00');
-  var day = d.getDay(); // 0=Sun,1=Mon,...,3=Wed
-  var daysAhead = (3 - day + 7) % 7 || 7; // always at least 1 day ahead
-  d.setDate(d.getDate() + daysAhead);
-  if(nsd) nsd.value = d.toISOString().slice(0,10);
-}
-
 function openPackModal(key){
   document.getElementById('pkg-edit-id').value = key||'';
   document.getElementById('pkg-days-badge').style.display = 'none';
@@ -4533,7 +4501,6 @@ function openPackModal(key){
     document.getElementById('pkg-order').value    = r.orderNum||'';
     document.getElementById('pkg-customer').value = r.customer||'';
     document.getElementById('pkg-pick-date').value = r.pickDate||'';
-    document.getElementById('pkg-not-shipped').checked = !!r.notShipped;
     document.getElementById('pkg-del-btn').style.display = '';
     updateDaysOnHold();
   } else {
@@ -4541,10 +4508,8 @@ function openPackModal(key){
     document.getElementById('pkg-order').value    = '';
     document.getElementById('pkg-customer').value = '';
     document.getElementById('pkg-pick-date').value = '';
-    document.getElementById('pkg-not-shipped').checked = false;
     document.getElementById('pkg-del-btn').style.display = 'none';
   }
-  checkPkgEquipex();
   document.getElementById('pkg-modal').style.display = 'flex';
 }
 
@@ -4557,13 +4522,11 @@ function savePackRecord(){
   var pickDate = document.getElementById('pkg-pick-date').value;
   if(!pickDate){ alert('Pick Date is required.'); return; }
 
-  var notShipped = document.getElementById('pkg-not-shipped').checked;
   var record = {
-    orderNum:   orderNum,
-    customer:   document.getElementById('pkg-customer').value.trim(),
-    pickDate:   pickDate,
-    notShipped: notShipped || null,
-    updatedAt:  new Date().toISOString()
+    orderNum:  orderNum,
+    customer:  document.getElementById('pkg-customer').value.trim(),
+    pickDate:  pickDate,
+    updatedAt: new Date().toISOString()
   };
   var key = document.getElementById('pkg-edit-id').value;
   if(db){

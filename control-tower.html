@@ -870,9 +870,28 @@ function renderResults(result, raw){
   if(result.packing.length){
     var packEndDate = shpList.length ? shpList[0].date : null;
     var packDays = calcBusinessDays(pack.pickDate, packEndDate);
+    var isEquipex = (pack.customer||'').toUpperCase().includes('EQUIPEX');
+    var nextWed = '';
+    if(isEquipex && pack.pickDate){
+      var dw = new Date(pack.pickDate + 'T00:00:00');
+      var ahead = (3 - dw.getDay() + 7) % 7 || 7;
+      dw.setDate(dw.getDate() + ahead);
+      nextWed = dw.toISOString().slice(0,10);
+    }
     h += '<div class="ct-card card-warning"><div class="ct-card-title">📦 Packing & Hold</div>';
     h += '<div style="display:flex;align-items:flex-start;gap:28px;flex-wrap:wrap">';
-    if(packDays!==null) h += '<div style="text-align:center;flex-shrink:0"><div class="hold-days" style="color:#d97706">'+packDays+'</div><div class="hold-lbl">Days on Hold</div></div>';
+    if(packDays!==null){
+      h += '<div style="text-align:center;flex-shrink:0">';
+      h += '<div class="hold-days" style="color:#d97706">'+packDays+'</div>';
+      h += '<div class="hold-lbl">Days on Hold</div>';
+      if(isEquipex && nextWed){
+        h += '<div style="margin-top:10px;background:#fffbeb;border:1.5px solid #f59e0b;border-radius:6px;padding:6px 10px;text-align:left">';
+        h += '<div style="font-size:.6rem;font-weight:800;color:#92400e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Next Shipping Date</div>';
+        h += '<div style="font-size:.95rem;font-weight:900;color:#92400e">'+fmtDate(nextWed)+'</div>';
+        h += '</div>';
+      }
+      h += '</div>';
+    }
     h += '<div style="flex:1">'+infoRow('Order #',pack.orderNum)+infoRow('Customer',pack.customer)+infoRow('Pick Date',fmtDate(pack.pickDate))+'</div></div></div>';
   }
 
