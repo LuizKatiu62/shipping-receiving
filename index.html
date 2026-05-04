@@ -1675,7 +1675,7 @@ document.addEventListener('keydown', function(ev){
             <option>Generator</option>
           </select>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="itm-cust-group">
           <label>Customer</label>
           <input type="text" id="itm-cust" list="customer-suggestions" autocomplete="off" oninput="enforceUpper(this)" placeholder="Customer">
         </div>
@@ -3702,18 +3702,28 @@ function toggleItmApp(){ /* Application field removed — SO/WO fields always vi
 function toggleItmSoWo(){
   var so = (document.getElementById('itm-so').value||'').trim();
   var woEl = document.getElementById('itm-wo');
-  if(!woEl) return;
-  if(so){
-    woEl.disabled = true;
-    woEl.value = '';
-    woEl.style.background = '#f3f4f6';
-    woEl.style.color = '#9ca3af';
-    woEl.style.cursor = 'not-allowed';
-  } else {
-    woEl.disabled = false;
-    woEl.style.background = '';
-    woEl.style.color = '';
-    woEl.style.cursor = '';
+  if(woEl){
+    if(so){
+      woEl.disabled = true;
+      woEl.value = '';
+      woEl.style.background = '#f3f4f6';
+      woEl.style.color = '#9ca3af';
+      woEl.style.cursor = 'not-allowed';
+    } else {
+      woEl.disabled = false;
+      woEl.style.background = '';
+      woEl.style.color = '';
+      woEl.style.cursor = '';
+    }
+  }
+  var custGrp = document.getElementById('itm-cust-group');
+  if(custGrp){
+    if(so){
+      custGrp.style.display = 'none';
+      document.getElementById('itm-cust').value = '';
+    } else {
+      custGrp.style.display = '';
+    }
   }
 }
 
