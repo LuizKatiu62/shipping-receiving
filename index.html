@@ -1430,6 +1430,10 @@ document.addEventListener('keydown', function(ev){
           <label>Customer</label>
           <input type="text" id="shp-customer" placeholder="Customer name" list="customer-suggestions" autocomplete="off">
         </div>
+        <div class="form-group">
+          <label>Customer PO #</label>
+          <input type="text" id="shp-customer-po" placeholder="e.g. PO-12345">
+        </div>
 
         <!-- ── Orders ── -->
         <div class="form-section-header">Orders</div>
@@ -3335,8 +3339,9 @@ function openShipModal(key){
     var r = shpData[key];
     document.getElementById('shp-modal-title').textContent = 'Edit Shipment';
     document.getElementById('shp-date').value      = r.date||today();
-    document.getElementById('shp-customer').value  = r.customer||'';
-    document.getElementById('shp-outgoing').value  = r.outgoing||'';
+    document.getElementById('shp-customer').value    = r.customer||'';
+    document.getElementById('shp-customer-po').value = r.customerPO||'';
+    document.getElementById('shp-outgoing').value    = r.outgoing||'';
     document.getElementById('shp-city').value     = r.city||'';
     document.getElementById('shp-province').value = r.province||'';
     document.getElementById('shp-postal').value   = r.postalCode||'';
@@ -3366,7 +3371,7 @@ function openShipModal(key){
     document.getElementById('shp-del-btn').style.display = 'inline-flex';
   } else {
     document.getElementById('shp-modal-title').textContent = 'New Shipment';
-    ['shp-customer','shp-outgoing','shp-city','shp-province','shp-postal','shp-material-other','shp-carrier-other','shp-tracking','shp-photos-link'].forEach(function(id){ document.getElementById(id).value=''; });
+    ['shp-customer','shp-customer-po','shp-outgoing','shp-city','shp-province','shp-postal','shp-material-other','shp-carrier-other','shp-tracking','shp-photos-link'].forEach(function(id){ document.getElementById(id).value=''; });
     document.getElementById('shp-material-type').value = '';
     document.getElementById('shp-material-other-group').style.display = 'none';
     ['shp-pc','shp-lb','shp-rl','shp-weight-lb','shp-weight-kg'].forEach(function(id){ document.getElementById(id).value=''; });
@@ -3403,6 +3408,7 @@ function saveShipment(){
   var record = {
     date:         document.getElementById('shp-date').value,
     customer:     document.getElementById('shp-customer').value.trim(),
+    customerPO:   document.getElementById('shp-customer-po').value.trim(),
     outgoing:     document.getElementById('shp-outgoing').value.trim(),
     city:         document.getElementById('shp-city').value.trim(),
     province:     document.getElementById('shp-province').value.trim(),
