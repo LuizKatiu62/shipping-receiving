@@ -1356,7 +1356,7 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="form-group">
           <label>Customer</label>
-          <input type="text" id="proc-customer" list="customer-suggestions" placeholder="Customer name">
+          <input type="text" id="proc-customer" list="customer-suggestions" placeholder="Customer name" oninput="checkProcEquipex()" onchange="checkProcEquipex()">
         </div>
         <div class="form-group">
           <label>Purchase Order</label>
@@ -1368,7 +1368,11 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="form-group">
           <label>Shipping Area Received Date *</label>
-          <input type="date" id="proc-received-date" oninput="updateProcDays()">
+          <input type="date" id="proc-received-date" oninput="updateProcDays();checkProcEquipex()">
+        </div>
+        <div class="form-group" id="proc-equipex-group" style="display:none">
+          <label style="color:#b45309;font-weight:800">Next Shipping Date (Equipex)</label>
+          <input type="date" id="proc-next-ship" readonly style="background:#fffbeb;color:#92400e;font-weight:700;cursor:default;border-color:#f59e0b">
         </div>
         <div class="form-group">
           <label>Current Date</label>
@@ -4207,6 +4211,21 @@ function closeWoMatModal(){
   document.getElementById('wo-mat-modal').style.display = 'none';
 }
 
+function checkProcEquipex(){
+  var cust = (document.getElementById('proc-customer').value||'').trim().toUpperCase();
+  var isEq = cust.includes('EQUIPEX');
+  var grp  = document.getElementById('proc-equipex-group');
+  var nsd  = document.getElementById('proc-next-ship');
+  if(!isEq){ if(grp) grp.style.display='none'; if(nsd) nsd.value=''; return; }
+  if(grp) grp.style.display='';
+  var recVal = document.getElementById('proc-received-date').value;
+  if(!recVal){ if(nsd) nsd.value=''; return; }
+  var d = new Date(recVal + 'T00:00:00');
+  var daysAhead = (3 - d.getDay() + 7) % 7 || 7;
+  d.setDate(d.getDate() + daysAhead);
+  if(nsd) nsd.value = d.toISOString().slice(0,10);
+}
+
 function openProcModal(key){
   document.getElementById('proc-edit-id').value = key||'';
   document.getElementById('proc-days-badge').style.display='none';
@@ -4237,6 +4256,7 @@ function openProcModal(key){
     document.getElementById('proc-del-btn').style.display='none';
   }
   updateProcOrderFields();
+  checkProcEquipex();
   document.getElementById('proc-modal').style.display='flex';
 }
 
@@ -4249,6 +4269,8 @@ function printProcLabel(){
   var material  = document.getElementById('proc-material').value.trim();
   var recDate   = document.getElementById('proc-received-date').value;
   var picsQty   = document.getElementById('proc-pics-qty').value;
+  var nextShip  = document.getElementById('proc-next-ship').value;
+  var isEquipex = customer.toUpperCase().includes('EQUIPEX') && !!nextShip;
 
   var wo    = document.getElementById('proc-wo').value.trim();
   var so    = document.getElementById('proc-so').value.trim();
@@ -4288,6 +4310,7 @@ function printProcLabel(){
       '<div class="field"><span class="f-label">Customer PO #</span><span class="f-value">'+(po||'—')+'</span></div>'+
       '<div class="field"><span class="f-label">Received Date</span><span class="f-value">'+(recDate?fmtDate(recDate):'—')+'</span></div>'+
       '<div class="field"><span class="f-label">Pictures</span><span class="f-value">'+(picsQty?picsQty+' photo'+(picsQty!='1'?'s':''):'—')+'</span></div>'+
+      (isEquipex?'<div class="field" style="grid-column:1/-1;margin-top:5px;background:#fffbeb;border:2px solid #f59e0b;border-radius:4px;padding:4px 8px"><span class="f-label" style="color:#92400e;font-size:6.5pt">Next Shipping Date (Equipex)</span><span class="f-value" style="color:#92400e;font-size:12pt">'+fmtDate(nextShip)+'</span></div>':'')+
     '</div>'+
   '</div>'+
   '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>'+
