@@ -850,6 +850,14 @@ function renderResults(result, raw){
     var holdEndDate = shpList.length ? shpList[0].date : null;
     var holdDays = calcBusinessDays(proc.receivedDate, holdEndDate);
     var holdActive = !holdEndDate;
+    var isEqHold = (proc.customer||'').toUpperCase().includes('EQUIPEX');
+    var nextWedHold = '';
+    if(isEqHold && proc.receivedDate){
+      var dw = new Date(proc.receivedDate + 'T00:00:00');
+      var ahead = (3 - dw.getDay() + 7) % 7 || 7;
+      dw.setDate(dw.getDate() + ahead);
+      nextWedHold = dw.toISOString().slice(0,10);
+    }
     h += '<div class="ct-card card-danger"><div class="ct-card-title">⏸ Shipping On Hold</div>';
     h += '<div style="display:flex;align-items:flex-start;gap:28px;flex-wrap:wrap">';
     if(holdDays!==null){
@@ -862,6 +870,12 @@ function renderResults(result, raw){
         h += '· QA Status<br>· Missing Customer PO<br>· Waiting Pick Up';
         h += '</div>';
       }
+      if(isEqHold && nextWedHold){
+        h += '<div style="margin-top:10px;background:#fffbeb;border:1.5px solid #f59e0b;border-radius:6px;padding:6px 10px;text-align:left">';
+        h += '<div style="font-size:.6rem;font-weight:800;color:#92400e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Next Shipping Date</div>';
+        h += '<div style="font-size:.95rem;font-weight:900;color:#92400e">'+fmtDate(nextWedHold)+'</div>';
+        h += '</div>';
+      }
       h += '</div>';
     }
     h += '<div style="flex:1">'+infoRow('Date Received in Hold',fmtDate(proc.receivedDate))+infoRow('Work Order #',proc.wo)+infoRow('Customer',proc.customer)+infoRow('Customer PO #',proc.po)+infoRow('Outgoing #',proc.outgoing)+infoRow('Material',proc.material)+(proc.notes?infoRow('Notes',proc.notes):'')+'</div></div></div>';
@@ -870,28 +884,9 @@ function renderResults(result, raw){
   if(result.packing.length){
     var packEndDate = shpList.length ? shpList[0].date : null;
     var packDays = calcBusinessDays(pack.pickDate, packEndDate);
-    var isEquipex = (pack.customer||'').toUpperCase().includes('EQUIPEX');
-    var nextWed = '';
-    if(isEquipex && pack.pickDate){
-      var dw = new Date(pack.pickDate + 'T00:00:00');
-      var ahead = (3 - dw.getDay() + 7) % 7 || 7;
-      dw.setDate(dw.getDate() + ahead);
-      nextWed = dw.toISOString().slice(0,10);
-    }
     h += '<div class="ct-card card-warning"><div class="ct-card-title">📦 Packing & Hold</div>';
     h += '<div style="display:flex;align-items:flex-start;gap:28px;flex-wrap:wrap">';
-    if(packDays!==null){
-      h += '<div style="text-align:center;flex-shrink:0">';
-      h += '<div class="hold-days" style="color:#d97706">'+packDays+'</div>';
-      h += '<div class="hold-lbl">Days on Hold</div>';
-      if(isEquipex && nextWed){
-        h += '<div style="margin-top:10px;background:#fffbeb;border:1.5px solid #f59e0b;border-radius:6px;padding:6px 10px;text-align:left">';
-        h += '<div style="font-size:.6rem;font-weight:800;color:#92400e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Next Shipping Date</div>';
-        h += '<div style="font-size:.95rem;font-weight:900;color:#92400e">'+fmtDate(nextWed)+'</div>';
-        h += '</div>';
-      }
-      h += '</div>';
-    }
+    if(packDays!==null) h += '<div style="text-align:center;flex-shrink:0"><div class="hold-days" style="color:#d97706">'+packDays+'</div><div class="hold-lbl">Days on Hold</div></div>';
     h += '<div style="flex:1">'+infoRow('Order #',pack.orderNum)+infoRow('Customer',pack.customer)+infoRow('Pick Date',fmtDate(pack.pickDate))+'</div></div></div>';
   }
 
