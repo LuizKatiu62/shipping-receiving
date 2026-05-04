@@ -2045,33 +2045,42 @@ function buildAutocomplete(){
   var customers = {}, materials = {}, suppliers = {}, cities = {};
 
   // For customers: track per-variant frequency, keep the most-used variant per normalized key
-  function addC(v){
+  function addC(v, date){
     var raw = (v||'').trim(); if(!raw) return;
     var k = normCustKey(raw);
     if(!k) return;
-    if(!customers[k]){ customers[k] = { variants: {} }; }
+    if(!customers[k]){ customers[k] = { variants: {}, latest: '' }; }
     customers[k].variants[raw] = (customers[k].variants[raw] || 0) + 1;
+    if(date && date > customers[k].latest) customers[k].latest = date;
   }
-  function addM(v){ var k=normAC(v); if(k) materials[k]=k; }
-  function addS(v){ var k=normAC(v); if(k) suppliers[k]=k; }
+  function addM(v, date){
+    var k=normAC(v); if(!k) return;
+    if(!materials[k]) materials[k]={label:v.trim(),latest:''};
+    if(date && date > materials[k].latest) materials[k].latest = date;
+  }
+  function addS(v, date){
+    var k=normAC(v); if(!k) return;
+    if(!suppliers[k]) suppliers[k]={label:v.trim(),latest:''};
+    if(date && date > suppliers[k].latest) suppliers[k].latest = date;
+  }
 
   Object.values(incomingData).forEach(function(r){
-    addC(r.customer);
-    addM(r.equipment);
+    addC(r.customer, r.date);
+    addM(r.equipment, r.date);
   });
   Object.values(itemsData).forEach(function(r){
-    addC(r.customer);
-    addM(r.material);
-    addS(r.supplier);
+    addC(r.customer, r.date);
+    addM(r.material, r.date);
+    addS(r.supplier, r.date);
     (r.lineItems||[]).forEach(function(li){
-      addM(li.material);
-      addC(li.customer);
+      addM(li.material, r.date);
+      addC(li.customer, r.date);
     });
   });
   Object.values(shpData).forEach(function(r){
-    addC(r.customer);
-    addM(r.material);
-    var k=normAC(r.city); if(k) cities[k]=r.city.trim();
+    addC(r.customer, r.date);
+    addM(r.material, r.date);
+    var k=normAC(r.city); if(k) cities[k]={label:r.city.trim(), latest:r.date||''};
     // Build customer+city → postal map
     if(r.customer && r.city && r.postalCode){
       var ck=normCustKey(r.customer), cityK=normAC(r.city);
@@ -2079,11 +2088,13 @@ function buildAutocomplete(){
       custCityPostal[ck][cityK]=r.postalCode.trim();
     }
   });
-  Object.values(pkgData).forEach(function(r){ addC(r.customer); });
-  Object.values(procData).forEach(function(r){ addC(r.customer); });
-  Object.values(subData).forEach(function(r){ addC(r.customer); });
+  Object.values(pkgData).forEach(function(r){ addC(r.customer, r.pickDate||r.createdAt||''); });
+  Object.values(procData).forEach(function(r){ addC(r.customer, r.receivedDate||''); });
+  Object.values(subData).forEach(function(r){ addC(r.customer, r.shipDate||''); });
 
-  var custList = Object.values(customers).map(function(e){
+  function sortByLatest(arr){ return arr.slice().sort(function(a,b){ return (b.latest||'').localeCompare(a.latest||''); }); }
+
+  var custList = sortByLatest(Object.values(customers)).map(function(e){
     var best = '', bestCnt = 0;
     Object.keys(e.variants).forEach(function(v){
       if(e.variants[v] > bestCnt){ bestCnt = e.variants[v]; best = v; }
@@ -2091,17 +2102,17 @@ function buildAutocomplete(){
     return best;
   });
   setDatalist('customer-suggestions', custList);
-  setDatalist('material-suggestions', Object.values(materials));
-  setDatalist('supplier-suggestions', Object.values(suppliers));
+  setDatalist('material-suggestions', sortByLatest(Object.values(materials)).map(function(e){ return e.label; }));
+  setDatalist('supplier-suggestions', sortByLatest(Object.values(suppliers)).map(function(e){ return e.label; }));
 
   // Merge historical cities into existing city datalist
   var cityDl = document.getElementById('city-list');
   if(cityDl){
     var existing = Array.from(cityDl.options).map(function(o){ return o.value.toUpperCase(); });
     Object.values(cities).forEach(function(c){
-      if(!existing.includes(c.toUpperCase())){
+      if(!existing.includes(c.label.toUpperCase())){
         var opt = document.createElement('option');
-        opt.value = c;
+        opt.value = c.label;
         cityDl.appendChild(opt);
       }
     });
@@ -2111,7 +2122,7 @@ function buildAutocomplete(){
 function setDatalist(id, values){
   var dl = document.getElementById(id);
   if(!dl) return;
-  dl.innerHTML = values.filter(Boolean).sort().map(function(v){
+  dl.innerHTML = values.filter(Boolean).map(function(v){
     return '<option value="'+v.replace(/"/g,'&quot;')+'">'+v+'</option>';
   }).join('');
 }
