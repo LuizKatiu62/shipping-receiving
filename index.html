@@ -3700,11 +3700,12 @@ function toggleItmApp(){
   if(wg) wg.style.display = val==='Work Order'  ? 'flex' : 'none';
   if(val!=='Sales Order' && document.getElementById('itm-so')) document.getElementById('itm-so').value='';
   if(val!=='Work Order'  && document.getElementById('itm-wo')) document.getElementById('itm-wo').value='';
-  var isSO = val==='Sales Order';
+  var isSO    = val==='Sales Order';
+  var isStock = val==='Stock';
   var areaEl = document.getElementById('itm-area');
   var custEl = document.getElementById('itm-cust');
   if(areaEl){ areaEl.disabled = isSO; areaEl.style.opacity = isSO?'.4':'1'; if(isSO) areaEl.value=''; }
-  if(custEl){ custEl.disabled = isSO; custEl.style.opacity = isSO?'.4':'1'; if(isSO) custEl.value=''; }
+  if(custEl){ custEl.disabled = isSO||isStock; custEl.style.opacity = (isSO||isStock)?'.4':'1'; if(isSO||isStock) custEl.value=''; }
 }
 
 function autoFillWoData(i){ /* WO# now lives in header field itm-wo — no per-row lookup needed */ }
