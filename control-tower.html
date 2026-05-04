@@ -229,6 +229,12 @@ body>*{position:relative;z-index:1}
 .auth-link{background:none;border:none;color:#2563eb;cursor:pointer;font-size:.8rem;font-weight:700;font-family:inherit;text-decoration:underline;padding:0}
 .auth-error{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:8px;padding:10px 13px;font-size:.79rem;font-weight:600;margin-bottom:14px;display:none}
 .auth-footer{display:flex;justify-content:center;gap:6px;align-items:center;margin-top:18px;font-size:.78rem;color:#94a3b8}
+input[type="text"]:not([data-nocase]),
+input[type="search"]:not([data-nocase]),
+input:not([type]):not([data-nocase]),
+textarea:not([data-nocase]){
+  text-transform:uppercase;
+}
 </style>
 </head>
 <body>
@@ -1229,6 +1235,18 @@ function downloadOmsExcel(){
 
   XLSX.writeFile(wb, 'OMS-'+periodLabel+'.xlsx');
 }
+// Convert all text/search/textarea inputs to uppercase (value, not just display)
+document.addEventListener('input', function(e){
+  var t = e.target;
+  if(t.dataset.nocase !== undefined) return;
+  if(t.type === 'email' || t.type === 'password' || t.type === 'number' || t.type === 'date') return;
+  if(t.tagName === 'INPUT' && (t.type === 'text' || t.type === 'search' || !t.type) ||
+     t.tagName === 'TEXTAREA'){
+    var pos = t.selectionStart, end = t.selectionEnd;
+    t.value = t.value.toUpperCase();
+    try{ t.setSelectionRange(pos, end); }catch(err){}
+  }
+});
 </script>
 </body>
 </html>

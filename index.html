@@ -1618,11 +1618,11 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="form-group">
           <label>PO #</label>
-          <input type="text" id="itm-po" placeholder="Purchase Order #">
+          <input type="text" id="itm-po" placeholder="Purchase Order #" oninput="toggleItmPoTransfer()">
         </div>
-        <div class="form-group">
+        <div class="form-group" id="itm-transfer-group">
           <label>Transfer #</label>
-          <input type="text" id="itm-transfer" placeholder="Transfer #">
+          <input type="text" id="itm-transfer" placeholder="Transfer #" oninput="toggleItmPoTransfer()">
         </div>
         <div class="form-group">
           <label>Date</label>
@@ -1659,6 +1659,7 @@ document.addEventListener('keydown', function(ev){
             <option value="">— Select —</option>
             <option value="Sales Order">Sales Order</option>
             <option value="Work Order">Work Order</option>
+            <option value="Stock">Stock</option>
           </select>
         </div>
         <div class="form-group" id="itm-so-group" style="display:none">
@@ -2048,16 +2049,13 @@ var custCityPostal = {}; // normCustKey(customer) → { normCity → postalCode 
 function buildAutocomplete(){
   var customers = {}, materials = {}, suppliers = {}, cities = {};
 
-  // For customers: use deduplicated key, keep the "best" (shortest clean) label
+  // For customers: track per-variant frequency, keep the most-used variant per normalized key
   function addC(v){
     var raw = (v||'').trim(); if(!raw) return;
     var k = normCustKey(raw);
     if(!k) return;
-    var existing = customers[k];
-    // Prefer the version without leading/trailing punctuation and fewer dots
-    if(!existing || raw.replace(/\./g,'').length < existing.replace(/\./g,'').length){
-      customers[k] = raw;
-    }
+    if(!customers[k]){ customers[k] = { variants: {} }; }
+    customers[k].variants[raw] = (customers[k].variants[raw] || 0) + 1;
   }
   function addM(v){ var k=normAC(v); if(k) materials[k]=k; }
   function addS(v){ var k=normAC(v); if(k) suppliers[k]=k; }
@@ -2090,7 +2088,14 @@ function buildAutocomplete(){
   Object.values(procData).forEach(function(r){ addC(r.customer); });
   Object.values(subData).forEach(function(r){ addC(r.customer); });
 
-  setDatalist('customer-suggestions', Object.values(customers));
+  var custList = Object.values(customers).map(function(e){
+    var best = '', bestCnt = 0;
+    Object.keys(e.variants).forEach(function(v){
+      if(e.variants[v] > bestCnt){ bestCnt = e.variants[v]; best = v; }
+    });
+    return best;
+  });
+  setDatalist('customer-suggestions', custList);
   setDatalist('material-suggestions', Object.values(materials));
   setDatalist('supplier-suggestions', Object.values(suppliers));
 
@@ -3680,6 +3685,13 @@ function toggleLineStock(i){
   }
 }
 
+function toggleItmPoTransfer(){
+  var po  = (document.getElementById('itm-po').value||'').trim();
+  var tg  = document.getElementById('itm-transfer-group');
+  if(tg) tg.style.display = po ? 'none' : '';
+  if(po && document.getElementById('itm-transfer')) document.getElementById('itm-transfer').value='';
+}
+
 function toggleItmApp(){
   var val = document.getElementById('itm-app').value;
   var sg  = document.getElementById('itm-so-group');
@@ -3754,6 +3766,7 @@ function openItemModal(key){
     document.getElementById('itm-area').value  = first.area||'';
     document.getElementById('itm-cust').value  = first.customer||'';
     toggleItmApp();
+    toggleItmPoTransfer();
     document.getElementById('itm-del-btn').style.display='inline-flex';
   } else {
     document.getElementById('itm-modal-title').textContent = 'New Incoming Item';
@@ -3767,6 +3780,7 @@ function openItemModal(key){
     document.getElementById('itm-area').value = '';
     document.getElementById('itm-cust').value = '';
     toggleItmApp();
+    toggleItmPoTransfer();
     itmLines = [{material:'',pc:'',lb:'',rl:'',binLocation:'',binStock:''}];
     document.getElementById('itm-del-btn').style.display='none';
   }
@@ -5029,6 +5043,20 @@ function exportIncomingCSV(){
     <div style="overflow-y:auto;padding:16px 22px" id="wo-mat-body"></div>
   </div>
 </div>
+<script>
+// Convert all text/search/textarea inputs to uppercase (value, not just display)
+document.addEventListener('input', function(e){
+  var t = e.target;
+  if(t.dataset.nocase !== undefined) return;
+  if(t.type === 'email' || t.type === 'password' || t.type === 'number' || t.type === 'date') return;
+  if(t.tagName === 'INPUT' && (t.type === 'text' || t.type === 'search' || !t.type) ||
+     t.tagName === 'TEXTAREA'){
+    var pos = t.selectionStart, end = t.selectionEnd;
+    t.value = t.value.toUpperCase();
+    try{ t.setSelectionRange(pos, end); }catch(err){}
+  }
+});
+</script>
 </body>
 </html>
 
@@ -5044,6 +5072,12 @@ function exportIncomingCSV(){
 td:has(.act-cell) {
   overflow: visible;      /* ⬅️ Impede que a tabela corte os botões */
   white-space: nowrap;
+}
+input[type="text"]:not([data-nocase]),
+input[type="search"]:not([data-nocase]),
+input:not([type]):not([data-nocase]),
+textarea:not([data-nocase]){
+  text-transform:uppercase;
 }
 </style>
 
