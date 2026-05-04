@@ -4999,7 +4999,9 @@ function sendWipEmail(){
     return b;
   })();
 
-  var mailto = 'mailto:' + notif.to
+  // Convert ; or , separated addresses to RFC comma-separated for mailto URL
+  var toAddrs = notif.to.split(/[;,]/).map(function(a){ return a.trim(); }).filter(Boolean).join(',');
+  var mailto = 'mailto:' + toAddrs
     + '?subject=' + encodeURIComponent(subject)
     + '&body='    + encodeURIComponent(body);
 
