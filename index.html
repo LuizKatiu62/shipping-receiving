@@ -3928,12 +3928,14 @@ function findProcShipDate(r){
   var wo = (r.wo||'').trim().toUpperCase();
   var so = (r.so||'').trim().toUpperCase();
   if(!wo && !so) return null;
+  var todayStr = today();
   var found = null;
   Object.values(shpData).forEach(function(shp){
+    if(!shp.date || shp.date > todayStr) return;
     var hit = false;
     if(wo) hit = hit||(shp.workOrders||[]).some(function(w){ return (w||'').trim().toUpperCase()===wo; });
     if(so) hit = hit||(shp.salesOrders||[]).some(function(s){ return (s||'').trim().toUpperCase()===so; });
-    if(hit && (!found||(shp.date&&shp.date<found))) found = shp.date||null;
+    if(hit && (!found||shp.date<found)) found = shp.date;
   });
   return found;
 }
@@ -4450,11 +4452,13 @@ function daysOnHoldBadge(days, frozen){
 function findPkgShipDate(orderNum){
   if(!orderNum) return null;
   var num = orderNum.trim().toUpperCase();
+  var todayStr = today();
   var found = null;
   Object.values(shpData).forEach(function(r){
+    if(!r.date || r.date > todayStr) return;
     var all = [].concat(r.salesOrders||[], r.transferNums||[], r.workOrders||[]);
     if(all.some(function(o){ return (o||'').trim().toUpperCase()===num; })){
-      if(!found || (r.date && r.date < found)) found = r.date||null;
+      if(!found || r.date < found) found = r.date;
     }
   });
   return found;
