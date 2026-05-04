@@ -882,6 +882,10 @@ document.addEventListener('keydown', function(ev){
           <input type="text" id="inc-prev-wo" placeholder="e.g. WO-2023-050" maxlength="7">
         </div>
         <div class="form-group">
+          <label>Customer PO #</label>
+          <input type="text" id="inc-customer-po" placeholder="e.g. PO-12345">
+        </div>
+        <div class="form-group">
           <label>Date</label>
           <input type="date" id="inc-date">
         </div>
@@ -2255,6 +2259,7 @@ function openIncomingModal(key){
     document.getElementById('inc-form-num').value    = r.formNum||'';
     document.getElementById('inc-wo').value           = r.wo||'';
     document.getElementById('inc-prev-wo').value      = r.prevWo||'';
+    document.getElementById('inc-customer-po').value  = r.customerPO||'';
     document.getElementById('inc-date').value         = r.date||today();
     document.getElementById('inc-customer').value     = r.customer||'';
     document.getElementById('inc-area').value         = r.area||'';
@@ -2298,7 +2303,7 @@ function openIncomingModal(key){
     delBtn.style.display = 'inline-flex';
   } else {
     document.getElementById('inc-modal-title').textContent = 'New Incoming Form';
-    ['inc-form-num','inc-wo','inc-prev-wo','inc-customer',
+    ['inc-form-num','inc-wo','inc-prev-wo','inc-customer-po','inc-customer',
      'inc-manufacturer','inc-model','inc-serial','inc-typesize',
      'inc-hp','inc-rpm','inc-frame','inc-custstock','inc-kw','inc-otherdata',
      'inc-equip-other','inc-bench-name','inc-notes','inc-photos-link'].forEach(function(id){
@@ -2330,6 +2335,7 @@ function saveIncoming(){
   var formNum      = document.getElementById('inc-form-num').value.trim();
   var wo           = document.getElementById('inc-wo').value.trim();
   var prevWo       = document.getElementById('inc-prev-wo').value.trim();
+  var customerPO   = document.getElementById('inc-customer-po').value.trim();
   var date         = document.getElementById('inc-date').value;
   var customer     = document.getElementById('inc-customer').value.trim();
   var equipmentType = document.getElementById('inc-equip-type').value;
@@ -2363,7 +2369,7 @@ function saveIncoming(){
   if(!equipment){ alert('Equipment Description is required.'); return; }
 
   var record = {
-    formNum, wo, prevWo, date, customer, equipment, equipmentType, area,
+    formNum, wo, prevWo, customerPO, date, customer, equipment, equipmentType, area,
     manufacturer, modelNumber, serialNumber, typeSize, hp, rpm, frame, customerStockNumber, kw, otherData,
     designatedLocation, benchName, picsQty, picsTime,
     whatToDo, deliveryBy, receivedBy, notes, photosLink,
