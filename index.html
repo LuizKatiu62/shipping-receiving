@@ -316,8 +316,9 @@ body.readonly-mode #app-loading{display:none!important}
 
 /* ── PAYMENTS OPEN OVERRIDE (beats readonly-mode !important) ── */
 body.readonly-mode.payments-open .main{display:block!important}
-body.readonly-mode.payments-open .nav-tabs{display:flex!important}
+body.readonly-mode.payments-open .nav-tabs{display:none!important}
 body.readonly-mode.payments-open #viewer-portal{display:none!important}
+body.readonly-mode.payments-open #payments-back-bar{display:flex!important}
 
 /* ── VIEWER PORTAL ── */
 #viewer-portal{display:none;align-items:center;justify-content:center;min-height:calc(100vh - 72px);padding:40px 24px;background:var(--bg);position:relative;overflow:hidden}
@@ -521,13 +522,13 @@ document.addEventListener('keydown', function(ev){
     <div class="vp-heading">EPS Shipping &amp; Receiving</div>
     <div class="vp-sub">Select a tool to get started</div>
     <div class="vp-grid">
-      <a href="control-tower.html#overview" target="sa-control" class="vp-card vp-card-tower">
+      <a href="control-tower.html#overview" class="vp-card vp-card-tower">
         <div class="vp-icon">🔍</div>
         <div class="vp-card-name">Order Lookup</div>
         <div class="vp-card-desc">Search by Work Order, Sales Order or Incoming # — full order details, components, hold status and shipping history</div>
         <div class="vp-arrow">→</div>
       </a>
-      <a href="control-tower.html#oms" target="sa-control" class="vp-card vp-card-oms">
+      <a href="control-tower.html#oms" class="vp-card vp-card-oms">
         <div class="vp-icon">📋</div>
         <div class="vp-card-name">Overview List</div>
         <div class="vp-card-desc">Browse Incoming Forms, WIP components and Shipping activity — filter by year, month and day</div>
@@ -539,7 +540,7 @@ document.addEventListener('keydown', function(ev){
         <div class="vp-card-desc">View and manage daily payment records — cash, cheque, card and debit transactions</div>
         <div class="vp-arrow">→</div>
       </div>
-      <a href="stats.html" target="sa-dashboard" class="vp-card vp-card-dash">
+      <a href="stats.html" class="vp-card vp-card-dash">
         <div class="vp-icon">📊</div>
         <div class="vp-card-name">Dashboard</div>
         <div class="vp-card-desc">Operations overview — shipping volume, top carriers and monthly trends</div>
@@ -547,6 +548,12 @@ document.addEventListener('keydown', function(ev){
       </a>
     </div>
   </div>
+</div>
+
+<!-- PAYMENTS BACK BAR (only visible in payments-open mode) -->
+<div id="payments-back-bar" style="display:none;align-items:center;gap:14px;padding:12px 24px;background:var(--surface,#fff);border-bottom:1px solid var(--border,#e2e8f0);position:sticky;top:0;z-index:100">
+  <button onclick="closePaymentsPortal()" style="background:#f1f5f9;border:1px solid #e2e8f0;color:#475569;padding:7px 16px;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit">← Back</button>
+  <span style="font-size:.88rem;font-weight:700;color:var(--text,#0f172a)">💰 Payments</span>
 </div>
 
 <!-- MAIN CONTENT -->
@@ -1784,6 +1791,9 @@ function canAccessPayments(email){
 function openPaymentsPortal(){
   document.body.classList.add('payments-open');
   gotoSection('payments');
+}
+function closePaymentsPortal(){
+  document.body.classList.remove('payments-open');
 }
 
 function processAuthUser(user){
