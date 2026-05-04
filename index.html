@@ -1428,7 +1428,7 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="form-group">
           <label>Customer</label>
-          <input type="text" id="shp-customer" placeholder="Customer name" list="customer-suggestions" autocomplete="off">
+          <input type="text" id="shp-customer" placeholder="Customer name" list="customer-suggestions" autocomplete="off" oninput="setTimeout(lookupPostalFromCustomer,0)" onchange="setTimeout(lookupPostalFromCustomer,0)">
         </div>
         <div class="form-group">
           <label>Customer PO #</label>
@@ -1533,7 +1533,7 @@ document.addEventListener('keydown', function(ev){
 
         <div class="form-group">
           <label>City</label>
-          <input type="text" id="shp-city" placeholder="City" oninput="setTimeout(lookupCityProvince,0)" onchange="setTimeout(lookupCityProvince,0)" list="city-list" autocomplete="off">
+          <input type="text" id="shp-city" placeholder="City" oninput="setTimeout(lookupCityProvince,0);setTimeout(lookupPostalFromCustomer,0)" onchange="setTimeout(lookupCityProvince,0);setTimeout(lookupPostalFromCustomer,0)" list="city-list" autocomplete="off">
           <datalist id="city-list"></datalist>
         </div>
         <div class="form-group">
@@ -2040,11 +2040,25 @@ function getGreeting(name){
 
 // ── AUTOCOMPLETE FROM HISTORY ──
 function normAC(s){ return (s||'').trim().toUpperCase(); }
+// Dedup key: strip punctuation+extra spaces so "A.V. Group" === "AV Group"
+function normCustKey(s){ return normAC(s).replace(/[.\-,&']/g,'').replace(/\s+/g,' ').trim(); }
+
+var custCityPostal = {}; // normCustKey(customer) → { normCity → postalCode }
 
 function buildAutocomplete(){
   var customers = {}, materials = {}, suppliers = {}, cities = {};
 
-  function addC(v){ var k=normAC(v); if(k) customers[k]=k; }
+  // For customers: use deduplicated key, keep the "best" (shortest clean) label
+  function addC(v){
+    var raw = (v||'').trim(); if(!raw) return;
+    var k = normCustKey(raw);
+    if(!k) return;
+    var existing = customers[k];
+    // Prefer the version without leading/trailing punctuation and fewer dots
+    if(!existing || raw.replace(/\./g,'').length < existing.replace(/\./g,'').length){
+      customers[k] = raw;
+    }
+  }
   function addM(v){ var k=normAC(v); if(k) materials[k]=k; }
   function addS(v){ var k=normAC(v); if(k) suppliers[k]=k; }
 
@@ -2065,6 +2079,12 @@ function buildAutocomplete(){
     addC(r.customer);
     addM(r.material);
     var k=normAC(r.city); if(k) cities[k]=r.city.trim();
+    // Build customer+city → postal map
+    if(r.customer && r.city && r.postalCode){
+      var ck=normCustKey(r.customer), cityK=normAC(r.city);
+      if(!custCityPostal[ck]) custCityPostal[ck]={};
+      custCityPostal[ck][cityK]=r.postalCode.trim();
+    }
   });
   Object.values(pkgData).forEach(function(r){ addC(r.customer); });
   Object.values(procData).forEach(function(r){ addC(r.customer); });
@@ -2980,6 +3000,17 @@ function lookupCityProvince(){
       }).join('');
     picker.style.display = 'flex';
   }
+}
+
+function lookupPostalFromCustomer(){
+  var postalEl = document.getElementById('shp-postal');
+  if(!postalEl || postalEl.value.trim()) return; // don't overwrite existing
+  var cust = (document.getElementById('shp-customer')||{}).value||'';
+  var city = (document.getElementById('shp-city')||{}).value||'';
+  if(!cust || !city) return;
+  var ck = normCustKey(cust), cityK = normAC(city);
+  var map = custCityPostal[ck];
+  if(map && map[cityK]){ postalEl.value = map[cityK]; }
 }
 
 function checkShpOutgoing(){
