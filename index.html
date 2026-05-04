@@ -1209,6 +1209,12 @@ document.addEventListener('keydown', function(ev){
           <div id="pkg-days-badge" style="display:none"></div>
           <div id="pkg-days-pending" style="font-size:.82rem;color:#9ca3af;font-style:italic">Pick a pick date to calculate</div>
         </div>
+        <div class="full" style="display:flex;align-items:center;gap:10px;padding:4px 0">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.8rem;font-weight:700;color:#b91c1c;user-select:none">
+            <input type="checkbox" id="pkg-not-shipped" style="width:16px;height:16px;accent-color:#b91c1c;cursor:pointer">
+            Override: Not shipped yet (ignore automatic shipping detection)
+          </label>
+        </div>
 
       </div>
       <div class="form-actions">
@@ -4426,7 +4432,7 @@ function renderPacking(){
   if(!yr && !mo && !dy){
     var curYM = today().slice(0,7);
     rows = rows.filter(function(r){
-      var sd = findPkgShipDate(r.orderNum);
+      var sd = r.notShipped ? null : findPkgShipDate(r.orderNum);
       return !sd || sd.slice(0,7) >= curYM;
     });
   }
@@ -4442,7 +4448,7 @@ function renderPacking(){
     renderPkgStats(rows); return;
   }
   tbody.innerHTML = pkgFiltered.map(function(r){
-    var shipDate = findPkgShipDate(r.orderNum);
+    var shipDate = r.notShipped ? null : findPkgShipDate(r.orderNum);
     var frozen   = !!shipDate;
     var endDate  = frozen ? shipDate : today();
     var days     = calcDaysOnHold(r.pickDate, endDate);
@@ -4463,12 +4469,12 @@ function renderPacking(){
 
 function renderPkgStats(rows){
   var total   = rows.length;
-  var shipped = rows.filter(function(r){ return !!findPkgShipDate(r.orderNum); }).length;
+  var shipped = rows.filter(function(r){ return !r.notShipped && !!findPkgShipDate(r.orderNum); }).length;
   var onHold  = total - shipped;
   var avgDays = 0;
   if(total){
     avgDays = Math.round(rows.reduce(function(s,r){
-      var sd = findPkgShipDate(r.orderNum);
+      var sd = r.notShipped ? null : findPkgShipDate(r.orderNum);
       return s + (calcDaysOnHold(r.pickDate, sd||today())||0);
     },0)/total);
   }
@@ -4527,6 +4533,7 @@ function openPackModal(key){
     document.getElementById('pkg-order').value    = r.orderNum||'';
     document.getElementById('pkg-customer').value = r.customer||'';
     document.getElementById('pkg-pick-date').value = r.pickDate||'';
+    document.getElementById('pkg-not-shipped').checked = !!r.notShipped;
     document.getElementById('pkg-del-btn').style.display = '';
     updateDaysOnHold();
   } else {
@@ -4534,6 +4541,7 @@ function openPackModal(key){
     document.getElementById('pkg-order').value    = '';
     document.getElementById('pkg-customer').value = '';
     document.getElementById('pkg-pick-date').value = '';
+    document.getElementById('pkg-not-shipped').checked = false;
     document.getElementById('pkg-del-btn').style.display = 'none';
   }
   checkPkgEquipex();
@@ -4549,11 +4557,13 @@ function savePackRecord(){
   var pickDate = document.getElementById('pkg-pick-date').value;
   if(!pickDate){ alert('Pick Date is required.'); return; }
 
+  var notShipped = document.getElementById('pkg-not-shipped').checked;
   var record = {
-    orderNum:  orderNum,
-    customer:  document.getElementById('pkg-customer').value.trim(),
-    pickDate:  pickDate,
-    updatedAt: new Date().toISOString()
+    orderNum:   orderNum,
+    customer:   document.getElementById('pkg-customer').value.trim(),
+    pickDate:   pickDate,
+    notShipped: notShipped || null,
+    updatedAt:  new Date().toISOString()
   };
   var key = document.getElementById('pkg-edit-id').value;
   if(db){
