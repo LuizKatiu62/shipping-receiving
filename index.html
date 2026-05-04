@@ -4276,7 +4276,7 @@ function printPackLabel(){
   var currDate  = today();
   var days      = calcDaysOnHold(pickDate);
   var nextShip  = document.getElementById('pkg-next-ship').value;
-  var isEquipex = !!(document.getElementById('pkg-equipex-group').style.display !== 'none' && nextShip);
+  var isEquipex = customer.toUpperCase().includes('EQUIPEX') && !!nextShip;
 
   var daysBg = days === null ? '#1565c0'
              : days > 30 ? '#c62828'
@@ -4402,11 +4402,13 @@ function daysOnHoldBadge(days, frozen){
 function findPkgShipDate(orderNum){
   if(!orderNum) return null;
   var num = orderNum.trim().toUpperCase();
+  var todayStr = today();
   var found = null;
   Object.values(shpData).forEach(function(r){
+    if(!r.date || r.date > todayStr) return; // ignore future-dated shipping records
     var all = [].concat(r.salesOrders||[], r.transferNums||[], r.workOrders||[]);
     if(all.some(function(o){ return (o||'').trim().toUpperCase()===num; })){
-      if(!found || (r.date && r.date < found)) found = r.date||null;
+      if(!found || r.date < found) found = r.date;
     }
   });
   return found;
