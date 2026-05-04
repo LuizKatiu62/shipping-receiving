@@ -2033,6 +2033,11 @@ function getGreeting(name){
   var salut = h < 12 ? 'Bom dia' : h < 18 ? 'Boa Tarde' : 'Boa Noite';
   return name ? salut + ', ' + name + '!' : salut + '!';
 }
+function getGreetingEn(name){
+  var h = new Date().getHours();
+  var salut = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  return name ? salut + ', ' + name + '!' : salut + '!';
+}
 
 // ── AUTOCOMPLETE FROM HISTORY ──
 function normAC(s){ return (s||'').trim().toUpperCase(); }
@@ -4918,7 +4923,7 @@ function sendPayEmail(){
   var subject = 'Payment Received — '+r.method+' — '+fmtMoney(r.amount);
   if(r.orderType && r.orderNum) subject += ' — '+r.orderType+' #'+r.orderNum;
 
-  var body = getGreeting('Christine') + '\n\n';
+  var body = getGreetingEn('Christine') + '\n\n';
   body += 'A payment has been received with the following details:\n\n';
   body += 'Date:           ' + r.date + '\n';
   body += 'Amount:         ' + fmtMoney(r.amount) + '\n';
