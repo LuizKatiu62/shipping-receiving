@@ -1657,20 +1657,11 @@ document.addEventListener('keydown', function(ev){
           <input type="text" id="itm-reqby-other" placeholder="Type the name">
         </div>
         <div class="form-section-header">Order Details</div>
-        <div class="form-group">
-          <label>Application</label>
-          <select id="itm-app" onchange="toggleItmApp()">
-            <option value="">— Select —</option>
-            <option value="Sales Order">Sales Order</option>
-            <option value="Work Order">Work Order</option>
-            <option value="Stock">Stock</option>
-          </select>
-        </div>
-        <div class="form-group" id="itm-so-group" style="display:none">
+        <div class="form-group" id="itm-so-group">
           <label>Sales Order #</label>
           <input type="text" id="itm-so" oninput="enforceUpper(this)" placeholder="SO #">
         </div>
-        <div class="form-group" id="itm-wo-group" style="display:none">
+        <div class="form-group" id="itm-wo-group">
           <label>Work Order #</label>
           <input type="text" id="itm-wo" maxlength="7" oninput="enforceUpper(this)" placeholder="WO #">
         </div>
@@ -2532,9 +2523,9 @@ function printItemWipLabel(i){
 
 function printItemGenericLabel(i){
   var binType  = document.getElementById('itm-l'+i+'-bin').value;
-  var app      = document.getElementById('itm-app').value;
   var so       = document.getElementById('itm-so').value.trim();
   var wo       = document.getElementById('itm-wo').value.trim();
+  var app      = so ? 'Sales Order' : wo ? 'Work Order' : '';
   var area     = document.getElementById('itm-area').value;
   var material = document.getElementById('itm-l'+i+'-mat').value.trim();
   var customer = document.getElementById('itm-cust').value.trim();
@@ -3680,13 +3671,7 @@ function toggleLineStock(i){
   if(wipBtn)   wipBtn.style.display   = val==='WIP'   ? 'block' : 'none';
   var showLabel = val!=='' && val!=='Stock' && val!=='WIP';
   if(labelBtn) labelBtn.style.display = showLabel ? 'block' : 'none';
-  var hdrApp = document.getElementById('itm-app');
-  if(val==='WIP' && hdrApp && hdrApp.value!=='Work Order'){
-    hdrApp.value='Work Order'; toggleItmApp();
-  }
-  if(val==='NOBIN' && hdrApp && !hdrApp.value){
-    hdrApp.value='Sales Order'; toggleItmApp();
-  }
+  // No app dropdown anymore — SO/WO fields are always visible
 }
 
 function toggleItmPoTransfer(){
@@ -3696,21 +3681,7 @@ function toggleItmPoTransfer(){
   if(po && document.getElementById('itm-transfer')) document.getElementById('itm-transfer').value='';
 }
 
-function toggleItmApp(){
-  var val = document.getElementById('itm-app').value;
-  var sg  = document.getElementById('itm-so-group');
-  var wg  = document.getElementById('itm-wo-group');
-  if(sg) sg.style.display = val==='Sales Order' ? 'flex' : 'none';
-  if(wg) wg.style.display = val==='Work Order'  ? 'flex' : 'none';
-  if(val!=='Sales Order' && document.getElementById('itm-so')) document.getElementById('itm-so').value='';
-  if(val!=='Work Order'  && document.getElementById('itm-wo')) document.getElementById('itm-wo').value='';
-  var isSO    = val==='Sales Order';
-  var isStock = val==='Stock';
-  var areaEl = document.getElementById('itm-area');
-  var custEl = document.getElementById('itm-cust');
-  if(areaEl){ areaEl.disabled = isSO; areaEl.style.opacity = isSO?'.4':'1'; if(isSO) areaEl.value=''; }
-  if(custEl){ custEl.disabled = isSO||isStock; custEl.style.opacity = (isSO||isStock)?'.4':'1'; if(isSO||isStock) custEl.value=''; }
-}
+function toggleItmApp(){ /* Application field removed — SO/WO fields always visible */ }
 
 function autoFillWoData(i){ /* WO# now lives in header field itm-wo — no per-row lookup needed */ }
 
@@ -3765,12 +3736,10 @@ function openItemModal(key){
     itmLines = (r.lineItems||[]).map(function(li){ return Object.assign({},li); });
     // Populate header-level order fields from first line item
     var first = itmLines[0]||{};
-    document.getElementById('itm-app').value   = first.applicationType||'';
     document.getElementById('itm-so').value    = first.salesOrderNum||'';
     document.getElementById('itm-wo').value    = first.workOrderNum||'';
     document.getElementById('itm-area').value  = first.area||'';
     document.getElementById('itm-cust').value  = first.customer||'';
-    toggleItmApp();
     toggleItmPoTransfer();
     document.getElementById('itm-del-btn').style.display='inline-flex';
   } else {
@@ -3779,12 +3748,10 @@ function openItemModal(key){
     document.getElementById('itm-reqby').value = '';
     document.getElementById('itm-reqby-other').value = '';
     document.getElementById('itm-reqby-other-group').style.display = 'none';
-    document.getElementById('itm-app').value  = '';
     document.getElementById('itm-so').value   = '';
     document.getElementById('itm-wo').value   = '';
     document.getElementById('itm-area').value = '';
     document.getElementById('itm-cust').value = '';
-    toggleItmApp();
     toggleItmPoTransfer();
     itmLines = [{material:'',pc:'',lb:'',rl:'',binLocation:'',binStock:''}];
     document.getElementById('itm-del-btn').style.display='none';
@@ -3807,16 +3774,16 @@ function saveItem(){
   if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var docNum = document.getElementById('itm-doc').value.trim();
   if(!docNum){ alert('Document # is required.'); return; }
-  var docApp  = document.getElementById('itm-app').value;
   var docSO   = document.getElementById('itm-so').value.trim();
   var docWO   = document.getElementById('itm-wo').value.trim();
+  var docApp  = docSO ? 'Sales Order' : docWO ? 'Work Order' : '';
   var docArea = document.getElementById('itm-area').value;
   var docCust = document.getElementById('itm-cust').value.trim();
   var lineItems = readLineItems().map(function(li){
     return Object.assign({}, li, {
       applicationType: docApp,
-      salesOrderNum:   docApp==='Sales Order' ? docSO : '',
-      workOrderNum:    docApp==='Work Order'  ? docWO : '',
+      salesOrderNum:   docSO,
+      workOrderNum:    docWO,
       area:            docArea,
       customer:        docCust
     });
