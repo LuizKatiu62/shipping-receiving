@@ -4270,11 +4270,13 @@ function printProcLabel(){
 }
 
 function printPackLabel(){
-  var orderNum = document.getElementById('pkg-order').value.trim();
-  var customer = document.getElementById('pkg-customer').value.trim();
-  var pickDate = document.getElementById('pkg-pick-date').value;
-  var currDate = today();
-  var days     = calcDaysOnHold(pickDate);
+  var orderNum  = document.getElementById('pkg-order').value.trim();
+  var customer  = document.getElementById('pkg-customer').value.trim();
+  var pickDate  = document.getElementById('pkg-pick-date').value;
+  var currDate  = today();
+  var days      = calcDaysOnHold(pickDate);
+  var nextShip  = document.getElementById('pkg-next-ship').value;
+  var isEquipex = !!(document.getElementById('pkg-equipex-group').style.display !== 'none' && nextShip);
 
   var daysBg = days === null ? '#1565c0'
              : days > 30 ? '#c62828'
@@ -4315,6 +4317,7 @@ function printPackLabel(){
       '<div class="field"><span class="f-label">Pick Date</span><span class="f-value">'+(pickDate?fmtDate(pickDate):'—')+'</span></div>'+
       '<div class="field"><span class="f-label">Days on Hold</span><span class="f-value"><span class="days-val">'+daysText+'</span></span></div>'+
       '<div class="field"><span class="f-label">Printed</span><span class="f-value">'+(fmtDate(currDate))+'</span></div>'+
+      (isEquipex?'<div class="field" style="grid-column:1/-1;margin-top:4px;background:#fffbeb;border:1.5px solid #f59e0b;border-radius:4px;padding:3px 6px"><span class="f-label" style="color:#92400e">Next Shipping Date (Equipex)</span><span class="f-value" style="color:#92400e;font-size:11pt">'+fmtDate(nextShip)+'</span></div>':'')+
     '</div>'+
   '</div>'+
   '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>'+
