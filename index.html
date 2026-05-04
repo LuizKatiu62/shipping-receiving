@@ -314,6 +314,14 @@ body.readonly-mode .nav-tabs{display:none!important}
 body.readonly-mode .main{display:none!important}
 body.readonly-mode #app-loading{display:none!important}
 
+/* ── PAYMENTS VIEWER OVERRIDES ── */
+body.payments-viewer.readonly-mode .nav-tabs{display:flex!important}
+body.payments-viewer.readonly-mode .main{display:block!important}
+body.payments-viewer.readonly-mode #app-loading{display:flex!important}
+body.payments-viewer.readonly-mode #viewer-portal{display:none!important}
+body.payments-viewer.readonly-mode .nav-tab:not(#nav-tab-payments){display:none!important}
+body.payments-viewer.readonly-mode #nav-tab-payments{display:inline-flex!important}
+
 /* ── VIEWER PORTAL ── */
 #viewer-portal{display:none;align-items:center;justify-content:center;min-height:calc(100vh - 72px);padding:40px 24px;background:var(--bg);position:relative;overflow:hidden}
 #viewer-portal::before{content:'';position:absolute;inset:0;background:url('warehouse-bg.jpg') 68% 42%/cover no-repeat;opacity:.22;z-index:0;pointer-events:none}
@@ -1771,10 +1779,13 @@ function canAccessPayments(email){
 function processAuthUser(user){
   currentUser = user;
   isAdmin = ADMIN_EMAILS.indexOf(user.email.toLowerCase()) !== -1;
+  var isPaymentsViewer = !isAdmin && canAccessPayments(user.email);
   if(isAdmin){
     document.body.classList.remove('readonly-mode');
+    document.body.classList.remove('payments-viewer');
   } else {
     document.body.classList.add('readonly-mode');
+    if(isPaymentsViewer) document.body.classList.add('payments-viewer');
   }
   var bar = document.getElementById('user-bar');
   bar.style.display = 'flex';
@@ -1785,12 +1796,13 @@ function processAuthUser(user){
   var payTab = document.getElementById('nav-tab-payments');
   if(payTab) payTab.style.display = canAccessPayments(user.email) ? '' : 'none';
   document.getElementById('auth-overlay').style.display = 'none';
-  if(!isAdmin){
-    // Viewers see only the portal — no data loading needed
+  if(!isAdmin && !isPaymentsViewer){
+    // Pure viewers see only the portal — no data loading needed
     return;
   }
-  document.getElementById('app-loading').style.display  = 'flex';
+  document.getElementById('app-loading').style.display = 'flex';
   initDataListeners();
+  if(isPaymentsViewer) gotoSection('payments');
 }
 
 function buildMonthSelects(){
