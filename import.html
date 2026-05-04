@@ -47,7 +47,7 @@ input[type="file"]::-webkit-file-upload-button{background:#1565c0;color:#fff;bor
 
   <div class="header">
     <h1>Source Atlantic — Data Import</h1>
-    <p>Import historical records (2024–2026) into the Shipping &amp; Receiving app</p>
+    <p>Import all historical records (2022–2026) into the Shipping &amp; Receiving app</p>
   </div>
 
   <!-- LOGIN -->
@@ -70,23 +70,25 @@ input[type="file"]::-webkit-file-upload-button{background:#1565c0;color:#fff;bor
       <span class="file-label">📋 Incoming Form</span>
       <input type="file" id="f-incoming" accept=".csv">
       <span class="badge badge-wait" id="b-incoming">Waiting</span>
-      <button class="btn-add" id="add-incoming" style="display:none" onclick="unlockSection('incoming')">➕ Add 2024</button>
+      <button class="btn-add" id="add-incoming" style="display:none" onclick="unlockSection('incoming')">➕ Add 2022–2024</button>
     </div>
     <div class="file-row">
       <span class="file-label">📦 Incoming Items</span>
       <input type="file" id="f-items" accept=".csv">
       <span class="badge badge-wait" id="b-items">Waiting</span>
-      <button class="btn-add" id="add-items" style="display:none" onclick="unlockSection('items')">➕ Add 2024–2025</button>
+      <button class="btn-add" id="add-items" style="display:none" onclick="unlockSection('items')">➕ Add 2022–2024</button>
     </div>
     <div class="file-row">
       <span class="file-label">🚚 Shipment Freight</span>
       <input type="file" id="f-shipping" accept=".csv">
       <span class="badge badge-wait" id="b-shipping">Waiting</span>
+      <button class="btn-add" id="add-shipping" style="display:none" onclick="unlockSection('shipping')">➕ Add 2022–2024</button>
     </div>
     <div class="file-row">
       <span class="file-label">💰 Daily Cash</span>
       <input type="file" id="f-payments" accept=".csv">
       <span class="badge badge-wait" id="b-payments">Waiting</span>
+      <button class="btn-add" id="add-payments" style="display:none" onclick="unlockSection('payments')">➕ Add 2022–2024</button>
     </div>
 
     <div class="progress-wrap"><div class="progress-bar" id="prog"></div></div>
@@ -156,18 +158,16 @@ function doLogin(){
     });
 }
 
-// ── PER-SECTION DATE RANGE OVERRIDES ──
-// 'incoming' → only 2024 missing (has 2025+)
-// 'items'    → 2024 and 2025 missing (has 2026 only)
-var sectionMode = {};  // path → {from, to} when unlocked for missing years
+// sectionMode: when a section already has data, unlock only the missing years (2022–2024)
+var sectionMode = {};  // path → {from, to}
 
 // ── CHECK EACH SECTION FOR EXISTING IMPORTED DATA ──
 function checkLock(){
   var sections=[
     {path:'incoming', fid:'f-incoming', bid:'b-incoming', addBtn:'add-incoming'},
     {path:'items',    fid:'f-items',    bid:'b-items',    addBtn:'add-items'},
-    {path:'shipping', fid:'f-shipping', bid:'b-shipping', addBtn:null},
-    {path:'payments', fid:'f-payments', bid:'b-payments', addBtn:null}
+    {path:'shipping', fid:'f-shipping', bid:'b-shipping', addBtn:'add-shipping'},
+    {path:'payments', fid:'f-payments', bid:'b-payments', addBtn:'add-payments'}
   ];
   sections.forEach(function(s){
     db.ref(SR+'/'+s.path).limitToFirst(50).once('value').then(function(snap){
@@ -176,20 +176,16 @@ function checkLock(){
         document.getElementById(s.fid).disabled = true;
         var b = document.getElementById(s.bid);
         b.className = 'badge badge-done';
-        b.textContent = '✓ Already imported';
-        if(s.addBtn) document.getElementById(s.addBtn).style.display = 'inline-block';
+        b.textContent = '✓ 2025–2026 imported';
+        document.getElementById(s.addBtn).style.display = 'inline-block';
       }
     });
   });
 }
 
 function unlockSection(path){
-  var ranges = {
-    'incoming': {from:'2024-01-01', to:'2024-12-31', label:'✔ 2024 unlocked'},
-    'items':    {from:'2024-01-01', to:'2025-12-31', label:'✔ 2024–2025 unlocked'}
-  };
-  var r = ranges[path];
-  if(!r) return;
+  // When sections already have 2025+ data, only import the missing 2022-2024 range
+  var r = {from:'2022-01-01', to:'2024-12-31', label:'✔ 2022–2024 unlocked'};
   sectionMode[path] = r;
   var inp = document.getElementById('f-'+path);
   inp.disabled = false;
@@ -197,7 +193,6 @@ function unlockSection(path){
   b.className = 'badge badge-ok';
   b.textContent = r.label;
   document.getElementById('add-'+path).style.display = 'none';
-  // Automatically open the file picker so the user selects the CSV right away
   inp.click();
 }
 
@@ -239,9 +234,10 @@ function toISO(d){
 function money(s){return parseFloat((s||'').replace(/[$,\s]/g,''))||0;}
 
 function dateInRange(dt, path){
+  if(!dt) return false;
   var m = sectionMode[path];
   if(m) return dt >= m.from && dt <= m.to;
-  return dt >= '2024-01-01';
+  return true; // no existing data → import all valid dates
 }
 
 var AREA={'WELDING':'Welding','ELECTRICAL':'Electrical','MECHANICAL':'Mechanical',
@@ -277,12 +273,12 @@ function diagRows(rows, dateCol, sectionPath){
   });
   log('  Date column "'+dateCol+'" (first 3): '+samples.join(' | '),'in');
   var m = sectionMode[sectionPath];
-  log('  Importing range: '+(m ? m.from+' to '+m.to : '2024-01-01 onwards'),'in');
+  log('  Importing range: '+(m ? m.from+' to '+m.to : 'all dates'),'in');
   // Count how many rows fall in range
   var inCount = rows.filter(function(r){return dateInRange(toISO(r[dateCol]||''),sectionPath);}).length;
   log('  Rows matching range: '+inCount+' of '+rows.length,'in');
   if(inCount===0) log('  ⚠ No rows match the date range — CSV may not contain '+
-    (m ? m.from.slice(0,4)+'-'+m.to.slice(0,4) : '2024+')+' data','er');
+    (m ? m.from.slice(0,4)+'-'+m.to.slice(0,4) : 'valid')+' data','er');
 }
 
 function buildIncoming(rows){
@@ -425,16 +421,16 @@ async function startImport(){
       var built=s.build(rows);
       var count=Object.keys(built.res).length;
       var m = sectionMode[s.path];
-      var rangeStr = m ? (m.from.slice(0,4)+' to '+m.to.slice(0,4)) : '2024+';
-      log('  Parsed: '+count+' records in range ['+rangeStr+'] ('+built.skip+' skipped outside range)','in');
+      var rangeStr = m ? (m.from.slice(0,4)+' to '+m.to.slice(0,4)) : 'all years';
+      log('  Parsed: '+count+' records in range ['+rangeStr+'] ('+built.skip+' skipped — no date)','in');
       if(count>0){
         setBadge(s.id,'ok','Uploading...');
         log('  Uploading '+s.label+'...','in');
         await pushChunked(s.path,built.res);
-        log('  ✓ '+s.label+': '+count+' records imported','ok');
-        setBadge(s.id,'done','✓ '+count+' imported');
+        log('  ✓ '+s.label+': '+count+' records uploaded','ok');
+        setBadge(s.id,'done','✓ '+count+' uploaded');
       } else {
-        log('  ⚠ '+s.label+': no records found in range ['+rangeStr+']','in');
+        log('  ⚠ '+s.label+': no records found for ['+rangeStr+']','in');
         setBadge(s.id,'done','No records');
       }
     } catch(e){

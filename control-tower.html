@@ -122,7 +122,7 @@ body>*{position:relative;z-index:1}
 /* TABLE */
 .ct-table{width:100%;border-collapse:collapse;font-size:.77rem}
 .ct-table thead tr{background:linear-gradient(180deg,#1e3a8a,#2563eb)}
-.ct-table thead th{color:rgba(255,255,255,.9);padding:8px 12px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:left;white-space:nowrap}
+.ct-table thead th{background:linear-gradient(180deg,#1e3a8a,#2563eb);color:rgba(255,255,255,.9);padding:8px 12px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:left;white-space:nowrap;position:sticky;top:0;z-index:10}
 .ct-table tbody tr{border-bottom:1px solid #f1f5f9;transition:background .1s}
 .ct-table tbody tr:hover{background:#f8faff}
 .ct-table td{padding:8px 12px;color:var(--text)}
@@ -170,8 +170,15 @@ body>*{position:relative;z-index:1}
 .oms-kpi-num{font-size:1.7rem;font-weight:900;color:var(--text)}
 .oms-kpi-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:3px}
 
-.oms-stab-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:space-between}
-.oms-stab-left{display:flex;gap:6px;flex-wrap:wrap}
+.oms-stab-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.oms-stab-left{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.oms-cust-search{position:relative;display:flex;align-items:center}
+.oms-cust-search input{height:36px;padding:0 30px 0 30px;border:1.5px solid var(--border);border-radius:8px;font-size:.8rem;font-family:inherit;color:var(--text);background:#fff;outline:none;width:100%;transition:border-color .15s}
+.oms-cust-search input:focus{border-color:var(--blue)}
+.oms-cust-search input::placeholder{color:var(--muted);font-weight:400}
+.oms-cust-search .cust-icon{position:absolute;left:9px;font-size:.8rem;pointer-events:none;color:var(--muted)}
+.oms-cust-search .cust-clear{position:absolute;right:7px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:.85rem;padding:2px;line-height:1;display:none}
+.oms-cust-search .cust-clear:hover{color:var(--text)}
 .btn-excel{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border-radius:8px;background:#16a34a;color:#fff;border:none;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;box-shadow:0 2px 6px rgba(22,163,74,.3)}
 .btn-excel:hover{background:#15803d;box-shadow:0 4px 12px rgba(22,163,74,.4);transform:translateY(-1px)}
 .btn-excel:active{transform:translateY(0)}
@@ -191,7 +198,7 @@ body>*{position:relative;z-index:1}
 .oms-pill.p-so.active{border-color:#059669;background:#f0fdf4;color:#059669}
 
 .oms-table-wrap{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden}
-.oms-table-scroll{overflow-x:auto}
+.oms-table-scroll{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 380px);min-height:320px}
 .oms-empty{text-align:center;padding:36px;color:var(--light);font-size:.83rem;font-style:italic}
 
 @media(max-width:760px){
@@ -270,34 +277,11 @@ body>*{position:relative;z-index:1}
   </div>
 </div>
 
-<!-- ═══ HOME ═══ -->
-<div id="page-home" class="page-section active">
-  <div class="portal-home">
-    <div class="portal-eyebrow">Source Atlantic — EPS</div>
-    <div class="portal-heading">🗼 Control Tower</div>
-    <div class="portal-sub">Full visibility into orders, materials and shipments</div>
-    <div class="portal-grid">
-      <div class="portal-card portal-card-blue" onclick="showPage('overview')">
-        <div class="portal-card-icon">🔍</div>
-        <div class="portal-card-title">Operation Overview</div>
-        <div class="portal-card-sub">Search by Work Order, Sales Order or Incoming # — see full order details, components, hold status and shipping history</div>
-        <div class="portal-card-arrow">→</div>
-      </div>
-      <div class="portal-card portal-card-navy" onclick="showPage('oms')">
-        <div class="portal-card-icon">📊</div>
-        <div class="portal-card-title">Order &amp; Material Status</div>
-        <div class="portal-card-sub">Browse Incoming Forms, WIP components and Shipping activity — filter by year, month and day to generate line reports</div>
-        <div class="portal-card-arrow">→</div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ═══ OPERATION OVERVIEW ═══ -->
-<div id="page-overview" class="page-section">
+<div id="page-overview" class="page-section active">
   <div class="page-back-row">
-    <button class="btn-back-page" onclick="showPage('home')">← Back</button>
-    <span class="page-title-inline">Operation Overview</span>
+    <button class="btn-back-page" onclick="overviewFrom==='oms'?showPage('oms'):window.location.href='index.html'">← Back</button>
+    <span class="page-title-inline">Order Lookup</span>
   </div>
   <div class="search-wrap">
     <div class="search-card">
@@ -333,8 +317,8 @@ body>*{position:relative;z-index:1}
 <!-- ═══ ORDER & MATERIAL STATUS ═══ -->
 <div id="page-oms" class="page-section">
   <div class="page-back-row">
-    <button class="btn-back-page" onclick="showPage('home')">← Back</button>
-    <span class="page-title-inline">Order &amp; Material Status</span>
+    <button class="btn-back-page" onclick="window.location.href='index.html'">← Back</button>
+    <span class="page-title-inline">Overview List</span>
   </div>
   <div class="oms-wrap">
 
@@ -348,6 +332,8 @@ body>*{position:relative;z-index:1}
             <option value="2026" selected>2026</option>
             <option value="2025">2025</option>
             <option value="2024">2024</option>
+            <option value="2023">2023</option>
+            <option value="2022">2022</option>
           </select>
         </div>
         <div class="oms-filter-group">
@@ -374,6 +360,15 @@ body>*{position:relative;z-index:1}
           </div>
         </div>
         <button class="oms-reset-btn" onclick="omsReset()">✕ Reset</button>
+        <div class="oms-filter-group" style="flex:1;min-width:180px;max-width:280px">
+          <div class="oms-filter-label">Customer</div>
+          <div class="oms-cust-search">
+            <span class="cust-icon">👤</span>
+            <input type="text" id="oms-cust-input" placeholder="Search customer…"
+              oninput="omsCustSearch=this.value.trim();document.getElementById('oms-cust-clr').style.display=this.value?'block':'none';omsRenderSection()">
+            <button class="cust-clear" id="oms-cust-clr" onclick="document.getElementById('oms-cust-input').value='';omsCustSearch='';this.style.display='none';omsRenderSection()">✕</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -496,6 +491,8 @@ auth.onAuthStateChanged(function(user){
   if(user && user.emailVerified){
     document.getElementById('auth-overlay').style.display = 'none';
     startDataLoad();
+    var hash = window.location.hash.replace('#','');
+    if(hash === 'oms') showPage('oms');
   } else {
     document.getElementById('auth-overlay').style.display = 'flex';
   }
@@ -531,19 +528,22 @@ function doForgotPassword(){
 }
 
 // PAGE NAV
-var currentPage = 'home';
+var currentPage = 'overview';
 function showPage(page){
-  ['home','overview','oms'].forEach(function(p){
+  if(currentPage === 'overview' && page !== 'overview') clearSearch();
+  ['overview','oms'].forEach(function(p){
     document.getElementById('page-'+p).classList.toggle('active', p===page);
   });
   currentPage = page;
   window.scrollTo(0,0);
-  document.body.classList.toggle('has-results', page === 'overview' || page === 'oms');
+  document.body.classList.toggle('has-results', true);
   if(page === 'oms') omsRender();
 }
 
 // Navigate from OMS into Overview with pre-filled search
+var overviewFrom = null;
 function goToOverview(type, num){
+  overviewFrom = currentPage;
   showPage('overview');
   setType(type);
   var inp = document.getElementById('search-input');
@@ -769,7 +769,8 @@ function renderResults(result, raw){
   }
 
   if(result.process.length){
-    var holdDays = calcDays(proc.receivedDate);
+    var holdEndDate = shpList.length ? shpList[0].date : null;
+    var holdDays = calcDays(proc.receivedDate, holdEndDate);
     h += '<div class="ct-card card-danger"><div class="ct-card-title">⏸ Shipping On Hold</div>';
     h += '<div style="display:flex;align-items:flex-start;gap:28px;flex-wrap:wrap">';
     if(holdDays!==null) h += '<div style="text-align:center;flex-shrink:0"><div class="hold-days" style="color:#dc2626">'+holdDays+'</div><div class="hold-lbl">Days on Hold</div></div>';
@@ -777,7 +778,8 @@ function renderResults(result, raw){
   }
 
   if(result.packing.length){
-    var packDays = calcDays(pack.pickDate);
+    var packEndDate = shpList.length ? shpList[0].date : null;
+    var packDays = calcDays(pack.pickDate, packEndDate);
     h += '<div class="ct-card card-warning"><div class="ct-card-title">📦 Packing & Hold</div>';
     h += '<div style="display:flex;align-items:flex-start;gap:28px;flex-wrap:wrap">';
     if(packDays!==null) h += '<div style="text-align:center;flex-shrink:0"><div class="hold-days" style="color:#d97706">'+packDays+'</div><div class="hold-lbl">Days on Hold</div></div>';
@@ -817,11 +819,12 @@ function renderResults(result, raw){
 // ══════════════════════════
 // ORDER & MATERIAL STATUS
 // ══════════════════════════
-var omsSection  = 'incoming';
-var omsArea     = 'all';
-var omsItemCat  = 'all';
-var omsItemArea = 'all';
-var omsProvince = null;
+var omsSection   = 'incoming';
+var omsArea      = 'all';
+var omsItemCat   = 'all';
+var omsItemArea  = 'all';
+var omsProvince  = null;
+var omsCustSearch = '';
 var urlParamsApplied = false;
 
 var PROV_ABBR = {
@@ -930,6 +933,9 @@ function omsReset(){
   document.getElementById('oms-day-to').value   = '';
   omsProvince = null;
   var b = document.getElementById('oms-prov-banner'); if(b) b.style.display = 'none';
+  omsCustSearch = '';
+  var ci = document.getElementById('oms-cust-input'); if(ci) ci.value = '';
+  var cc = document.getElementById('oms-cust-clr'); if(cc) cc.style.display = 'none';
   omsItemCat = 'all';
   ['all','wip','so','other'].forEach(function(k){
     document.getElementById('oms-item-'+k).classList.toggle('active', k==='all');
@@ -986,10 +992,12 @@ function normArea(a){
 }
 
 function omsRenderIncoming(){
+  var custQ = omsCustSearch.toUpperCase();
   var rows = Object.values(allData.incoming)
     .filter(function(r){ return omsDateMatch(r.date); })
     .sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
   if(omsArea !== 'all') rows = rows.filter(function(r){ return normArea(r.area) === omsArea; });
+  if(custQ) rows = rows.filter(function(r){ return (r.customer||'').toUpperCase().includes(custQ); });
   var tbody = document.getElementById('oms-incoming-body');
   if(!rows.length){ tbody.innerHTML = '<tr><td colspan="7" class="oms-empty">No records found for this filter</td></tr>'; return; }
   tbody.innerHTML = rows.map(function(r){
@@ -1020,6 +1028,7 @@ function omsRenderItems(){
   else if(omsItemCat==='other') rows = allRows.filter(function(r){ return r.binLocation!=='WIP' && r.appType!=='Sales Order'; });
   else                          rows = allRows;
   if(omsItemArea !== 'all') rows = rows.filter(function(r){ return normArea(r.area) === omsItemArea; });
+  if(omsCustSearch) rows = rows.filter(function(r){ return (r.customer||'').toUpperCase().includes(omsCustSearch.toUpperCase()); });
   rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
   var tbody = document.getElementById('oms-items-body');
   if(!rows.length){ tbody.innerHTML = '<tr><td colspan="9" class="oms-empty">No items found for this filter</td></tr>'; return; }
@@ -1044,9 +1053,11 @@ function omsRenderShipping(){
   } else {
     banner.style.display = 'none';
   }
+  var custQ = omsCustSearch.toUpperCase();
   var rows = Object.values(allData.shipping)
     .filter(function(r){ return omsDateMatch(r.date); })
     .filter(function(r){ return !omsProvince || destKeyCT(r) === omsProvince; })
+    .filter(function(r){ return !custQ || (r.customer||'').toUpperCase().includes(custQ); })
     .sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
   var tbody = document.getElementById('oms-shipping-body');
   if(!rows.length){ tbody.innerHTML = '<tr><td colspan="9" class="oms-empty">No shipments found for this filter</td></tr>'; return; }

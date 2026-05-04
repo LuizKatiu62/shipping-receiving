@@ -217,6 +217,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .tag-chip{display:inline-flex;align-items:center;gap:5px;background:var(--blue-50);color:var(--blue-700);border:1px solid var(--blue-100);border-radius:20px;padding:4px 11px;font-size:.72rem;font-weight:700}
 .tag-chip button{background:none;border:none;cursor:pointer;color:var(--blue-400);font-size:.85rem;padding:0;line-height:1;opacity:.7;transition:opacity .12s}
 .tag-chip button:hover{opacity:1}
+.order-type-warn{display:none;color:#b91c1c;font-size:.76rem;font-weight:700;margin-top:5px;padding:4px 10px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px}
+.order-type-warn.visible{display:block}
 
 /* ── WORKING DAYS BADGE ── */
 .working-days-box{display:flex;align-items:center;justify-content:center;flex-direction:column;background:linear-gradient(135deg,var(--blue-700),var(--blue-500));color:#fff;border-radius:var(--radius-lg);padding:12px 18px;min-width:110px;text-align:center;box-shadow:0 4px 12px rgba(21,101,192,.3)}
@@ -316,15 +318,17 @@ body.readonly-mode #app-loading{display:none!important}
 #viewer-portal{display:none;align-items:center;justify-content:center;min-height:calc(100vh - 72px);padding:40px 24px;background:var(--bg);position:relative;overflow:hidden}
 #viewer-portal::before{content:'';position:absolute;inset:0;background:url('warehouse-bg.jpg') 68% 42%/cover no-repeat;opacity:.22;z-index:0;pointer-events:none}
 body.readonly-mode #viewer-portal{display:flex!important}
-.vp-wrap{max-width:660px;width:100%;text-align:center;position:relative;z-index:1}
+.vp-wrap{max-width:960px;width:100%;text-align:center;position:relative;z-index:1}
 .vp-greeting{font-size:.72rem;font-weight:800;color:var(--text-muted,#94a3b8);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:14px}
 .vp-heading{font-size:2rem;font-weight:900;color:var(--text-primary,#0f172a);margin-bottom:8px;letter-spacing:-.5px}
 .vp-sub{font-size:.88rem;color:var(--text-secondary,#64748b);margin-bottom:44px}
-.vp-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.vp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px}
 .vp-card{display:flex;flex-direction:column;padding:38px 30px 30px;border-radius:18px;text-decoration:none;transition:all .22s cubic-bezier(.4,0,.2,1);text-align:left}
 .vp-card:hover{transform:translateY(-7px)}
 .vp-card-tower{background:linear-gradient(160deg,#1e3a8a 0%,#2563eb 100%);box-shadow:0 8px 32px rgba(37,99,235,.35),0 2px 6px rgba(0,0,0,.1)}
 .vp-card-tower:hover{box-shadow:0 18px 52px rgba(37,99,235,.45),0 4px 12px rgba(0,0,0,.14)}
+.vp-card-oms{background:linear-gradient(160deg,#0f3460 0%,#16213e 100%);box-shadow:0 8px 32px rgba(15,52,96,.4),0 2px 6px rgba(0,0,0,.1)}
+.vp-card-oms:hover{box-shadow:0 18px 52px rgba(15,52,96,.55),0 4px 12px rgba(0,0,0,.14)}
 .vp-card-dash{background:linear-gradient(160deg,#0f172a 0%,#1e293b 100%);box-shadow:0 8px 32px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.1)}
 .vp-card-dash:hover{box-shadow:0 18px 52px rgba(0,0,0,.32),0 4px 12px rgba(0,0,0,.14)}
 .vp-icon{font-size:2.6rem;margin-bottom:18px;line-height:1}
@@ -332,7 +336,8 @@ body.readonly-mode #viewer-portal{display:flex!important}
 .vp-card-desc{font-size:.78rem;color:rgba(255,255,255,.62);line-height:1.6;flex:1}
 .vp-arrow{font-size:1.3rem;color:rgba(255,255,255,.4);margin-top:22px;transition:transform .2s,color .2s}
 .vp-card:hover .vp-arrow{transform:translateX(7px);color:rgba(255,255,255,.9)}
-@media(max-width:520px){.vp-grid{grid-template-columns:1fr}}
+@media(max-width:720px){.vp-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.vp-grid{grid-template-columns:1fr}}
 </style>
 <script>
 // ── GLOBAL UPPERCASE ENFORCEMENT ──
@@ -509,10 +514,16 @@ document.addEventListener('keydown', function(ev){
     <div class="vp-heading">EPS Shipping &amp; Receiving</div>
     <div class="vp-sub">Select a tool to get started</div>
     <div class="vp-grid">
-      <a href="control-tower.html" target="sa-control" class="vp-card vp-card-tower">
-        <div class="vp-icon">🗼</div>
-        <div class="vp-card-name">Control Tower</div>
-        <div class="vp-card-desc">Full order visibility — search by Work Order, Sales Order or Incoming #</div>
+      <a href="control-tower.html#overview" target="sa-control" class="vp-card vp-card-tower">
+        <div class="vp-icon">🔍</div>
+        <div class="vp-card-name">Order Lookup</div>
+        <div class="vp-card-desc">Search by Work Order, Sales Order or Incoming # — full order details, components, hold status and shipping history</div>
+        <div class="vp-arrow">→</div>
+      </a>
+      <a href="control-tower.html#oms" target="sa-control" class="vp-card vp-card-oms">
+        <div class="vp-icon">📋</div>
+        <div class="vp-card-name">Overview List</div>
+        <div class="vp-card-desc">Browse Incoming Forms, WIP components and Shipping activity — filter by year, month and day</div>
         <div class="vp-arrow">→</div>
       </a>
       <a href="stats.html" target="sa-dashboard" class="vp-card vp-card-dash">
@@ -1307,11 +1318,13 @@ document.addEventListener('keydown', function(ev){
 
         <div class="form-group" id="proc-wo-group">
           <label>Work Order #</label>
-          <input type="text" id="proc-wo" placeholder="Work Order #" maxlength="7" oninput="procLookupOrder();updateProcOrderFields()">
+          <input type="text" id="proc-wo" placeholder="Work Order #" maxlength="7" oninput="procLookupOrder();updateProcOrderFields();checkInputOrderType('proc-wo','proc-wo-hint','wo')">
+          <div class="order-type-warn" id="proc-wo-hint"></div>
         </div>
         <div class="form-group" id="proc-so-group">
           <label>Sales Order #</label>
-          <input type="text" id="proc-so" placeholder="Sales Order #" oninput="procLookupOrder();updateProcOrderFields()">
+          <input type="text" id="proc-so" placeholder="Sales Order #" oninput="procLookupOrder();updateProcOrderFields();checkInputOrderType('proc-so','proc-so-hint','so')">
+          <div class="order-type-warn" id="proc-so-hint"></div>
         </div>
         <div class="form-group">
           <label>Outgoing #</label>
@@ -1400,10 +1413,11 @@ document.addEventListener('keydown', function(ev){
         <div class="form-group full" id="shp-so-group">
           <label>Sales Order Number(s)</label>
           <div class="tag-input-row">
-            <input type="text" id="shp-so-input" placeholder="Add Sales Order #" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('so')}" oninput="updateShpOrderFields()" onchange="updateShpOrderFields()">
+            <input type="text" id="shp-so-input" placeholder="Add Sales Order #" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('so')}" oninput="updateShpOrderFields();checkInputOrderType('shp-so-input','shp-so-hint','so')" onchange="updateShpOrderFields()">
             <button class="btn btn-secondary btn-sm" onclick="addShpTag('so')">+ Add</button>
           </div>
           <div class="tags-list" id="shp-so-tags"></div>
+          <div class="order-type-warn" id="shp-so-hint"></div>
         </div>
         <div class="form-group full" id="shp-tr-group">
           <label>Transfer Number(s)</label>
@@ -1416,10 +1430,11 @@ document.addEventListener('keydown', function(ev){
         <div class="form-group full" id="shp-wo-group">
           <label>Work Order Number(s)</label>
           <div class="tag-input-row">
-            <input type="text" id="shp-wo-input" placeholder="Add Work Order #" maxlength="7" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('wo')}" oninput="checkShpOutgoing();updateShpOrderFields()" onchange="updateShpOrderFields()">
+            <input type="text" id="shp-wo-input" placeholder="Add Work Order #" maxlength="7" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('wo')}" oninput="checkShpOutgoing();updateShpOrderFields();checkInputOrderType('shp-wo-input','shp-wo-hint','wo')" onchange="updateShpOrderFields()">
             <button class="btn btn-secondary btn-sm" onclick="addShpTag('wo')">+ Add</button>
           </div>
           <div class="tags-list" id="shp-wo-tags"></div>
+          <div class="order-type-warn" id="shp-wo-hint"></div>
         </div>
         <div class="form-group full" id="shp-outgoing-group" style="display:none">
           <label>Outgoing #</label>
@@ -1686,8 +1701,8 @@ var db = null;
 var auth = null;
 var currentUser = null;
 var isAdmin = false;
-var ADMIN_EMAILS = ['dasilva.luiz@sourceatlantic.ca', 'lcdsilva@hotmail.com'];
-var PAYMENTS_EMAILS = ['gardner.christine@sourceatlantic.ca','renouf.holly@sourceatlantic.ca','koncovy.josef@sourceatlantic.ca'];
+var ADMIN_EMAILS = ['dasilva.luiz@sourceatlantic.ca'];
+var PAYMENTS_EMAILS = ['gardner.christine@sourceatlantic.ca','renouf.holly@sourceatlantic.ca','koncovy.josef@sourceatlantic.ca','lcdsilva@hotmail.com'];
 var ALLOWED_EMAILS = ['dasilva.luiz.c@outlook.com'];
 var SR_PATH = 'shipping_receiving';
 var incomingData = {};
@@ -2927,6 +2942,51 @@ function checkShpOutgoing(){
   if(!hasInput && !hasWO) document.getElementById('shp-outgoing').value = '';
 }
 
+function detectOrderType(num){
+  if(!num) return null;
+  var n = String(num).trim().toUpperCase();
+  var isWO = false, isSO = false;
+  Object.values(incomingData).forEach(function(r){
+    if(String(r.wo||'').trim().toUpperCase()===n) isWO=true;
+  });
+  Object.values(itemsData).forEach(function(r){
+    (r.lineItems||[r]).forEach(function(li){
+      if(String(li.workOrderNum||'').trim().toUpperCase()===n) isWO=true;
+      if(String(li.salesOrderNum||'').trim().toUpperCase()===n) isSO=true;
+    });
+  });
+  Object.values(shpData).forEach(function(r){
+    if((r.workOrders||[]).some(function(w){ return String(w||'').trim().toUpperCase()===n; })) isWO=true;
+    if((r.salesOrders||[]).some(function(s){ return String(s||'').trim().toUpperCase()===n; })) isSO=true;
+  });
+  Object.values(procData).forEach(function(r){
+    if(String(r.wo||'').trim().toUpperCase()===n) isWO=true;
+    if(String(r.so||'').trim().toUpperCase()===n) isSO=true;
+  });
+  if(isWO && isSO) return 'both';
+  if(isWO) return 'wo';
+  if(isSO) return 'so';
+  return null;
+}
+
+function checkInputOrderType(inputId, hintId, expectedType){
+  var val = (document.getElementById(inputId)||{}).value||'';
+  val = val.trim();
+  var hintEl = document.getElementById(hintId);
+  if(!hintEl) return;
+  if(!val){ hintEl.textContent=''; hintEl.classList.remove('visible'); return; }
+  var found = detectOrderType(val);
+  if(found && found!==expectedType && found!=='both'){
+    var foundLabel    = found==='wo' ? 'Work Order' : 'Sales Order';
+    var expectedLabel = expectedType==='wo' ? 'Work Order' : 'Sales Order';
+    hintEl.textContent = '⚠ "'+val+'" is registered as a '+foundLabel+', not a '+expectedLabel;
+    hintEl.classList.add('visible');
+  } else {
+    hintEl.textContent='';
+    hintEl.classList.remove('visible');
+  }
+}
+
 var _toastTimer = null;
 function showToast(msg){
   var el = document.getElementById('toast');
@@ -3056,10 +3116,21 @@ function updateProcOrderFields(){
 
 function addShpTag(field){
   var inputId = {so:'shp-so-input', tr:'shp-tr-input', wo:'shp-wo-input'}[field];
+  var hintId  = {so:'shp-so-hint',  tr:null,           wo:'shp-wo-hint'}[field];
   var val = document.getElementById(inputId).value.trim();
   if(!val) return;
+  var expectedType = field==='so' ? 'so' : field==='wo' ? 'wo' : null;
+  if(expectedType){
+    var found = detectOrderType(val);
+    if(found && found!==expectedType && found!=='both'){
+      var foundLabel    = found==='wo' ? 'Work Order' : 'Sales Order';
+      var expectedLabel = expectedType==='wo' ? 'Work Order' : 'Sales Order';
+      showToast('⚠ "'+val+'" is registered as a '+foundLabel+', not a '+expectedLabel);
+    }
+  }
   shpTags[field].push(val);
   document.getElementById(inputId).value = '';
+  if(hintId){ var h=document.getElementById(hintId); if(h){ h.textContent=''; h.classList.remove('visible'); } }
   renderShpTags(field);
   if(field === 'wo') prefillFromIncoming(val);
   if(field === 'wo' || field === 'so') lookupProcPhotos();

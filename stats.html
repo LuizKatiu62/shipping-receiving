@@ -138,13 +138,6 @@ td.dlt.eq{color:#94a3b8}
 .section-label .sl-bar.amber{background:linear-gradient(180deg,#b45309,#fbbf24)}
 .section-label::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* ── EXEC OVERVIEW ── */
-.exec-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.exec-metric{border-radius:10px;padding:18px 20px;border-left:4px solid;background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.exec-metric:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
-.exec-metric-lbl{font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px}
-.exec-metric-num{font-size:2.2rem;font-weight:900;line-height:1;letter-spacing:-1.5px}
-.exec-metric-sub{font-size:.62rem;color:var(--light);margin-top:5px;font-weight:600}
 
 /* ── CARD HEADER BAND ── */
 .card-hdr{background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 60%,#1d4ed8 100%);padding:14px 20px;border-radius:var(--r) var(--r) 0 0}
@@ -295,8 +288,7 @@ tbody tr.row-click:hover{background:#f0f7ff}
     </div>
     <div style="display:flex;align-items:center;gap:12px">
       <span class="hdr-date" id="hdr-date"></span>
-<a class="btn-back" href="control-tower.html" target="sa-control">🗼 Control Tower</a>
-      <button class="btn-back" onclick="window.close()">← Back to App</button>
+<a class="btn-back" href="index.html">← Back</a>
     </div>
   </div>
 </div>
@@ -308,11 +300,15 @@ tbody tr.row-click:hover{background:#f0f7ff}
       <option value="2026">2026</option>
       <option value="2025">2025</option>
       <option value="2024">2024</option>
+      <option value="2023">2023</option>
+      <option value="2022">2022</option>
     </select>
     <span class="vs-chip">vs</span>
     <select class="fsel" id="sel-prev" onchange="render()">
       <option value="2025">2025</option>
       <option value="2024">2024</option>
+      <option value="2023">2023</option>
+      <option value="2022">2022</option>
       <option value="2026">2026</option>
     </select>
     <div class="fsep"></div>
@@ -658,37 +654,7 @@ function render(){
   });
   h += '</div>';
 
-  /* ══ SECTION 2 · EXECUTIVE OVERVIEW ══ */
-  var areaMonths = {};
-  AREAS.forEach(function(a){ areaMonths[a] = new Array(12).fill(0); });
-  Object.values(allData.incoming).forEach(function(r){
-    if(!inRange(r.date, cYr, moFrom, moToCurr)) return;
-    if(!inAreaInc(r)) return;
-    var a = r.area||''; if(!areaMonths[a]) return;
-    var m = parseInt((r.date||'').slice(5,7),10)-1; if(m>=0&&m<12) areaMonths[a][m]++;
-  });
-  var incFormsYTD = cats[0].ytdC;
-  var incItemsYTD = cats[1].ytdC;
-  var incYTD  = incFormsYTD + incItemsYTD;
-  var shpYTD  = cats[2].ytdC;
-  var onHold  = Object.values(allData.process).filter(function(r){ return !r.shipped; }).length;
-  var shipRate = incYTD > 0 ? Math.round(shpYTD / incYTD * 100) : 0;
-
-  h += sl('cyan','Executive Overview');
-  h += '<div class="r1"><div class="card">';
-  h += '<div class="card-hdr"><div class="ct">Shipping &amp; Receiving — Management View</div>'+
-       '<div class="cs">'+cYr+' '+periodLbl+' &nbsp;·&nbsp; Receiving by area (stacked bars) vs Outgoing shipments (line)</div></div>';
-  h += '<div class="cb">';
-  h += '<div class="exec-metrics">';
-  h += execMetric('Total Received', incYTD, '#1e40af', 'Forms ('+incFormsYTD+') + Items ('+incItemsYTD+') · '+cYr+' '+periodLbl);
-  h += execMetric('Total Shipped',  shpYTD, '#059669', 'Outgoing shipments · '+cYr+' '+periodLbl);
-  h += execMetric('On Hold',        onHold, '#dc2626', 'Records currently in Shipping On Hold');
-  h += execMetric('Ship Rate',      shipRate+'%', '#7c3aed', 'Shipped ÷ (Forms + Items) · YTD');
-  h += '</div>';
-  h += '<div class="cw" style="height:268px"><canvas id="c-exec"></canvas></div>';
-  h += '</div></div></div>';
-
-  /* ══ SECTION 3 · AREA OPERATIONS ══ */
+  /* ══ SECTION 2 · AREA OPERATIONS ══ */
   var woProcDateA = {};
   Object.values(allData.process).forEach(function(r){
     if(!r.wo||!r.receivedDate) return;
@@ -974,54 +940,6 @@ function render(){
       '<div style="display:flex;align-items:center;justify-content:center;height:160px;color:#94a3b8;font-size:.8rem">No carrier data for '+cYr+'</div>';
   }
 
-  // Executive Overview chart (stacked bar by area + shipping line)
-  dc('exec');
-  var AREA_BGCOL = {
-    'Electrical':   'rgba(30,64,175,.82)',
-    'Mechanical':   'rgba(8,145,178,.82)',
-    'Air Compressor':'rgba(5,150,105,.82)',
-    'Generator':    'rgba(217,119,6,.82)'
-  };
-  var execDatasets = AREAS.map(function(a){
-    return {
-      type:'bar', label:a, data:areaMonths[a],
-      backgroundColor: activeFilters.area && activeFilters.area!==a ? 'rgba(148,163,184,.18)' : AREA_BGCOL[a],
-      stack:'rcv', borderWidth:0,
-      borderRadius:{ topLeft:a===AREAS[AREAS.length-1]?4:0, topRight:a===AREAS[AREAS.length-1]?4:0 }
-    };
-  });
-  execDatasets.push({
-    type:'line', label:'Shipping', data:cats[2].curr,
-    borderColor:'#7c3aed', backgroundColor:'rgba(124,58,237,.08)',
-    borderWidth:2.5, pointRadius:4, pointHoverRadius:6,
-    pointBackgroundColor:'#7c3aed', fill:true, tension:.35, z:10,
-    borderDash: undefined
-  });
-  CH['exec'] = new Chart(document.getElementById('c-exec').getContext('2d'),{
-    type:'bar',
-    plugins:[ChartDataLabels],
-    data:{ labels:MO, datasets:execDatasets },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{
-        legend:{position:'top',labels:{font:{size:10.5},boxWidth:12,padding:10,usePointStyle:true}},
-        tooltip:{callbacks:{
-          afterBody:function(items){
-            var rcv=0; items.slice(0,4).forEach(function(i){rcv+=i.parsed.y||0;});
-            var shp=items[4]?items[4].parsed.y:0;
-            return rcv>0?['—','Total Received: '+rcv,'Net: '+(shp-rcv>0?'+':'')+(shp-rcv)]:'';
-          }
-        }},
-        datalabels:{ display:false }
-      },
-      scales:{
-        x:{ stacked:true, grid:{display:false}, ticks:{font:{size:10},color:'#94a3b8'} },
-        y:{ stacked:true, beginAtZero:true, grid:{color:'#f0f4f8'}, ticks:{font:{size:10},stepSize:1} }
-      }
-    }
-  });
-
   // Province / State chart
   dc('prov');
   var provColors = ['#1e40af','#1d4ed8','#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#dbeafe'];
@@ -1076,13 +994,6 @@ function render(){
   updateChips();
 }
 
-function execMetric(label, value, color, sub){
-  return '<div class="exec-metric" style="border-left-color:'+color+'">'+
-    '<div class="exec-metric-lbl">'+label+'</div>'+
-    '<div class="exec-metric-num" style="color:'+color+'">'+value+'</div>'+
-    '<div class="exec-metric-sub">'+sub+'</div>'+
-  '</div>';
-}
 
 function destStatRow(label, color, val, total){
   var pct = total>0 ? Math.round(val/total*100) : 0;
