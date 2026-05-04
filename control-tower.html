@@ -283,10 +283,33 @@ textarea:not([data-nocase]){
   </div>
 </div>
 
+<!-- ═══ HOME PORTAL ═══ -->
+<div id="page-home" class="page-section active">
+  <div class="portal-home">
+    <div class="portal-eyebrow">Source Atlantic — Industrial Services</div>
+    <div class="portal-heading">EPS Shipping &amp; Receiving</div>
+    <div class="portal-sub">Select a tool to get started</div>
+    <div class="portal-grid">
+      <div class="portal-card portal-card-blue" onclick="showPage('overview')">
+        <div class="portal-card-icon">🔍</div>
+        <div class="portal-card-title">Order Lookup</div>
+        <div class="portal-card-sub">Search by Work Order, Sales Order or Incoming # — full order details, components, hold status and shipping history</div>
+        <div class="portal-card-arrow">→</div>
+      </div>
+      <div class="portal-card portal-card-navy" onclick="showPage('oms')">
+        <div class="portal-card-icon">📋</div>
+        <div class="portal-card-title">Overview List</div>
+        <div class="portal-card-sub">Browse Incoming Forms, WIP components and Shipping activity — filter by year, month and day</div>
+        <div class="portal-card-arrow">→</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ OPERATION OVERVIEW ═══ -->
-<div id="page-overview" class="page-section active">
+<div id="page-overview" class="page-section">
   <div class="page-back-row">
-    <button class="btn-back-page" onclick="overviewFrom==='oms'?showPage('oms'):window.location.href='index.html'">← Back</button>
+    <button class="btn-back-page" onclick="showPage('home')">← Back</button>
     <span class="page-title-inline">Order Lookup</span>
   </div>
   <div class="search-wrap">
@@ -323,7 +346,7 @@ textarea:not([data-nocase]){
 <!-- ═══ ORDER & MATERIAL STATUS ═══ -->
 <div id="page-oms" class="page-section">
   <div class="page-back-row">
-    <button class="btn-back-page" onclick="window.location.href='index.html'">← Back</button>
+    <button class="btn-back-page" onclick="showPage('home')">← Back</button>
     <span class="page-title-inline">Overview List</span>
   </div>
   <div class="oms-wrap">
@@ -499,6 +522,8 @@ auth.onAuthStateChanged(function(user){
     startDataLoad();
     var hash = window.location.hash.replace('#','');
     if(hash === 'oms') showPage('oms');
+    else if(hash === 'overview') showPage('overview');
+    else showPage('home');
   } else {
     document.getElementById('auth-overlay').style.display = 'flex';
   }
@@ -534,15 +559,15 @@ function doForgotPassword(){
 }
 
 // PAGE NAV
-var currentPage = 'overview';
+var currentPage = 'home';
 function showPage(page){
   if(currentPage === 'overview' && page !== 'overview') clearSearch();
-  ['overview','oms'].forEach(function(p){
+  ['home','overview','oms'].forEach(function(p){
     document.getElementById('page-'+p).classList.toggle('active', p===page);
   });
   currentPage = page;
   window.scrollTo(0,0);
-  document.body.classList.toggle('has-results', true);
+  document.body.classList.toggle('has-results', page !== 'home');
   if(page === 'oms') omsRender();
 }
 
