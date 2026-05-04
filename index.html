@@ -1189,11 +1189,15 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="form-group">
           <label>Customer</label>
-          <input type="text" id="pkg-customer" list="customer-suggestions" placeholder="Customer name">
+          <input type="text" id="pkg-customer" list="customer-suggestions" placeholder="Customer name" oninput="checkPkgEquipex()" onchange="checkPkgEquipex()">
         </div>
         <div class="form-group">
           <label>Pick Date *</label>
-          <input type="date" id="pkg-pick-date" oninput="updateDaysOnHold()">
+          <input type="date" id="pkg-pick-date" oninput="updateDaysOnHold();checkPkgEquipex()">
+        </div>
+        <div class="form-group" id="pkg-equipex-group" style="display:none">
+          <label style="color:#b45309;font-weight:800">Next Shipping Date (Equipex)</label>
+          <input type="date" id="pkg-next-ship" readonly style="background:#fffbeb;color:#92400e;font-weight:700;cursor:default;border-color:#f59e0b">
         </div>
         <div class="form-group">
           <label>Current Date</label>
@@ -4488,6 +4492,23 @@ function updateDaysOnHold(){
   pending.style.display='none';
 }
 
+function checkPkgEquipex(){
+  var cust = (document.getElementById('pkg-customer').value||'').trim().toUpperCase();
+  var isEq = cust.replace(/[\s.,-]/g,'').includes('EQUIPEXINC') || cust.includes('EQUIPEX');
+  var grp  = document.getElementById('pkg-equipex-group');
+  var nsd  = document.getElementById('pkg-next-ship');
+  if(!isEq){ if(grp) grp.style.display='none'; if(nsd) nsd.value=''; return; }
+  if(grp) grp.style.display='';
+  var pickVal = document.getElementById('pkg-pick-date').value;
+  if(!pickVal){ if(nsd) nsd.value=''; return; }
+  // Find the next Wednesday (day 3) after pickDate
+  var d = new Date(pickVal + 'T00:00:00');
+  var day = d.getDay(); // 0=Sun,1=Mon,...,3=Wed
+  var daysAhead = (3 - day + 7) % 7 || 7; // always at least 1 day ahead
+  d.setDate(d.getDate() + daysAhead);
+  if(nsd) nsd.value = d.toISOString().slice(0,10);
+}
+
 function openPackModal(key){
   document.getElementById('pkg-edit-id').value = key||'';
   document.getElementById('pkg-days-badge').style.display = 'none';
@@ -4510,6 +4531,7 @@ function openPackModal(key){
     document.getElementById('pkg-pick-date').value = '';
     document.getElementById('pkg-del-btn').style.display = 'none';
   }
+  checkPkgEquipex();
   document.getElementById('pkg-modal').style.display = 'flex';
 }
 
