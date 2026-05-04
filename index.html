@@ -1659,7 +1659,7 @@ document.addEventListener('keydown', function(ev){
         <div class="form-section-header">Order Details</div>
         <div class="form-group" id="itm-so-group">
           <label>Sales Order #</label>
-          <input type="text" id="itm-so" oninput="enforceUpper(this)" placeholder="SO #">
+          <input type="text" id="itm-so" oninput="enforceUpper(this);toggleItmSoWo()" placeholder="SO #">
         </div>
         <div class="form-group" id="itm-wo-group">
           <label>Work Order #</label>
@@ -3699,6 +3699,24 @@ function toggleItmPoTransfer(){
 
 function toggleItmApp(){ /* Application field removed — SO/WO fields always visible */ }
 
+function toggleItmSoWo(){
+  var so = (document.getElementById('itm-so').value||'').trim();
+  var woEl = document.getElementById('itm-wo');
+  if(!woEl) return;
+  if(so){
+    woEl.disabled = true;
+    woEl.value = '';
+    woEl.style.background = '#f3f4f6';
+    woEl.style.color = '#9ca3af';
+    woEl.style.cursor = 'not-allowed';
+  } else {
+    woEl.disabled = false;
+    woEl.style.background = '';
+    woEl.style.color = '';
+    woEl.style.cursor = '';
+  }
+}
+
 function autoFillWoData(i){ /* WO# now lives in header field itm-wo — no per-row lookup needed */ }
 
 function convertLineWeight(i,unit){
@@ -3757,6 +3775,7 @@ function openItemModal(key){
     document.getElementById('itm-area').value  = first.area||'';
     document.getElementById('itm-cust').value  = first.customer||'';
     toggleItmPoTransfer();
+    toggleItmSoWo();
     document.getElementById('itm-del-btn').style.display='inline-flex';
   } else {
     document.getElementById('itm-modal-title').textContent = 'New Incoming Item';
@@ -3769,6 +3788,7 @@ function openItemModal(key){
     document.getElementById('itm-area').value = '';
     document.getElementById('itm-cust').value = '';
     toggleItmPoTransfer();
+    toggleItmSoWo();
     itmLines = [{material:'',pc:'',lb:'',rl:'',binLocation:'',binStock:''}];
     document.getElementById('itm-del-btn').style.display='none';
   }
