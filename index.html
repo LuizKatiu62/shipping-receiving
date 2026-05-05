@@ -1637,16 +1637,6 @@ document.addEventListener('keydown', function(ev){
           <input type="text" id="itm-supplier" placeholder="Supplier name" list="supplier-suggestions" autocomplete="off">
         </div>
         <div class="form-group">
-          <label>Area</label>
-          <select id="itm-area">
-            <option value="">— Area —</option>
-            <option>Electrical</option>
-            <option>Mechanical</option>
-            <option>Air Compressor</option>
-            <option>Generator</option>
-          </select>
-        </div>
-        <div class="form-group">
           <label>Requested By</label>
           <select id="itm-reqby" onchange="toggleItmReqbyOther()">
             <option value="">— Select —</option>
@@ -1674,8 +1664,17 @@ document.addEventListener('keydown', function(ev){
           <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#1565c0">Materials Received</span>
         </div>
         <div id="itm-lines-container"></div>
+        <div id="itm-area-group" style="display:none;margin-top:14px">
+          <label style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px">Area</label>
+          <select id="itm-area" style="padding:7px 11px;border:1.5px solid #d1d5db;border-radius:6px;font-size:.86rem;font-family:inherit;outline:none;background:#fff;width:100%;margin-top:3px">
+            <option value="">— Area —</option>
+            <option>Electrical</option>
+            <option>Mechanical</option>
+            <option>Air Compressor</option>
+            <option>Generator</option>
+          </select>
+        </div>
       </div>
-
 
       <div class="form-actions">
         <button class="btn btn-danger" id="itm-del-btn" style="display:none;margin-right:auto" onclick="deleteItem()">🗑 Delete</button>
@@ -2353,6 +2352,8 @@ function openIncomingModal(key){
     delBtn.style.display = 'none';
   }
   modal.style.display = 'flex';
+  var mc = modal.querySelector('.modal-content');
+  if(mc) mc.scrollTop = 0;
 }
 
 function closeIncomingModal(){
@@ -3632,7 +3633,7 @@ function filterItems(){ itmPage = 0; renderItems(); }
 // ── Line item card renderer ──
 function renderItmLines(){
   var c = document.getElementById('itm-lines-container');
-  var binOpts = ['WIP','NOBIN','Shop Supply','Shop Equip. Maintenance','Stock'];
+  var binOpts = ['WIP','NOBIN','Shop Supply','Shop Equip. Maintenance','Office Supplies','Stock'];
   var fi = 'width:100%;box-sizing:border-box;padding:5px 6px;border:1.5px solid #d1d5db;border-radius:5px;font-size:.8rem;font-family:inherit;background:#fff';
   var bodyRows = itmLines.map(function(item,i){
     var binSel  = binOpts.map(function(o){ return '<option'+(item.binLocation===o?' selected':'')+'>'+o+'</option>'; }).join('');
@@ -3693,6 +3694,7 @@ function addLineItem(){
     nobinSo:     ''
   });
   renderItmLines();
+  syncAreaGroup();
   var newMat = document.getElementById('itm-l'+(itmLines.length-1)+'-mat');
   if(newMat){ newMat.scrollIntoView({behavior:'smooth',block:'nearest'}); setTimeout(function(){ newMat.focus(); },150); }
 }
@@ -3701,6 +3703,7 @@ function removeLineItem(i){
   itmLines = readLineItems();
   itmLines.splice(i,1);
   renderItmLines();
+  syncAreaGroup();
 }
 
 function toggleLineStock(i){
@@ -3716,10 +3719,19 @@ function toggleLineStock(i){
   if(wipBtn)   wipBtn.style.display   = val==='WIP'   ? 'block' : 'none';
   var isOther = val!=='' && val!=='Stock' && val!=='WIP' && val!=='NOBIN';
   if(labelBtn) labelBtn.style.display = isOther ? 'block' : 'none';
+  if(itmLines[i]) itmLines[i].binLocation = val;
+  syncAreaGroup();
   toggleOrderDetails();
 }
 
 function toggleOrderDetails(){ }
+
+function syncAreaGroup(){
+  var anyWip = (itmLines||[]).some(function(l){ return l.binLocation==='WIP'; });
+  var ag = document.getElementById('itm-area-group');
+  if(ag) ag.style.display = anyWip ? '' : 'none';
+  if(!anyWip){ var el = document.getElementById('itm-area'); if(el) el.value = ''; }
+}
 
 function toggleItmPoTransfer(){
   var po  = (document.getElementById('itm-po').value||'').trim();
@@ -3771,7 +3783,10 @@ function autoFillFromWo(woVal){
 
   var filled = [];
   var areaEl = document.getElementById('itm-area');
-  if(area && areaEl && !areaEl.value){ areaEl.value = area; filled.push('Area'); }
+  if(area && areaEl && !areaEl.value){
+    areaEl.value = area;
+    filled.push('Area');
+  }
   if(filled.length) showToast('✔ Auto-filled from WO ' + wo + ' — ' + filled.join(', '));
 }
 
@@ -3826,7 +3841,7 @@ function openItemModal(key){
       document.getElementById('itm-reqby-other-group').style.display = 'none';
     }
     var first = (r.lineItems||[])[0]||{};
-    document.getElementById('itm-area').value = first.area||'';
+    var _savedArea = first.area||'';
     itmLines = (r.lineItems||[]).map(function(li){
       return Object.assign({}, li, {
         wipWo:   li.wipWo   || (li.binLocation==='WIP'   ? li.workOrderNum  : ''),
@@ -3837,9 +3852,9 @@ function openItemModal(key){
     toggleItmSoWo();
     document.getElementById('itm-del-btn').style.display='inline-flex';
   } else {
+    var _savedArea = '';
     document.getElementById('itm-modal-title').textContent = 'New Incoming Item';
     ['itm-doc','itm-po','itm-transfer','itm-supplier'].forEach(function(id){ document.getElementById(id).value=''; });
-    document.getElementById('itm-area').value = '';
     document.getElementById('itm-reqby').value = '';
     document.getElementById('itm-reqby-other').value = '';
     document.getElementById('itm-reqby-other-group').style.display = 'none';
@@ -3850,6 +3865,9 @@ function openItemModal(key){
   }
   renderItmLines();
   toggleOrderDetails();
+  syncAreaGroup();
+  var _areaEl = document.getElementById('itm-area');
+  if(_areaEl) _areaEl.value = _savedArea;
   document.getElementById('itm-modal').style.display='flex';
 }
 
