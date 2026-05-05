@@ -3763,38 +3763,38 @@ function autoFillWoData(i){ /* WO# now lives in header field itm-wo — no per-r
 
 function autoFillFromWo(){
   var wo = (document.getElementById('itm-wo').value||'').trim().toUpperCase();
-  if(wo.length < 4) return;
+  if(wo.length < 3) return;
 
   var area = '', customer = '';
 
-  // 1. Search incoming forms
-  Object.values(incomingData).some(function(r){
-    if((r.wo||'').trim().toUpperCase() !== wo) return false;
+  // Search all data sources — collect best non-empty area + customer
+  // 1. Incoming Forms (most complete source)
+  Object.values(incomingData).forEach(function(r){
+    if((r.wo||'').trim().toUpperCase() !== wo) return;
     area     = area     || (r.area||'');
     customer = customer || (r.customer||'');
-    return area && customer;
   });
 
-  // 2. Search existing incoming items (line items)
-  if(!area || !customer){
-    Object.values(itemsData).some(function(doc){
-      return (doc.lineItems||[]).some(function(li){
-        if((li.workOrderNum||'').trim().toUpperCase() !== wo) return false;
-        area     = area     || (li.area||'');
-        customer = customer || (li.customer||'');
-        return area && customer;
-      });
+  // 2. Existing Incoming Items line items
+  Object.values(itemsData).forEach(function(doc){
+    (doc.lineItems||[]).forEach(function(li){
+      if((li.workOrderNum||'').trim().toUpperCase() !== wo) return;
+      area     = area     || (li.area||'');
+      customer = customer || (li.customer||'');
     });
-  }
+  });
 
-  // 3. Search Shipping On Hold (proc)
-  if(!area || !customer){
-    Object.values(procData).some(function(r){
-      if((r.wo||'').trim().toUpperCase() !== wo) return false;
-      customer = customer || (r.customer||'');
-      return !!customer;
-    });
-  }
+  // 3. Shipping On Hold (proc)
+  Object.values(procData).forEach(function(r){
+    if((r.wo||'').trim().toUpperCase() !== wo) return;
+    customer = customer || (r.customer||'');
+  });
+
+  // 4. Shipping records (workOrders array)
+  Object.values(shpData).forEach(function(r){
+    if(!(r.workOrders||[]).some(function(w){ return (w||'').trim().toUpperCase()===wo; })) return;
+    customer = customer || (r.customer||'');
+  });
 
   var areaEl = document.getElementById('itm-area');
   var custEl = document.getElementById('itm-cust');
