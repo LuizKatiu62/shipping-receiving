@@ -1676,7 +1676,7 @@ document.addEventListener('keydown', function(ev){
           </div>
           <div class="form-group" id="itm-wo-group">
             <label>Work Order #</label>
-            <input type="text" id="itm-wo" maxlength="7" oninput="enforceUpper(this)" placeholder="WO #">
+            <input type="text" id="itm-wo" maxlength="7" oninput="enforceUpper(this);autoFillFromWo()" placeholder="WO #">
           </div>
           <div class="form-group">
             <label>Area</label>
@@ -3760,6 +3760,49 @@ function toggleItmSoWo(){
 }
 
 function autoFillWoData(i){ /* WO# now lives in header field itm-wo — no per-row lookup needed */ }
+
+function autoFillFromWo(){
+  var wo = (document.getElementById('itm-wo').value||'').trim().toUpperCase();
+  if(wo.length < 4) return;
+
+  var area = '', customer = '';
+
+  // 1. Search incoming forms
+  Object.values(incomingData).some(function(r){
+    if((r.wo||'').trim().toUpperCase() !== wo) return false;
+    area     = area     || (r.area||'');
+    customer = customer || (r.customer||'');
+    return area && customer;
+  });
+
+  // 2. Search existing incoming items (line items)
+  if(!area || !customer){
+    Object.values(itemsData).some(function(doc){
+      return (doc.lineItems||[]).some(function(li){
+        if((li.workOrderNum||'').trim().toUpperCase() !== wo) return false;
+        area     = area     || (li.area||'');
+        customer = customer || (li.customer||'');
+        return area && customer;
+      });
+    });
+  }
+
+  // 3. Search Shipping On Hold (proc)
+  if(!area || !customer){
+    Object.values(procData).some(function(r){
+      if((r.wo||'').trim().toUpperCase() !== wo) return false;
+      customer = customer || (r.customer||'');
+      return !!customer;
+    });
+  }
+
+  var areaEl = document.getElementById('itm-area');
+  var custEl = document.getElementById('itm-cust');
+  var filled = [];
+  if(area && areaEl && !areaEl.value){ areaEl.value = area; filled.push('Area'); }
+  if(customer && custEl && !custEl.value){ custEl.value = customer; filled.push('Customer'); }
+  if(filled.length) showToast('✔ Auto-filled from WO ' + wo + ' — ' + filled.join(', '));
+}
 
 function convertLineWeight(i,unit){
   var lbEl = document.getElementById('itm-l'+i+'-wlb');
