@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Control Tower — Source Atlantic SR</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -296,7 +299,7 @@ textarea:not([data-nocase]){
 <!-- ═══ OPERATION OVERVIEW ═══ -->
 <div id="page-overview" class="page-section">
   <div class="page-back-row">
-    <button class="btn-back-page" onclick="showPage('home')">← Back</button>
+    <button class="btn-back-page" onclick="window.location.href='index.html'">← Back</button>
     <span class="page-title-inline">Order Lookup</span>
   </div>
   <div class="search-wrap">
@@ -333,7 +336,7 @@ textarea:not([data-nocase]){
 <!-- ═══ ORDER & MATERIAL STATUS ═══ -->
 <div id="page-oms" class="page-section">
   <div class="page-back-row">
-    <button class="btn-back-page" onclick="showPage('home')">← Back</button>
+    <button class="btn-back-page" onclick="window.location.href='index.html'">← Back</button>
     <span class="page-title-inline">Overview List</span>
   </div>
   <div class="oms-wrap">
