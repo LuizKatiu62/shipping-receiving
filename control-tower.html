@@ -204,7 +204,7 @@ body>*{position:relative;z-index:1}
 @media(max-width:760px){
   .ct-grid2,.ct-grid3{grid-template-columns:1fr}
   .search-row{flex-direction:column}
-  .portal-grid{grid-template-columns:1fr}
+  #home-cards .portal-grid{grid-template-columns:1fr}
   .portal-heading{font-size:1.6rem}
 }
 
@@ -596,6 +596,7 @@ function showPage(page){
   currentPage = page;
   window.scrollTo(0,0);
   document.body.classList.toggle('has-results', page !== 'home');
+  if(page === 'home') buildHomePage();
   if(page === 'oms') omsRender();
 }
 
