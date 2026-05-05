@@ -3242,13 +3242,18 @@ function lookupProcPhotos(){
   if(!photosEl || photosEl.value.trim()) return;
   var wos = shpTags.wo.map(function(v){ return v.trim().toUpperCase(); });
   var sos = shpTags.so.map(function(v){ return v.trim().toUpperCase(); });
-  if(!wos.length && !sos.length) return;
+  var outgoing = (document.getElementById('shp-outgoing') ? document.getElementById('shp-outgoing').value.trim().toUpperCase() : '');
+  if(!wos.length && !sos.length && !outgoing) return;
   var found = null;
   Object.values(procData).some(function(r){
     if(!r.photosLink) return false;
-    var rwo = (r.wo||'').trim().toUpperCase();
-    var rso = (r.so||'').trim().toUpperCase();
-    if((rwo && wos.includes(rwo)) || (rso && sos.includes(rso))){ found = r; return true; }
+    var rwo  = (r.wo||'').trim().toUpperCase();
+    var rso  = (r.so||'').trim().toUpperCase();
+    var rout = (r.outgoing||'').trim().toUpperCase();
+    var hit = (rwo && wos.includes(rwo))
+           || (rso && sos.includes(rso))
+           || (outgoing && rout && rout === outgoing);
+    if(hit){ found = r; return true; }
     return false;
   });
   if(found){ photosEl.value = found.photosLink; showToast('📷 Photos link loaded from Shipping On Hold'); }
@@ -3452,6 +3457,7 @@ function saveShipment(){
     var v = el.value.trim();
     if(v){ shpTags[t.field].push(v); el.value=''; renderShpTags(t.field); }
   });
+  lookupProcPhotos();
   var materialType  = document.getElementById('shp-material-type').value;
   var materialOther = document.getElementById('shp-material-other').value.trim();
   var material      = materialType === 'Other' ? materialOther : materialType;
