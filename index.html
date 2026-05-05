@@ -529,7 +529,7 @@ document.addEventListener('keydown', function(ev){
     <button class="nav-tab" onclick="showSection('subcontractor')">🔧 Subcontractor</button>
     <button class="nav-tab" onclick="showSection('packing')">📦 Packing & Hold</button>
     <button class="nav-tab" onclick="showSection('process')">⏸ Shipping On Hold</button>
-    <button class="nav-tab" onclick="showSection('sherrors')">⚠️ Ship Errors</button>
+    <button class="nav-tab" onclick="showSection('sherrors')">⚠️ Picking Errors</button>
     <button class="nav-tab" id="nav-tab-payments" onclick="showSection('payments')" style="display:none">💰 Payments</button>
     <a class="nav-tab" href="stats.html" target="sa-dashboard" style="text-decoration:none">📊 Dashboard</a>
     <a class="nav-tab" href="control-tower.html" target="sa-control" style="text-decoration:none">🗼 Control Tower</a>
@@ -877,7 +877,7 @@ document.addEventListener('keydown', function(ev){
   <!-- ══ SHIPPING ERROR MANAGEMENT ══ -->
   <div id="section-sherrors" style="display:none">
     <div class="section-header">
-      <div class="section-title">⚠️ Shipping Error Management</div>
+      <div class="section-title">⚠️ Picking Error Management</div>
       <div class="section-actions">
         <select class="year-select" id="sherr-year" onchange="filterShipErrors()"><option value="">All Years</option></select>
         <select class="year-select" id="sherr-status-filter" onchange="filterShipErrors()">
@@ -1750,7 +1750,7 @@ document.addEventListener('keydown', function(ev){
 <div class="modal-overlay" id="sherr-modal" style="display:none" onclick="if(event.target===this)closeShipErrorModal()">
   <div class="modal" style="max-width:780px">
     <div class="modal-header">
-      <div class="modal-title" id="sherr-modal-title">New Shipping Error</div>
+      <div class="modal-title" id="sherr-modal-title">New Picking Error</div>
       <button class="modal-close" onclick="closeShipErrorModal()">✕</button>
     </div>
     <div class="modal-body">
@@ -5429,7 +5429,7 @@ function renderShipErrors(){
   var tbody = document.getElementById('sherr-tbody');
   if(!tbody) return;
   if(!rows.length){
-    tbody.innerHTML = '<tr><td colspan="12"><div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">No shipping errors recorded.</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="12"><div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">No picking errors recorded.</div></div></td></tr>';
     return;
   }
 
@@ -5462,7 +5462,7 @@ function openShipErrorModal(key){
   document.getElementById('sherr-edit-id').value = key||'';
   if(key && sherrData[key]){
     var r = sherrData[key];
-    document.getElementById('sherr-modal-title').textContent = 'Edit Shipping Error';
+    document.getElementById('sherr-modal-title').textContent = 'Edit Picking Error';
     document.getElementById('sherr-num').value              = r.errorNum||'';
     document.getElementById('sherr-date').value             = r.date||today();
     document.getElementById('sherr-status').value           = r.status||'Open';
@@ -5481,7 +5481,7 @@ function openShipErrorModal(key){
     document.getElementById('sherr-resolution').value       = r.resolutionNotes||'';
     document.getElementById('sherr-del-btn').style.display  = 'inline-flex';
   } else {
-    document.getElementById('sherr-modal-title').textContent = 'New Shipping Error';
+    document.getElementById('sherr-modal-title').textContent = 'New Picking Error';
     document.getElementById('sherr-num').value              = '';
     document.getElementById('sherr-date').value             = today();
     document.getElementById('sherr-status').value           = 'Open';
