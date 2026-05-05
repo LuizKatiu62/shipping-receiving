@@ -3931,12 +3931,12 @@ function saveItem(){
   });
   if(shopItems.length) wipEmailQueue.push({
     items: shopItems,
-    to: 'gould.harold@sourceatlantic.ca',
-    toDisplay: 'Harold Gould',
-    greeting: getGreetingEn('Harold'),
+    to: 'gould.harold@sourceatlantic.ca;bartlett.kevin@sourceatlantic.ca',
+    toDisplay: 'Harold Gould; Kevin Bartlett',
+    greeting: getGreetingEn('Team'),
     subjectOverride: 'Shop Materials Received — Doc #'+(record.docNum||'')+' — '+(record.date||''),
     bodyOverride: function(r){
-      var b = getGreetingEn('Harold') + '\n\n';
+      var b = getGreetingEn('Team') + '\n\n';
       b += 'The following shop materials have been received:\n\n';
       b += 'Document #:  ' + (r.docNum||'—') + '\n';
       b += 'Date:        ' + (r.date||'—') + '\n';
