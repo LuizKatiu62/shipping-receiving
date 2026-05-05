@@ -1674,10 +1674,6 @@ document.addEventListener('keydown', function(ev){
             <label>Sales Order #</label>
             <input type="text" id="itm-so" oninput="enforceUpper(this);toggleItmSoWo()" placeholder="SO #">
           </div>
-          <div class="form-group" id="itm-wo-group">
-            <label>Work Order #</label>
-            <input type="text" id="itm-wo" maxlength="7" oninput="enforceUpper(this);autoFillFromWo()" placeholder="WO #">
-          </div>
           <div class="form-group">
             <label>Area</label>
             <select id="itm-area">
@@ -3652,7 +3648,7 @@ function filterItems(){ itmPage = 0; renderItems(); }
 // ── Line item card renderer ──
 function renderItmLines(){
   var c = document.getElementById('itm-lines-container');
-  var binOpts = ['WIP','Service Order','NOBIN','Shop Supply','Shop Equip. Maintenance','Stock'];
+  var binOpts = ['WIP','NOBIN','Shop Supply','Shop Equip. Maintenance','Stock'];
   var fi = 'width:100%;box-sizing:border-box;padding:5px 6px;border:1.5px solid #d1d5db;border-radius:5px;font-size:.8rem;font-family:inherit;background:#fff';
   var bodyRows = itmLines.map(function(item,i){
     var binSel  = binOpts.map(function(o){ return '<option'+(item.binLocation===o?' selected':'')+'>'+o+'</option>'; }).join('');
@@ -3669,8 +3665,10 @@ function renderItmLines(){
       '<td style="padding:4px 6px;width:145px">'+
         '<select id="itm-l'+i+'-bin" onchange="toggleLineStock('+i+')" style="'+fi+'"><option value="">— BIN —</option>'+binSel+'</select>'+
         '<input type="text" id="itm-l'+i+'-binstock" placeholder="BIN Location" oninput="enforceUpper(this)" value="'+escAttr(item.binStock||'')+'" style="'+fi+';margin-top:3px;display:'+(isStock?'block':'none')+'">'+
+        '<input type="text" id="itm-l'+i+'-wipwo" placeholder="Work Order #" oninput="enforceUpper(this);autoFillFromWo(this.value)" value="'+escAttr(item.wipWo||'')+'" style="'+fi+';margin-top:3px;display:'+(isWIP?'block':'none')+'">'+
+        '<input type="text" id="itm-l'+i+'-nobinso" placeholder="Sales Order #" oninput="enforceUpper(this)" value="'+escAttr(item.nobinSo||'')+'" style="'+fi+';margin-top:3px;display:'+(isNOBIN?'block':'none')+'">'+
         '<button type="button" id="itm-l'+i+'-wipbtn" class="btn btn-secondary btn-sm" onclick="printItemWipLabel('+i+')" style="margin-top:3px;font-size:.65rem;padding:2px 6px;display:'+(isWIP?'block':'none')+'">🏷️ WIP Label</button>'+
-        '<button type="button" id="itm-l'+i+'-labelbtn" class="btn btn-secondary btn-sm" onclick="printItemGenericLabel('+i+')" style="margin-top:3px;font-size:.65rem;padding:2px 6px;display:'+((isNOBIN||isOther)?'block':'none')+'">🏷️ Print Label</button>'+
+        '<button type="button" id="itm-l'+i+'-labelbtn" class="btn btn-secondary btn-sm" onclick="printItemGenericLabel('+i+')" style="margin-top:3px;font-size:.65rem;padding:2px 6px;display:'+(isOther?'block':'none')+'">🏷️ Print Label</button>'+
       '</td>'+
       '<td style="padding:4px 4px;text-align:center;width:36px">'+
         (itmLines.length>1?'<button type="button" onclick="removeLineItem('+i+')" title="Remove row" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:1rem;padding:2px 4px;border-radius:3px" onmouseover="this.style.background=\'#fef2f2\'" onmouseout="this.style.background=\'none\'">✕</button>':'')+
@@ -3705,7 +3703,9 @@ function addLineItem(){
   itmLines.push({
     material:'', pc:'', lb:'', rl:'',
     binLocation: prev ? prev.binLocation : '',
-    binStock:    prev ? prev.binStock    : ''
+    binStock:    prev ? prev.binStock    : '',
+    wipWo:       '',
+    nobinSo:     ''
   });
   renderItmLines();
   var newMat = document.getElementById('itm-l'+(itmLines.length-1)+'-mat');
@@ -3721,13 +3721,16 @@ function removeLineItem(i){
 function toggleLineStock(i){
   var val      = document.getElementById('itm-l'+i+'-bin').value;
   var stockEl  = document.getElementById('itm-l'+i+'-binstock');
+  var wipWoEl  = document.getElementById('itm-l'+i+'-wipwo');
+  var nobinEl  = document.getElementById('itm-l'+i+'-nobinso');
   var wipBtn   = document.getElementById('itm-l'+i+'-wipbtn');
   var labelBtn = document.getElementById('itm-l'+i+'-labelbtn');
-  if(stockEl)  stockEl.style.display  = val==='Stock' ? 'block' : 'none';
-  if(stockEl && val!=='Stock') stockEl.value='';
+  if(stockEl)  { stockEl.style.display  = val==='Stock' ? 'block' : 'none'; if(val!=='Stock') stockEl.value=''; }
+  if(wipWoEl)  { wipWoEl.style.display  = val==='WIP'   ? 'block' : 'none'; if(val!=='WIP')   wipWoEl.value=''; }
+  if(nobinEl)  { nobinEl.style.display  = val==='NOBIN' ? 'block' : 'none'; if(val!=='NOBIN') nobinEl.value=''; }
   if(wipBtn)   wipBtn.style.display   = val==='WIP'   ? 'block' : 'none';
-  var showLabel = val!=='' && val!=='Stock' && val!=='WIP';
-  if(labelBtn) labelBtn.style.display = showLabel ? 'block' : 'none';
+  var isOther = val!=='' && val!=='Stock' && val!=='WIP' && val!=='NOBIN';
+  if(labelBtn) labelBtn.style.display = isOther ? 'block' : 'none';
   toggleOrderDetails();
 }
 
@@ -3735,7 +3738,7 @@ function toggleOrderDetails(){
   var show = itmLines.some(function(_,i){
     var el = document.getElementById('itm-l'+i+'-bin');
     if(!el) return false;
-    return el.value==='WIP' || el.value==='Service Order';
+    return el.value==='WIP' || el.value==='NOBIN';
   });
   var sec = document.getElementById('itm-order-details-section');
   if(!sec) return;
@@ -3743,7 +3746,7 @@ function toggleOrderDetails(){
     sec.style.display='';
   } else {
     sec.style.display='none';
-    ['itm-so','itm-wo','itm-area','itm-cust'].forEach(function(id){
+    ['itm-so','itm-area','itm-cust'].forEach(function(id){
       var el=document.getElementById(id); if(!el) return;
       if(el.tagName==='SELECT') el.value=''; else el.value='';
     });
@@ -3762,21 +3765,6 @@ function toggleItmApp(){ /* Application field removed — SO/WO fields always vi
 
 function toggleItmSoWo(){
   var so = (document.getElementById('itm-so').value||'').trim();
-  var woEl = document.getElementById('itm-wo');
-  if(woEl){
-    if(so){
-      woEl.disabled = true;
-      woEl.value = '';
-      woEl.style.background = '#f3f4f6';
-      woEl.style.color = '#9ca3af';
-      woEl.style.cursor = 'not-allowed';
-    } else {
-      woEl.disabled = false;
-      woEl.style.background = '';
-      woEl.style.color = '';
-      woEl.style.cursor = '';
-    }
-  }
   var custGrp = document.getElementById('itm-cust-group');
   if(custGrp){
     if(so){
@@ -3790,8 +3778,8 @@ function toggleItmSoWo(){
 
 function autoFillWoData(i){ /* WO# now lives in header field itm-wo — no per-row lookup needed */ }
 
-function autoFillFromWo(){
-  var wo = (document.getElementById('itm-wo').value||'').trim().toUpperCase();
+function autoFillFromWo(woVal){
+  var wo = (woVal||'').trim().toUpperCase();
   if(wo.length < 3) return;
 
   var area = '', customer = '';
@@ -3854,7 +3842,9 @@ function readLineItems(){
       lb:          g('itm-l'+i+'-lb'),
       rl:          g('itm-l'+i+'-rl'),
       binLocation: g('itm-l'+i+'-bin'),
-      binStock:    g('itm-l'+i+'-binstock').trim()
+      binStock:    g('itm-l'+i+'-binstock').trim(),
+      wipWo:       g('itm-l'+i+'-wipwo').trim(),
+      nobinSo:     g('itm-l'+i+'-nobinso').trim()
     };
   });
 }
@@ -3885,7 +3875,6 @@ function openItemModal(key){
     // Populate header-level order fields from first line item
     var first = itmLines[0]||{};
     document.getElementById('itm-so').value    = first.salesOrderNum||'';
-    document.getElementById('itm-wo').value    = first.workOrderNum||'';
     document.getElementById('itm-area').value  = first.area||'';
     document.getElementById('itm-cust').value  = first.customer||'';
     toggleItmPoTransfer();
@@ -3898,12 +3887,11 @@ function openItemModal(key){
     document.getElementById('itm-reqby-other').value = '';
     document.getElementById('itm-reqby-other-group').style.display = 'none';
     document.getElementById('itm-so').value   = '';
-    document.getElementById('itm-wo').value   = '';
     document.getElementById('itm-area').value = '';
     document.getElementById('itm-cust').value = '';
     toggleItmPoTransfer();
     toggleItmSoWo();
-    itmLines = [{material:'',pc:'',lb:'',rl:'',binLocation:'',binStock:''}];
+    itmLines = [{material:'',pc:'',lb:'',rl:'',binLocation:'',binStock:'',wipWo:'',nobinSo:''}];
     document.getElementById('itm-del-btn').style.display='none';
   }
   renderItmLines();
@@ -3926,15 +3914,16 @@ function saveItem(){
   var docNum = document.getElementById('itm-doc').value.trim();
   if(!docNum){ alert('Document # is required.'); return; }
   var docSO   = document.getElementById('itm-so').value.trim();
-  var docWO   = document.getElementById('itm-wo').value.trim();
-  var docApp  = docSO ? 'Sales Order' : docWO ? 'Work Order' : '';
   var docArea = document.getElementById('itm-area').value;
   var docCust = document.getElementById('itm-cust').value.trim();
   var lineItems = readLineItems().map(function(li){
+    var lineWO = li.wipWo   || '';
+    var lineSO = li.nobinSo || (li.binLocation!=='WIP' ? docSO : '');
+    var app    = lineWO ? 'Work Order' : lineSO ? 'Sales Order' : '';
     return Object.assign({}, li, {
-      applicationType: docApp,
-      salesOrderNum:   docSO,
-      workOrderNum:    docWO,
+      applicationType: app,
+      salesOrderNum:   lineSO,
+      workOrderNum:    lineWO,
       area:            docArea,
       customer:        docCust
     });
