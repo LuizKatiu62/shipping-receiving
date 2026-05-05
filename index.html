@@ -292,6 +292,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .pw-wrap input{padding-right:42px;width:100%}
 .pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;color:#94a3b8;padding:4px;line-height:1;transition:color .15s}
 .pw-toggle:hover{color:#475569}
+.pw-rules{display:flex;flex-direction:column;gap:3px;margin-top:6px}
+.pw-rules span{font-size:.7rem;color:#94a3b8;transition:color .2s}
+.pw-rules span.ok{color:#16a34a}
 .auth-btn{width:100%;padding:12px;background:linear-gradient(160deg,var(--blue-600),var(--blue-500));color:#fff;border:none;border-radius:var(--radius-md);font-size:.88rem;font-weight:800;cursor:pointer;font-family:'Inter',inherit;transition:all .18s;margin-top:6px;box-shadow:0 2px 8px rgba(21,101,192,.3);letter-spacing:.1px}
 .auth-btn:hover{background:linear-gradient(160deg,var(--blue-700),var(--blue-600));box-shadow:0 4px 14px rgba(21,101,192,.4);transform:translateY(-1px)}
 .auth-btn:disabled{background:#93c5fd;cursor:not-allowed;box-shadow:none;transform:none}
@@ -452,10 +455,15 @@ document.addEventListener('keydown', function(ev){
           <input type="email" id="auth-reg-email" placeholder="your@email.com" autocomplete="email">
         </div>
         <div class="auth-field">
-          <label>Password (min 6 characters)</label>
+          <label>Password</label>
           <div class="pw-wrap">
-            <input type="password" id="auth-reg-pass" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
+            <input type="password" id="auth-reg-pass" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()" oninput="checkPwRules(this.value)">
             <button type="button" class="pw-toggle" onclick="togglePw('auth-reg-pass',this)" title="Show/hide password">👁</button>
+          </div>
+          <div class="pw-rules">
+            <span id="rule-len">✗ Minimum 8 characters</span>
+            <span id="rule-num">✗ At least one number</span>
+            <span id="rule-spc">✗ At least one special character (!@#$%^&amp;*)</span>
           </div>
         </div>
         <div class="auth-field">
@@ -2081,6 +2089,22 @@ function initDataListeners(){
 }
 
 // ── AUTH HELPERS ──
+function checkPwRules(val){
+  var rLen = document.getElementById('rule-len');
+  var rNum = document.getElementById('rule-num');
+  var rSpc = document.getElementById('rule-spc');
+  if(!rLen) return;
+  var okLen = val.length >= 8;
+  var okNum = /[0-9]/.test(val);
+  var okSpc = /[!@#$%^&*()\-_=+\[\]{};':"\\|,.<>\/?]/.test(val);
+  rLen.textContent = (okLen ? '✓' : '✗') + ' Minimum 8 characters';
+  rLen.className   = okLen ? 'ok' : '';
+  rNum.textContent = (okNum ? '✓' : '✗') + ' At least one number';
+  rNum.className   = okNum ? 'ok' : '';
+  rSpc.textContent = (okSpc ? '✓' : '✗') + ' At least one special character (!@#$%^&*)';
+  rSpc.className   = okSpc ? 'ok' : '';
+}
+
 function togglePw(id, btn){
   var inp = document.getElementById(id);
   if(!inp) return;
@@ -2136,7 +2160,9 @@ function doRegister(){
   var pass2  = document.getElementById('auth-reg-pass2').value;
   if(!email || !pass){ authSetError('auth-reg-err','Please fill all fields.'); return; }
   if(pass !== pass2){ authSetError('auth-reg-err','Passwords do not match.'); return; }
-  if(pass.length < 6){ authSetError('auth-reg-err','Password must be at least 6 characters.'); return; }
+  if(pass.length < 8){ authSetError('auth-reg-err','Password must be at least 8 characters.'); return; }
+  if(!/[0-9]/.test(pass)){ authSetError('auth-reg-err','Password must contain at least one number.'); return; }
+  if(!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass)){ authSetError('auth-reg-err','Password must contain at least one special character (!@#$%^&*...).'); return; }
   var isAdmin = ADMIN_EMAILS.map(function(e){return e.toLowerCase();}).indexOf(email.toLowerCase()) !== -1;
   var isAllowed = ALLOWED_EMAILS.map(function(e){return e.toLowerCase();}).indexOf(email.toLowerCase()) !== -1;
   if(!isAdmin && !isAllowed && !email.toLowerCase().endsWith('@sourceatlantic.ca')){
