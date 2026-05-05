@@ -133,6 +133,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 #section-shipping .table-wrap tr:nth-child(even) td:last-child{background:#fafcff}
 #section-shipping .table-wrap tr:hover td:last-child{background:#f0f7ff}
 #section-shipping .table-wrap th:last-child{background:linear-gradient(180deg,var(--blue-600),var(--blue-500));white-space:nowrap;z-index:5}
+#section-sherrors .table-wrap table{width:100%;min-width:860px}
+#section-sherrors .table-wrap td{white-space:nowrap;font-size:.78rem;padding:8px 10px}
+#section-sherrors .table-wrap th{white-space:nowrap;padding:10px;font-size:.66rem}
+.sherr-status{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.68rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+.sherr-status.open{background:#fee2e2;color:#dc2626}
+.sherr-status.inprogress{background:#fef3c7;color:#d97706}
+.sherr-status.resolved{background:#dcfce7;color:#16a34a}
 .act-cell{display:block;white-space:nowrap;line-height:1}
 .act-btn{display:inline-flex;align-items:center;justify-content:center;padding:4px 6px;font-size:.8rem;font-weight:600;border-radius:5px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);cursor:pointer;font-family:inherit;text-decoration:none;white-space:nowrap;transition:background .15s;line-height:1;vertical-align:middle;margin-right:3px}
 .act-btn:last-child{margin-right:0}
@@ -509,6 +516,7 @@ document.addEventListener('keydown', function(ev){
     <button class="nav-tab" onclick="showSection('subcontractor')">🔧 Subcontractor</button>
     <button class="nav-tab" onclick="showSection('packing')">📦 Packing & Hold</button>
     <button class="nav-tab" onclick="showSection('process')">⏸ Shipping On Hold</button>
+    <button class="nav-tab" onclick="showSection('sherrors')">⚠️ Ship Errors</button>
     <button class="nav-tab" id="nav-tab-payments" onclick="showSection('payments')" style="display:none">💰 Payments</button>
     <a class="nav-tab" href="stats.html" target="sa-dashboard" style="text-decoration:none">📊 Dashboard</a>
     <a class="nav-tab" href="control-tower.html" target="sa-control" style="text-decoration:none">🗼 Control Tower</a>
@@ -849,6 +857,46 @@ document.addEventListener('keydown', function(ev){
           </tr>
         </thead>
         <tbody id="pay-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ SHIPPING ERROR MANAGEMENT ══ -->
+  <div id="section-sherrors" style="display:none">
+    <div class="section-header">
+      <div class="section-title">⚠️ Shipping Error Management</div>
+      <div class="section-actions">
+        <select class="year-select" id="sherr-year" onchange="filterShipErrors()"><option value="">All Years</option></select>
+        <select class="year-select" id="sherr-status-filter" onchange="filterShipErrors()">
+          <option value="">All Status</option>
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Resolved">Resolved</option>
+        </select>
+        <input class="search-input" type="text" id="sherr-search" placeholder="Search error #, customer, WO, carrier..." oninput="filterShipErrors()">
+        <button class="btn btn-secondary admin-only" onclick="exportShipErrorsCSV()">⬇️ Export Excel</button>
+        <button class="btn btn-primary admin-only" onclick="openShipErrorModal()">+ New Error</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Error #</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Customer</th>
+            <th>Carrier</th>
+            <th>Error Type</th>
+            <th>Outgoing #</th>
+            <th>WO / SO #</th>
+            <th>Airbill #</th>
+            <th>Appointment #</th>
+            <th>Cost</th>
+            <th style="width:90px">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="sherr-tbody"></tbody>
       </table>
     </div>
   </div>
@@ -1685,6 +1733,119 @@ document.addEventListener('keydown', function(ev){
   </div>
 </div>
 
+<!-- ══ SHIPPING ERROR MODAL ══ -->
+<div class="modal-overlay" id="sherr-modal" style="display:none" onclick="if(event.target===this)closeShipErrorModal()">
+  <div class="modal" style="max-width:780px">
+    <div class="modal-header">
+      <div class="modal-title" id="sherr-modal-title">New Shipping Error</div>
+      <button class="modal-close" onclick="closeShipErrorModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="sherr-edit-id">
+      <div class="form-grid">
+        <div class="form-section-header">Identification</div>
+        <div class="form-group">
+          <label>Error #</label>
+          <input type="text" id="sherr-num" placeholder="Auto-generated on save" readonly style="background:#f8faff;color:#64748b">
+        </div>
+        <div class="form-group">
+          <label>Date *</label>
+          <input type="date" id="sherr-date">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="sherr-status">
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Error Type</label>
+          <select id="sherr-type">
+            <option value="">— Select —</option>
+            <option>Wrong Address</option>
+            <option>Wrong Item</option>
+            <option>Missing Item</option>
+            <option>Damaged</option>
+            <option>Returned</option>
+            <option>Duplicate Shipment</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="form-section-header">Shipment Reference</div>
+        <div class="form-group">
+          <label>Outgoing Form #</label>
+          <input type="text" id="sherr-outgoing" placeholder="Outgoing #" oninput="enforceUpper(this)">
+        </div>
+        <div class="form-group">
+          <label>Customer</label>
+          <input type="text" id="sherr-customer" placeholder="Customer name" list="customer-suggestions" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Work Order #</label>
+          <input type="text" id="sherr-wo" placeholder="WO #" oninput="enforceUpper(this)">
+        </div>
+        <div class="form-group">
+          <label>Sales Order #</label>
+          <input type="text" id="sherr-so" placeholder="SO #" oninput="enforceUpper(this)">
+        </div>
+        <div class="form-group">
+          <label>Carrier</label>
+          <select id="sherr-carrier">
+            <option value="">— Select —</option>
+            <option>Midland Transport</option>
+            <option>Purolator</option>
+            <option>FedEx</option>
+            <option>UPS</option>
+            <option>Canada Post</option>
+            <option>Day & Ross</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Airbill / Tracking #</label>
+          <input type="text" id="sherr-tracking" placeholder="Original tracking #">
+        </div>
+
+        <div class="form-section-header">Error Details</div>
+        <div class="form-group full">
+          <label>Description</label>
+          <textarea id="sherr-desc" placeholder="Describe what went wrong..." rows="3"></textarea>
+        </div>
+
+        <div class="form-section-header">Follow-up & Resolution</div>
+        <div class="form-group">
+          <label>Appointment / Claim #</label>
+          <input type="text" id="sherr-appt" placeholder="Carrier claim or appointment #">
+        </div>
+        <div class="form-group">
+          <label>Return Tracking #</label>
+          <input type="text" id="sherr-return-tracking" placeholder="Return airbill #">
+        </div>
+        <div class="form-group">
+          <label>Responsible Party</label>
+          <input type="text" id="sherr-responsible" placeholder="Who caused the error">
+        </div>
+        <div class="form-group">
+          <label>Cost Impact ($)</label>
+          <input type="number" id="sherr-cost" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="form-group full">
+          <label>Resolution Notes</label>
+          <textarea id="sherr-resolution" placeholder="How was it resolved?" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-danger" id="sherr-del-btn" style="display:none;margin-right:auto" onclick="deleteShipError()">🗑 Delete</button>
+        <button class="btn btn-secondary" onclick="closeShipErrorModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveShipError()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <datalist id="customer-suggestions"></datalist>
 <datalist id="material-suggestions"></datalist>
@@ -1732,6 +1893,7 @@ var pkgFiltered = [];
 var procData = {};
 var procFiltered = [];
 var payData = {};
+var sherrData = {};
 var payFiltered = [];
 var payMonthlyChart    = null;
 var payMethodChart     = null;
@@ -1895,6 +2057,11 @@ function initDataListeners(){
     payData = snap.val() || {};
     populateYearSelect('pay-year', payData, 'date');
     renderPayments();
+  });
+  db.ref(SR_PATH+'/ship_errors').on('value', function(snap){
+    sherrData = snap.val() || {};
+    populateYearSelect('sherr-year', sherrData, 'date');
+    renderShipErrors();
   });
   document.getElementById('app-loading').style.display = 'none';
   document.getElementById('inc-date').value = today();
@@ -5210,6 +5377,175 @@ function exportIncomingCSV(){
     return [r.formNum,r.wo,r.date,r.equipment,r.area,r.manufacturer,r.modelNumber,r.serialNumber,r.typeSize,r.hp,r.rpm,r.frame,r.customerStockNumber,r.kw,r.otherData,r.designatedLocation,r.benchName,r.whatToDo,r.deliveryBy,r.receivedBy,r.notes];
   });
   toXLS('incoming-forms', headers, data);
+}
+
+// ══════════════════════════════════════════════
+// SHIPPING ERROR MANAGEMENT
+// ══════════════════════════════════════════════
+
+function renderShipErrors(){
+  var rows = Object.entries(sherrData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
+  rows.sort(function(a,b){ return (b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||''); });
+
+  var yr  = (document.getElementById('sherr-year')||{}).value||'';
+  var st  = (document.getElementById('sherr-status-filter')||{}).value||'';
+  var q   = ((document.getElementById('sherr-search')||{}).value||'').toLowerCase();
+
+  if(yr) rows = rows.filter(function(r){ return (r.date||'').startsWith(yr); });
+  if(st) rows = rows.filter(function(r){ return r.status===st; });
+  if(q)  rows = rows.filter(function(r){
+    return (r.errorNum||'').toLowerCase().includes(q)
+      || (r.customer||'').toLowerCase().includes(q)
+      || (r.wo||'').toLowerCase().includes(q)
+      || (r.so||'').toLowerCase().includes(q)
+      || (r.carrier||'').toLowerCase().includes(q)
+      || (r.outgoing||'').toLowerCase().includes(q)
+      || (r.tracking||'').toLowerCase().includes(q)
+      || (r.apptNum||'').toLowerCase().includes(q)
+      || (r.errorType||'').toLowerCase().includes(q)
+      || (r.description||'').toLowerCase().includes(q);
+  });
+
+  var tbody = document.getElementById('sherr-tbody');
+  if(!tbody) return;
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="12"><div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">No shipping errors recorded.</div></div></td></tr>';
+    return;
+  }
+
+  var statusClass = {Open:'open','In Progress':'inprogress',Resolved:'resolved'};
+  tbody.innerHTML = rows.map(function(r){
+    var sc = statusClass[r.status]||'open';
+    return '<tr onclick="openShipErrorModal(\''+r._key+'\')" style="cursor:pointer">'+
+      '<td><strong>'+escHtml(r.errorNum||'—')+'</strong></td>'+
+      '<td>'+fmtDate(r.date)+'</td>'+
+      '<td><span class="sherr-status '+sc+'">'+escHtml(r.status||'Open')+'</span></td>'+
+      '<td title="'+escAttr(r.customer||'')+'">'+escHtml(r.customer||'—')+'</td>'+
+      '<td>'+escHtml(r.carrier||'—')+'</td>'+
+      '<td>'+escHtml(r.errorType||'—')+'</td>'+
+      '<td>'+escHtml(r.outgoing||'—')+'</td>'+
+      '<td>'+escHtml([r.wo,r.so].filter(Boolean).join(' / ')||'—')+'</td>'+
+      '<td>'+escHtml(r.tracking||'—')+'</td>'+
+      '<td>'+escHtml(r.apptNum||'—')+'</td>'+
+      '<td>'+(r.cost?'$'+parseFloat(r.cost).toFixed(2):'—')+'</td>'+
+      '<td onclick="event.stopPropagation()"><div class="act-cell">'+
+        '<button class="act-btn" onclick="openShipErrorModal(\''+r._key+'\')">✏️</button>'+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function filterShipErrors(){ renderShipErrors(); }
+
+function openShipErrorModal(key){
+  var modal = document.getElementById('sherr-modal');
+  document.getElementById('sherr-edit-id').value = key||'';
+  if(key && sherrData[key]){
+    var r = sherrData[key];
+    document.getElementById('sherr-modal-title').textContent = 'Edit Shipping Error';
+    document.getElementById('sherr-num').value              = r.errorNum||'';
+    document.getElementById('sherr-date').value             = r.date||today();
+    document.getElementById('sherr-status').value           = r.status||'Open';
+    document.getElementById('sherr-type').value             = r.errorType||'';
+    document.getElementById('sherr-outgoing').value         = r.outgoing||'';
+    document.getElementById('sherr-customer').value         = r.customer||'';
+    document.getElementById('sherr-wo').value               = r.wo||'';
+    document.getElementById('sherr-so').value               = r.so||'';
+    document.getElementById('sherr-carrier').value          = r.carrier||'';
+    document.getElementById('sherr-tracking').value         = r.tracking||'';
+    document.getElementById('sherr-desc').value             = r.description||'';
+    document.getElementById('sherr-appt').value             = r.apptNum||'';
+    document.getElementById('sherr-return-tracking').value  = r.returnTracking||'';
+    document.getElementById('sherr-responsible').value      = r.responsible||'';
+    document.getElementById('sherr-cost').value             = r.cost||'';
+    document.getElementById('sherr-resolution').value       = r.resolutionNotes||'';
+    document.getElementById('sherr-del-btn').style.display  = 'inline-flex';
+  } else {
+    document.getElementById('sherr-modal-title').textContent = 'New Shipping Error';
+    document.getElementById('sherr-num').value              = '';
+    document.getElementById('sherr-date').value             = today();
+    document.getElementById('sherr-status').value           = 'Open';
+    ['sherr-type','sherr-outgoing','sherr-customer','sherr-wo','sherr-so','sherr-carrier',
+     'sherr-tracking','sherr-desc','sherr-appt','sherr-return-tracking','sherr-responsible',
+     'sherr-cost','sherr-resolution'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('sherr-del-btn').style.display  = 'none';
+  }
+  modal.style.display = 'flex';
+  var mc = modal.querySelector('.modal-content');
+  if(mc) mc.scrollTop = 0;
+}
+
+function closeShipErrorModal(){
+  document.getElementById('sherr-modal').style.display = 'none';
+}
+
+function _genErrorNum(){
+  var yr = new Date().getFullYear();
+  var existing = Object.values(sherrData)
+    .map(function(r){ return r.errorNum||''; })
+    .filter(function(n){ return n.startsWith('ERR-'+yr+'-'); })
+    .map(function(n){ return parseInt(n.split('-')[2])||0; });
+  var next = existing.length ? Math.max.apply(null, existing) + 1 : 1;
+  return 'ERR-'+yr+'-'+(next<10?'00':next<100?'0':'')+next;
+}
+
+function saveShipError(){
+  if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
+  var date = document.getElementById('sherr-date').value;
+  if(!date){ alert('Date is required.'); return; }
+  var key = document.getElementById('sherr-edit-id').value;
+  var errorNum = document.getElementById('sherr-num').value || (key && sherrData[key] ? sherrData[key].errorNum : '') || _genErrorNum();
+  var record = {
+    errorNum:       errorNum,
+    date:           date,
+    status:         document.getElementById('sherr-status').value,
+    errorType:      document.getElementById('sherr-type').value,
+    outgoing:       document.getElementById('sherr-outgoing').value.trim(),
+    customer:       document.getElementById('sherr-customer').value.trim(),
+    wo:             document.getElementById('sherr-wo').value.trim(),
+    so:             document.getElementById('sherr-so').value.trim(),
+    carrier:        document.getElementById('sherr-carrier').value,
+    tracking:       document.getElementById('sherr-tracking').value.trim(),
+    description:    document.getElementById('sherr-desc').value.trim(),
+    apptNum:        document.getElementById('sherr-appt').value.trim(),
+    returnTracking: document.getElementById('sherr-return-tracking').value.trim(),
+    responsible:    document.getElementById('sherr-responsible').value.trim(),
+    cost:           document.getElementById('sherr-cost').value||'',
+    resolutionNotes:document.getElementById('sherr-resolution').value.trim(),
+    updatedAt:      new Date().toISOString()
+  };
+  if(db){
+    var ref = key ? db.ref(SR_PATH+'/ship_errors/'+key) : db.ref(SR_PATH+'/ship_errors').push();
+    if(!key) record.createdAt = new Date().toISOString();
+    ref.set(record).catch(function(e){ alert('Error saving: '+e.message); });
+  } else {
+    var k = key||('local_'+Date.now());
+    if(!key) record.createdAt = new Date().toISOString();
+    sherrData[k] = record; renderShipErrors();
+  }
+  closeShipErrorModal();
+  showToast('✔ Shipping error saved — '+errorNum);
+}
+
+function deleteShipError(){
+  if(!isAdmin) return;
+  var key = document.getElementById('sherr-edit-id').value;
+  if(!key) return;
+  var num = (sherrData[key]||{}).errorNum||'this error';
+  if(!confirm('Delete '+num+'? This cannot be undone.')) return;
+  if(db){ db.ref(SR_PATH+'/ship_errors/'+key).remove().catch(function(e){ alert('Error: '+e.message); }); }
+  else   { delete sherrData[key]; renderShipErrors(); }
+  closeShipErrorModal();
+}
+
+function exportShipErrorsCSV(){
+  var rows = Object.values(sherrData);
+  rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  var headers = ['Error #','Date','Status','Error Type','Customer','Carrier','Outgoing #','WO #','SO #','Airbill #','Appointment #','Return Tracking','Responsible','Cost','Description','Resolution Notes'];
+  var data = rows.map(function(r){
+    return [r.errorNum,r.date,r.status,r.errorType,r.customer,r.carrier,r.outgoing,r.wo,r.so,r.tracking,r.apptNum,r.returnTracking,r.responsible,r.cost,r.description,r.resolutionNotes];
+  });
+  toXLS('shipping-errors', headers, data);
 }
 </script>
 
