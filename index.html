@@ -3097,36 +3097,65 @@ function showToast(msg){
 }
 
 function prefillFromIncoming(woNum){
-  var match = null;
-  Object.values(incomingData).forEach(function(r){
-    if(!match && (r.wo||'').trim().toLowerCase() === woNum.trim().toLowerCase()) match = r;
-  });
-  if(!match) return;
-
+  var wo = woNum.trim().toUpperCase();
   var knownMats = ['Electric Motor','Pump','Submersible Pump','Air Compressor','DC Motor','Generator'];
+  var customer = '', equipment = '', equipmentType = '', source = '';
+
+  // 1. Incoming Forms — best source (has equipment type)
+  Object.values(incomingData).some(function(r){
+    if((r.wo||'').trim().toUpperCase() !== wo) return false;
+    customer      = customer      || (r.customer||'');
+    equipment     = equipment     || (r.equipment||'');
+    equipmentType = equipmentType || (r.equipmentType||'');
+    source        = source        || ('Incoming Form ' + (r.formNum||wo));
+    return customer && equipment;
+  });
+
+  // 2. Shipping On Hold — has material (free text) and customer
+  if(!equipment || !customer){
+    Object.values(procData).some(function(r){
+      if((r.wo||'').trim().toUpperCase() !== wo) return false;
+      customer  = customer  || (r.customer||'');
+      equipment = equipment || (r.material||'');
+      source    = source    || ('Shipping On Hold');
+      return customer && equipment;
+    });
+  }
+
+  // 3. Incoming Items line items — has material (free text) and customer
+  if(!equipment || !customer){
+    Object.values(itemsData).some(function(doc){
+      return (doc.lineItems||[]).some(function(li){
+        if((li.workOrderNum||'').trim().toUpperCase() !== wo) return false;
+        customer  = customer  || (li.customer||'');
+        equipment = equipment || (li.material||'');
+        source    = source    || ('Incoming Item ' + (doc.docNum||wo));
+        return customer && equipment;
+      });
+    });
+  }
+
   var filled = [];
 
-  // Customer
-  if(!document.getElementById('shp-customer').value && match.customer){
-    document.getElementById('shp-customer').value = match.customer;
+  if(customer && !document.getElementById('shp-customer').value){
+    document.getElementById('shp-customer').value = customer;
     filled.push('Customer');
   }
 
-  // Material
-  if(!document.getElementById('shp-material-type').value && match.equipment){
-    var mType = match.equipmentType || (knownMats.includes(match.equipment) ? match.equipment : 'Other');
+  if(equipment && !document.getElementById('shp-material-type').value){
+    var mType = equipmentType || (knownMats.includes(equipment) ? equipment : 'Other');
     document.getElementById('shp-material-type').value = mType;
     if(mType === 'Other'){
-      document.getElementById('shp-material-other').value = match.equipment||'';
+      document.getElementById('shp-material-other').value = equipment;
       document.getElementById('shp-material-other-group').style.display = 'flex';
     } else {
       document.getElementById('shp-material-other-group').style.display = 'none';
     }
-    filled.push(match.equipment);
+    filled.push(equipment);
   }
 
   if(filled.length){
-    showToast('✔ Pre-filled from Incoming Form ' + (match.formNum||woNum) + ' — ' + filled.join(', '));
+    showToast('✔ Pre-filled from ' + source + ' — ' + filled.join(', '));
   }
 }
 
@@ -3455,7 +3484,7 @@ function saveShipment(){
   [{field:'so',id:'shp-so-input'},{field:'tr',id:'shp-tr-input'},{field:'wo',id:'shp-wo-input'}].forEach(function(t){
     var el = document.getElementById(t.id);
     var v = el.value.trim();
-    if(v){ shpTags[t.field].push(v); el.value=''; renderShpTags(t.field); }
+    if(v){ shpTags[t.field].push(v); el.value=''; renderShpTags(t.field); if(t.field==='wo') prefillFromIncoming(v); }
   });
   lookupProcPhotos();
   var materialType  = document.getElementById('shp-material-type').value;
