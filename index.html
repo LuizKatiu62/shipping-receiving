@@ -1898,6 +1898,7 @@ function initDataListeners(){
   });
   document.getElementById('app-loading').style.display = 'none';
   document.getElementById('inc-date').value = today();
+  setTimeout(function(){ var s = document.getElementById('inc-search'); if(s) s.focus(); }, 300);
 }
 
 // ── AUTH HELPERS ──
