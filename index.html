@@ -288,6 +288,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .auth-field label{font-size:.67rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.6px}
 .auth-field input{padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.88rem;font-family:'Inter',inherit;outline:none;transition:all .18s;color:var(--text-primary)}
 .auth-field input:focus{border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(21,101,192,.1)}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:42px;width:100%}
+.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;color:#94a3b8;padding:4px;line-height:1;transition:color .15s}
+.pw-toggle:hover{color:#475569}
 .auth-btn{width:100%;padding:12px;background:linear-gradient(160deg,var(--blue-600),var(--blue-500));color:#fff;border:none;border-radius:var(--radius-md);font-size:.88rem;font-weight:800;cursor:pointer;font-family:'Inter',inherit;transition:all .18s;margin-top:6px;box-shadow:0 2px 8px rgba(21,101,192,.3);letter-spacing:.1px}
 .auth-btn:hover{background:linear-gradient(160deg,var(--blue-700),var(--blue-600));box-shadow:0 4px 14px rgba(21,101,192,.4);transform:translateY(-1px)}
 .auth-btn:disabled{background:#93c5fd;cursor:not-allowed;box-shadow:none;transform:none}
@@ -426,7 +430,10 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="auth-field">
           <label>Password</label>
-          <input type="password" id="auth-login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+          <div class="pw-wrap">
+            <input type="password" id="auth-login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+            <button type="button" class="pw-toggle" onclick="togglePw('auth-login-pass',this)" title="Show/hide password">👁</button>
+          </div>
         </div>
         <button class="auth-btn" id="auth-login-btn" onclick="doLogin()">Sign In</button>
         <div class="auth-footer">
@@ -446,11 +453,17 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="auth-field">
           <label>Password (min 6 characters)</label>
-          <input type="password" id="auth-reg-pass" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
+          <div class="pw-wrap">
+            <input type="password" id="auth-reg-pass" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
+            <button type="button" class="pw-toggle" onclick="togglePw('auth-reg-pass',this)" title="Show/hide password">👁</button>
+          </div>
         </div>
         <div class="auth-field">
           <label>Confirm Password</label>
-          <input type="password" id="auth-reg-pass2" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
+          <div class="pw-wrap">
+            <input type="password" id="auth-reg-pass2" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
+            <button type="button" class="pw-toggle" onclick="togglePw('auth-reg-pass2',this)" title="Show/hide password">👁</button>
+          </div>
         </div>
         <button class="auth-btn" id="auth-reg-btn" onclick="doRegister()">Create Account</button>
         <div class="auth-footer">
@@ -2069,6 +2082,13 @@ function initDataListeners(){
 }
 
 // ── AUTH HELPERS ──
+function togglePw(id, btn){
+  var inp = document.getElementById(id);
+  if(!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
 function authShow(screen){
   document.querySelectorAll('.auth-screen').forEach(function(s){ s.classList.remove('active'); });
   document.getElementById('auth-'+screen).classList.add('active');
