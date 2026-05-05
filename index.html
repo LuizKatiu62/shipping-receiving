@@ -1666,30 +1666,6 @@ document.addEventListener('keydown', function(ev){
         <div id="itm-lines-container"></div>
       </div>
 
-      <!-- Order Details — only visible when BIN = WIP or Service Order -->
-      <div id="itm-order-details-section" style="display:none;margin-top:4px">
-        <div class="form-grid">
-          <div class="form-section-header">Order Details</div>
-          <div class="form-group" id="itm-so-group">
-            <label>Sales Order #</label>
-            <input type="text" id="itm-so" oninput="enforceUpper(this);toggleItmSoWo()" placeholder="SO #">
-          </div>
-          <div class="form-group">
-            <label>Area</label>
-            <select id="itm-area">
-              <option value="">— Area —</option>
-              <option>Electrical</option>
-              <option>Mechanical</option>
-              <option>Air Compressor</option>
-              <option>Generator</option>
-            </select>
-          </div>
-          <div class="form-group" id="itm-cust-group">
-            <label>Customer</label>
-            <input type="text" id="itm-cust" list="customer-suggestions" autocomplete="off" oninput="enforceUpper(this)" placeholder="Customer">
-          </div>
-        </div>
-      </div>
 
       <div class="form-actions">
         <button class="btn btn-danger" id="itm-del-btn" style="display:none;margin-right:auto" onclick="deleteItem()">🗑 Delete</button>
@@ -2495,10 +2471,10 @@ function printIncomingLabel(){
 }
 
 function printItemWipLabel(i){
-  var wo       = document.getElementById('itm-wo').value.trim();
-  var area     = document.getElementById('itm-area').value;
+  var wo       = document.getElementById('itm-l'+i+'-wipwo').value.trim();
+  var area     = document.getElementById('itm-l'+i+'-area').value;
   var material = document.getElementById('itm-l'+i+'-mat').value.trim();
-  var customer = document.getElementById('itm-cust').value.trim();
+  var customer = '';
   var date     = document.getElementById('itm-date').value;
 
   var win = window.open('','_blank','width=600,height=380');
@@ -2541,16 +2517,14 @@ function printItemWipLabel(i){
 
 function printItemGenericLabel(i){
   var binType  = document.getElementById('itm-l'+i+'-bin').value;
-  var so       = document.getElementById('itm-so').value.trim();
-  var wo       = document.getElementById('itm-wo').value.trim();
-  var app      = so ? 'Sales Order' : wo ? 'Work Order' : '';
-  var area     = document.getElementById('itm-area').value;
+  var nobinSo  = (document.getElementById('itm-l'+i+'-nobinso')||{value:''}).value.trim();
+  var app      = nobinSo ? 'Sales Order' : '';
   var material = document.getElementById('itm-l'+i+'-mat').value.trim();
-  var customer = document.getElementById('itm-cust').value.trim();
+  var customer = '';
   var date     = document.getElementById('itm-date').value;
 
-  var orderLabel = app==='Sales Order' ? 'Sales Order #' : (app==='Work Order' ? 'Work Order #' : 'Order #');
-  var orderNum   = app==='Sales Order' ? so : (app==='Work Order' ? wo : (so||wo||'—'));
+  var orderLabel = 'Sales Order #';
+  var orderNum   = nobinSo || '—';
   var binColor   = binType==='NOBIN' ? '#6b7280' : '#0ea5e9';
 
   var win = window.open('','_blank','width=600,height=380');
@@ -3665,7 +3639,10 @@ function renderItmLines(){
       '<td style="padding:4px 6px;width:145px">'+
         '<select id="itm-l'+i+'-bin" onchange="toggleLineStock('+i+')" style="'+fi+'"><option value="">— BIN —</option>'+binSel+'</select>'+
         '<input type="text" id="itm-l'+i+'-binstock" placeholder="BIN Location" oninput="enforceUpper(this)" value="'+escAttr(item.binStock||'')+'" style="'+fi+';margin-top:3px;display:'+(isStock?'block':'none')+'">'+
-        '<input type="text" id="itm-l'+i+'-wipwo" placeholder="Work Order #" oninput="enforceUpper(this);autoFillFromWo(this.value)" value="'+escAttr(item.wipWo||'')+'" style="'+fi+';margin-top:3px;display:'+(isWIP?'block':'none')+'">'+
+        '<input type="text" id="itm-l'+i+'-wipwo" placeholder="Work Order #" oninput="enforceUpper(this);autoFillFromWo(this.value,'+i+')" value="'+escAttr(item.wipWo||'')+'" style="'+fi+';margin-top:3px;display:'+(isWIP?'block':'none')+'">'+
+        '<select id="itm-l'+i+'-area" style="'+fi+';margin-top:3px;display:'+(isWIP?'block':'none')+'"><option value="">— Area —</option>'+
+          ['Electrical','Mechanical','Air Compressor','Generator'].map(function(a){ return '<option'+(item.wipArea===a?' selected':'')+'>'+a+'</option>'; }).join('')+
+        '</select>'+
         '<input type="text" id="itm-l'+i+'-nobinso" placeholder="Sales Order #" oninput="enforceUpper(this)" value="'+escAttr(item.nobinSo||'')+'" style="'+fi+';margin-top:3px;display:'+(isNOBIN?'block':'none')+'">'+
         '<button type="button" id="itm-l'+i+'-wipbtn" class="btn btn-secondary btn-sm" onclick="printItemWipLabel('+i+')" style="margin-top:3px;font-size:.65rem;padding:2px 6px;display:'+(isWIP?'block':'none')+'">🏷️ WIP Label</button>'+
         '<button type="button" id="itm-l'+i+'-labelbtn" class="btn btn-secondary btn-sm" onclick="printItemGenericLabel('+i+')" style="margin-top:3px;font-size:.65rem;padding:2px 6px;display:'+(isOther?'block':'none')+'">🏷️ Print Label</button>'+
@@ -3705,6 +3682,7 @@ function addLineItem(){
     binLocation: prev ? prev.binLocation : '',
     binStock:    prev ? prev.binStock    : '',
     wipWo:       '',
+    wipArea:     '',
     nobinSo:     ''
   });
   renderItmLines();
@@ -3725,8 +3703,10 @@ function toggleLineStock(i){
   var nobinEl  = document.getElementById('itm-l'+i+'-nobinso');
   var wipBtn   = document.getElementById('itm-l'+i+'-wipbtn');
   var labelBtn = document.getElementById('itm-l'+i+'-labelbtn');
+  var areaEl   = document.getElementById('itm-l'+i+'-area');
   if(stockEl)  { stockEl.style.display  = val==='Stock' ? 'block' : 'none'; if(val!=='Stock') stockEl.value=''; }
   if(wipWoEl)  { wipWoEl.style.display  = val==='WIP'   ? 'block' : 'none'; if(val!=='WIP')   wipWoEl.value=''; }
+  if(areaEl)   { areaEl.style.display   = val==='WIP'   ? 'block' : 'none'; if(val!=='WIP')   areaEl.value=''; }
   if(nobinEl)  { nobinEl.style.display  = val==='NOBIN' ? 'block' : 'none'; if(val!=='NOBIN') nobinEl.value=''; }
   if(wipBtn)   wipBtn.style.display   = val==='WIP'   ? 'block' : 'none';
   var isOther = val!=='' && val!=='Stock' && val!=='WIP' && val!=='NOBIN';
@@ -3734,25 +3714,7 @@ function toggleLineStock(i){
   toggleOrderDetails();
 }
 
-function toggleOrderDetails(){
-  var show = itmLines.some(function(_,i){
-    var el = document.getElementById('itm-l'+i+'-bin');
-    if(!el) return false;
-    return el.value==='WIP' || el.value==='NOBIN';
-  });
-  var sec = document.getElementById('itm-order-details-section');
-  if(!sec) return;
-  if(show){
-    sec.style.display='';
-  } else {
-    sec.style.display='none';
-    ['itm-so','itm-area','itm-cust'].forEach(function(id){
-      var el=document.getElementById(id); if(!el) return;
-      if(el.tagName==='SELECT') el.value=''; else el.value='';
-    });
-    toggleItmSoWo();
-  }
-}
+function toggleOrderDetails(){ }
 
 function toggleItmPoTransfer(){
   var po  = (document.getElementById('itm-po').value||'').trim();
@@ -3761,24 +3723,13 @@ function toggleItmPoTransfer(){
   if(po && document.getElementById('itm-transfer')) document.getElementById('itm-transfer').value='';
 }
 
-function toggleItmApp(){ /* Application field removed — SO/WO fields always visible */ }
-
+function toggleItmApp(){ }
 function toggleItmSoWo(){
-  var so = (document.getElementById('itm-so').value||'').trim();
-  var custGrp = document.getElementById('itm-cust-group');
-  if(custGrp){
-    if(so){
-      custGrp.style.display = 'none';
-      document.getElementById('itm-cust').value = '';
-    } else {
-      custGrp.style.display = '';
-    }
-  }
 }
 
 function autoFillWoData(i){ /* WO# now lives in header field itm-wo — no per-row lookup needed */ }
 
-function autoFillFromWo(woVal){
+function autoFillFromWo(woVal, lineIdx){
   var wo = (woVal||'').trim().toUpperCase();
   if(wo.length < 3) return;
 
@@ -3813,11 +3764,11 @@ function autoFillFromWo(woVal){
     customer = customer || (r.customer||'');
   });
 
-  var areaEl = document.getElementById('itm-area');
-  var custEl = document.getElementById('itm-cust');
   var filled = [];
-  if(area && areaEl && !areaEl.value){ areaEl.value = area; filled.push('Area'); }
-  if(customer && custEl && !custEl.value){ custEl.value = customer; filled.push('Customer'); }
+  if(area && lineIdx !== undefined){
+    var areaEl = document.getElementById('itm-l'+lineIdx+'-area');
+    if(areaEl && !areaEl.value){ areaEl.value = area; filled.push('Area'); }
+  }
   if(filled.length) showToast('✔ Auto-filled from WO ' + wo + ' — ' + filled.join(', '));
 }
 
@@ -3844,6 +3795,7 @@ function readLineItems(){
       binLocation: g('itm-l'+i+'-bin'),
       binStock:    g('itm-l'+i+'-binstock').trim(),
       wipWo:       g('itm-l'+i+'-wipwo').trim(),
+      wipArea:     g('itm-l'+i+'-area'),
       nobinSo:     g('itm-l'+i+'-nobinso').trim()
     };
   });
@@ -3871,12 +3823,13 @@ function openItemModal(key){
       document.getElementById('itm-reqby-other').value = '';
       document.getElementById('itm-reqby-other-group').style.display = 'none';
     }
-    itmLines = (r.lineItems||[]).map(function(li){ return Object.assign({},li); });
-    // Populate header-level order fields from first line item
-    var first = itmLines[0]||{};
-    document.getElementById('itm-so').value    = first.salesOrderNum||'';
-    document.getElementById('itm-area').value  = first.area||'';
-    document.getElementById('itm-cust').value  = first.customer||'';
+    itmLines = (r.lineItems||[]).map(function(li){
+      return Object.assign({}, li, {
+        wipWo:   li.wipWo   || (li.binLocation==='WIP'   ? li.workOrderNum  : ''),
+        wipArea: li.wipArea || (li.binLocation==='WIP'   ? li.area          : ''),
+        nobinSo: li.nobinSo || (li.binLocation==='NOBIN' ? li.salesOrderNum : '')
+      });
+    });
     toggleItmPoTransfer();
     toggleItmSoWo();
     document.getElementById('itm-del-btn').style.display='inline-flex';
@@ -3886,9 +3839,6 @@ function openItemModal(key){
     document.getElementById('itm-reqby').value = '';
     document.getElementById('itm-reqby-other').value = '';
     document.getElementById('itm-reqby-other-group').style.display = 'none';
-    document.getElementById('itm-so').value   = '';
-    document.getElementById('itm-area').value = '';
-    document.getElementById('itm-cust').value = '';
     toggleItmPoTransfer();
     toggleItmSoWo();
     itmLines = [{material:'',pc:'',lb:'',rl:'',binLocation:'',binStock:'',wipWo:'',nobinSo:''}];
@@ -3913,19 +3863,17 @@ function saveItem(){
   if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var docNum = document.getElementById('itm-doc').value.trim();
   if(!docNum){ alert('Document # is required.'); return; }
-  var docSO   = document.getElementById('itm-so').value.trim();
-  var docArea = document.getElementById('itm-area').value;
-  var docCust = document.getElementById('itm-cust').value.trim();
   var lineItems = readLineItems().map(function(li){
-    var lineWO = li.wipWo   || '';
-    var lineSO = li.nobinSo || (li.binLocation!=='WIP' ? docSO : '');
-    var app    = lineWO ? 'Work Order' : lineSO ? 'Sales Order' : '';
+    var lineWO   = li.wipWo   || '';
+    var lineSO   = li.nobinSo || '';
+    var lineArea = li.wipArea || '';
+    var app      = lineWO ? 'Work Order' : lineSO ? 'Sales Order' : '';
     return Object.assign({}, li, {
       applicationType: app,
       salesOrderNum:   lineSO,
       workOrderNum:    lineWO,
-      area:            docArea,
-      customer:        docCust
+      area:            lineArea,
+      customer:        ''
     });
   });
   if(!lineItems.length){ alert('Add at least one item.'); return; }
