@@ -3945,7 +3945,7 @@ function saveItem(){
     items: wipEM,
     to: 'gould.howard@sourceatlantic.ca',
     toDisplay: 'Howard Gould',
-    greeting: getGreeting('Howard')
+    greeting: getGreetingEn('Howard')
   });
   if(wipAC.length) wipEmailQueue.push({
     items: wipAC,
@@ -3959,10 +3959,10 @@ function saveItem(){
     items: lineItems,
     to: 'gould.harold@sourceatlantic.ca',
     toDisplay: 'Harold Gould',
-    greeting: getGreeting('Harold'),
+    greeting: getGreetingEn('Harold'),
     subjectOverride: 'Work Order Items Received — Doc #'+(record.docNum||'')+' — '+(record.date||''),
     bodyOverride: function(r){
-      var b = getGreeting('Harold') + '\n\n';
+      var b = getGreetingEn('Harold') + '\n\n';
       b += 'The following Work Order items have been received:\n\n';
       b += 'Document #:  ' + (r.docNum||'—') + '\n';
       b += 'Date:        ' + (r.date||'—') + '\n';
