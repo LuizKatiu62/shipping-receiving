@@ -5095,10 +5095,9 @@ function sendWipEmail(){
   })();
 
   var toAddrs = notif.to.split(/[;,]/).map(function(a){ return a.trim(); }).filter(Boolean);
-  var mailto = 'mailto:' + toAddrs[0]
-    + (toAddrs.slice(1).length ? '?to=' + toAddrs.slice(1).join('%3B') + '&' : '?')
-    + 'subject=' + encodeURIComponent(subject)
-    + '&body='   + encodeURIComponent(body);
+  var mailto = 'mailto:?to=' + toAddrs.join('%3B')
+    + '&subject=' + encodeURIComponent(subject)
+    + '&body='    + encodeURIComponent(body);
 
   window.location.href = mailto;
   // closeWipEmailModal advances to next in queue
