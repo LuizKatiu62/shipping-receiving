@@ -3925,6 +3925,36 @@ function saveItem(){
     toDisplay: 'Logan Northrup; Sara Templeton; Mark Northrup',
     greeting: getGreetingEn('Team')
   });
+  // Shop Supply / Shop Equip. Maintenance → notify Harold Gould
+  var shopItems = lineItems.filter(function(li){
+    return li.binLocation==='Shop Supply' || li.binLocation==='Shop Equip. Maintenance';
+  });
+  if(shopItems.length) wipEmailQueue.push({
+    items: shopItems,
+    to: 'gould.harold@sourceatlantic.ca',
+    toDisplay: 'Harold Gould',
+    greeting: getGreetingEn('Harold'),
+    subjectOverride: 'Shop Materials Received — Doc #'+(record.docNum||'')+' — '+(record.date||''),
+    bodyOverride: function(r){
+      var b = getGreetingEn('Harold') + '\n\n';
+      b += 'The following shop materials have been received:\n\n';
+      b += 'Document #:  ' + (r.docNum||'—') + '\n';
+      b += 'Date:        ' + (r.date||'—') + '\n';
+      if(r.poNum)       b += 'PO #:        ' + r.poNum + '\n';
+      if(r.transferNum) b += 'Transfer #:  ' + r.transferNum + '\n';
+      if(r.supplier)    b += 'Supplier:    ' + r.supplier + '\n';
+      b += '\n';
+      shopItems.forEach(function(li, idx){
+        b += '--- Item ' + (idx+1) + ' ---\n';
+        b += 'Material:  ' + (li.material||'—') + '\n';
+        b += 'BIN:       ' + li.binLocation + '\n';
+        if(li.pc) b += 'Qty (Pc):  ' + li.pc + '\n';
+        b += '\n';
+      });
+      b += '—\nSource Atlantic — Shipping & Receiving System';
+      return b;
+    }
+  });
   // Work Order requested by Harold Gould → notify Harold (any WIP line with a WO#)
   var hasWO = lineItems.some(function(li){ return li.binLocation==='WIP' && li.workOrderNum; });
   var isHaroldWO = record.requestedBy === 'Harold Gould' && hasWO;
