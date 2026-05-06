@@ -1054,9 +1054,7 @@ function buildTable(cats, cYr, pYr, lastMo, live){
 // ── PROVINCE DRILL-THROUGH MODAL ──
 var _provModalTarget = null;
 function openProvModal(prov){
-  _provModalTarget = prov;
-  document.getElementById('prov-modal-name').textContent = prov;
-  document.getElementById('prov-modal-overlay').classList.add('open');
+  window.location.href = 'control-tower.html?page=oms&section=shipping&province='+encodeURIComponent(prov);
 }
 function closeProvModal(){
   document.getElementById('prov-modal-overlay').classList.remove('open');
