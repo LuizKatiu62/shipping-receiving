@@ -3670,6 +3670,7 @@ function openShipModal(key){
   updateShpOrderFields();
   if(!key) lookupProcPhotos();
   document.getElementById('shp-modal').style.display = 'flex';
+  setTimeout(function(){ var el = document.getElementById('shp-customer'); if(el) el.focus(); }, 100);
 }
 
 function closeShipModal(){
