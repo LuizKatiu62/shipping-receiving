@@ -3645,7 +3645,7 @@ function renderShipping(){
       '<td>'+escHtml(soArr.length?soArr.join(', '):'—')+'</td>'+
       '<td>'+escHtml(trArr.length?trArr.join(', '):'—')+'</td>'+
       '<td>'+escHtml(woArr.length?woArr.join(', '):'—')+'</td>'+
-      '<td title="'+escAttr(r.material||'')+'">'+escHtml(r.material||'—')+'</td>'+
+      '<td title="'+escAttr((r.material||'').toUpperCase())+'">'+escHtml((r.material||'—').toUpperCase())+'</td>'+
       '<td class="col-tracking">'+trackingCell+'</td>'+
       '<td onclick="event.stopPropagation()">'+
         '<div class="act-cell">'+
@@ -3697,7 +3697,7 @@ function openShipModal(key){
     var knownMats = ['Electric Motor','Pump','Submersible Pump','Air Compressor','DC Motor','Generator'];
     var mType = r.materialType || (knownMats.includes(r.material) ? r.material : (r.material ? 'Other' : ''));
     document.getElementById('shp-material-type').value  = mType;
-    document.getElementById('shp-material-other').value = mType === 'Other' ? (r.material||'') : '';
+    document.getElementById('shp-material-other').value = mType === 'Other' ? (r.material||'').toUpperCase() : '';
     document.getElementById('shp-material-other-group').style.display = mType === 'Other' ? 'flex' : 'none';
     document.getElementById('shp-pc').value          = r.pc||'';
     document.getElementById('shp-lb').value          = r.lb||'';
@@ -3809,7 +3809,7 @@ function exportShippingCSV(){
   if(!rows.length){ alert('No data to export.'); return; }
   var headers = ['Outgoing #','Shipment Date','City','Province','Postal Code','Country','Material','Pc','Lb','Rl','Freight Type','Sales Orders','Transfer Numbers','Work Orders','Carrier','Carrier Other','Tracking #'];
   var data = rows.map(function(r){
-    return [r.outgoing,r.date,r.city,r.province,r.postalCode,r.country,r.material,r.pc,r.lb,r.rl,r.freightType,(r.salesOrders||[]).join('; '),(r.transferNums||[]).join('; '),(r.workOrders||[]).join('; '),r.carrier,r.carrierOther,r.trackingNum];
+    return [r.outgoing,r.date,r.city,r.province,r.postalCode,r.country,(r.material||'').toUpperCase(),r.pc,r.lb,r.rl,r.freightType,(r.salesOrders||[]).join('; '),(r.transferNums||[]).join('; '),(r.workOrders||[]).join('; '),r.carrier,r.carrierOther,r.trackingNum];
   });
   toXLS('shipping', headers, data);
 }
