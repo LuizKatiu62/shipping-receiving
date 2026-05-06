@@ -5549,14 +5549,14 @@ function renderShipErrors(){
 
 function filterShipErrors(){ renderShipErrors(); }
 
-function _sherrShowFile(name, url){
-  var nameEl = document.getElementById('sherr-file-name');
-  var linkEl = document.getElementById('sherr-file-link');
+function _sherrShowFile(name, dataUrl){
+  var nameEl  = document.getElementById('sherr-file-name');
+  var linkEl  = document.getElementById('sherr-file-link');
   var fileInput = document.getElementById('sherr-file-input');
   if(fileInput) fileInput.value = '';
-  if(url){
+  if(dataUrl){
     if(nameEl) nameEl.textContent = name || 'Attached file';
-    if(linkEl){ linkEl.href = url; linkEl.style.display = 'inline'; }
+    if(linkEl){ linkEl.href = dataUrl; linkEl.download = name||'attachment'; linkEl.style.display = 'inline'; }
   } else {
     if(nameEl) nameEl.textContent = 'No file selected';
     if(linkEl) linkEl.style.display = 'none';
@@ -5568,27 +5568,22 @@ function _sherrShowFile(name, url){
 function handleSherrFile(input){
   var file = input.files[0];
   if(!file) return;
+  if(file.size > 3 * 1024 * 1024){ alert('File too large — maximum 3 MB.'); input.value=''; return; }
   var nameEl = document.getElementById('sherr-file-name');
   var progEl = document.getElementById('sherr-file-progress');
   var linkEl = document.getElementById('sherr-file-link');
   if(nameEl) nameEl.textContent = file.name;
-  if(progEl) progEl.textContent = 'Uploading…';
-  if(linkEl) linkEl.style.display = 'none';
-  if(!storage){ alert('Storage not available.'); return; }
-  var key = document.getElementById('sherr-edit-id').value || ('new-'+Date.now());
-  var ref = storage.ref('picking_errors/'+key+'/'+file.name);
-  var task = ref.put(file);
-  task.on('state_changed',
-    function(snap){ var pct = Math.round(snap.bytesTransferred/snap.totalBytes*100); if(progEl) progEl.textContent = pct+'%'; },
-    function(err){ if(progEl) progEl.textContent = 'Upload failed'; alert('Upload error: '+err.message); },
-    function(){
-      task.snapshot.ref.getDownloadURL().then(function(url){
-        document.getElementById('sherr-appt').value = url;
-        if(progEl) progEl.textContent = '✓ Uploaded';
-        if(linkEl){ linkEl.href = url; linkEl.style.display = 'inline'; }
-      });
-    }
-  );
+  if(progEl) progEl.textContent = 'Reading…';
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var dataUrl = e.target.result;
+    document.getElementById('sherr-appt').value       = dataUrl;
+    document.getElementById('sherr-file-name').textContent = file.name;
+    if(progEl) progEl.textContent = '✓ Ready';
+    if(linkEl){ linkEl.href = dataUrl; linkEl.download = file.name; linkEl.style.display = 'inline'; }
+  };
+  reader.onerror = function(){ if(progEl) progEl.textContent = 'Read error'; };
+  reader.readAsDataURL(file);
 }
 
 function openShipErrorModal(key){
@@ -5608,8 +5603,8 @@ function openShipErrorModal(key){
     document.getElementById('sherr-carrier').value          = r.carrier||'';
     document.getElementById('sherr-tracking').value         = r.tracking||'';
     document.getElementById('sherr-desc').value             = r.description||'';
-    document.getElementById('sherr-appt').value             = r.attachmentUrl||'';
-    _sherrShowFile(r.attachmentName||'', r.attachmentUrl||'');
+    document.getElementById('sherr-appt').value             = r.attachmentData||'';
+    _sherrShowFile(r.attachmentName||'', r.attachmentData||'');
     document.getElementById('sherr-return-tracking').value  = r.returnTracking||'';
     document.getElementById('sherr-responsible').value      = r.responsible||'';
     document.getElementById('sherr-cost').value             = r.cost||'';
@@ -5621,8 +5616,9 @@ function openShipErrorModal(key){
     document.getElementById('sherr-date').value             = today();
     document.getElementById('sherr-status').value           = 'Open';
     ['sherr-type','sherr-outgoing','sherr-customer','sherr-wo','sherr-so','sherr-carrier',
-     'sherr-tracking','sherr-desc','sherr-appt','sherr-return-tracking','sherr-responsible',
+     'sherr-tracking','sherr-desc','sherr-return-tracking','sherr-responsible',
      'sherr-cost','sherr-resolution'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('sherr-appt').value = '';
     _sherrShowFile('','');
     document.getElementById('sherr-del-btn').style.display  = 'none';
   }
@@ -5663,7 +5659,7 @@ function saveShipError(){
     carrier:        document.getElementById('sherr-carrier').value,
     tracking:       document.getElementById('sherr-tracking').value.trim(),
     description:    document.getElementById('sherr-desc').value.trim(),
-    attachmentUrl:  document.getElementById('sherr-appt').value.trim(),
+    attachmentData: document.getElementById('sherr-appt').value,
     attachmentName: document.getElementById('sherr-file-name').textContent === 'No file selected' ? '' : document.getElementById('sherr-file-name').textContent,
     returnTracking: document.getElementById('sherr-return-tracking').value.trim(),
     responsible:    document.getElementById('sherr-responsible').value.trim(),
