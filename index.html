@@ -1010,7 +1010,7 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="form-group full" id="equip-other-group" style="display:none">
           <label>Other — Describe Equipment</label>
-          <input type="text" id="inc-equip-other" placeholder="Describe the equipment..." list="material-suggestions" autocomplete="off">
+          <input type="text" id="inc-equip-other" placeholder="Describe the equipment..." list="material-suggestions" autocomplete="off" oninput="enforceUpper(this)">
         </div>
 
         <!-- ── Nameplate Details ── -->
@@ -2519,7 +2519,7 @@ function renderIncoming(){
       '<td>'+escHtml(r.wo||'—')+'</td>'+
       '<td style="white-space:nowrap">'+fmtDate(r.date)+'</td>'+
       '<td title="'+escAttr(r.customer||'')+'">'+escHtml(r.customer||'—')+'</td>'+
-      '<td title="'+escAttr(r.equipment||'')+'">'+escHtml(r.equipment||'—')+'</td>'+
+      '<td title="'+escAttr((r.equipment||'').toUpperCase())+'">'+escHtml((r.equipment||'—').toUpperCase())+'</td>'+
       '<td>'+areaBadge(r.area)+'</td>'+
       '<td>'+locationBadge(r.designatedLocation, r.benchName)+'</td>'+
       '<td>'+escHtml((r.deliveryBy||'—').toUpperCase())+'</td>'+
@@ -2574,7 +2574,7 @@ function openIncomingModal(key){
     var knownTypes = ['Electric Motor','Pump','Submersible Pump','Air Compressor','DC Motor','Generator'];
     var eType = r.equipmentType || (knownTypes.includes(r.equipment) ? r.equipment : (r.equipment ? 'Other' : ''));
     document.getElementById('inc-equip-type').value  = eType;
-    document.getElementById('inc-equip-other').value = eType === 'Other' ? (r.equipment||'') : '';
+    document.getElementById('inc-equip-other').value = eType === 'Other' ? (r.equipment||'').toUpperCase() : '';
     document.getElementById('equip-other-group').style.display = eType === 'Other' ? 'flex' : 'none';
     // Nameplate
     document.getElementById('inc-manufacturer').value = r.manufacturer||'';
@@ -2649,8 +2649,8 @@ function saveIncoming(){
   var date         = document.getElementById('inc-date').value;
   var customer     = document.getElementById('inc-customer').value.trim();
   var equipmentType = document.getElementById('inc-equip-type').value;
-  var equipmentOther = document.getElementById('inc-equip-other').value.trim();
-  var equipment    = equipmentType === 'Other' ? equipmentOther : equipmentType;
+  var equipmentOther = document.getElementById('inc-equip-other').value.trim().toUpperCase();
+  var equipment    = (equipmentType === 'Other' ? equipmentOther : equipmentType).toUpperCase();
   var area         = document.getElementById('inc-area').value;
   // Nameplate
   var manufacturer      = document.getElementById('inc-manufacturer').value.trim();
@@ -4554,7 +4554,7 @@ function renderTurnaround(){
     return '<tr>'+
       '<td><strong>'+escHtml(r.formNum)+'</strong></td>'+
       '<td>'+escHtml(r.wo)+'</td>'+
-      '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(r.equipment||'—')+'</td>'+
+      '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml((r.equipment||'—').toUpperCase())+'</td>'+
       '<td>'+escHtml(r.customer||'—')+'</td>'+
       '<td>'+areaBadge(r.area)+'</td>'+
       '<td style="white-space:nowrap">'+fmtDate(r.startDate)+'</td>'+
@@ -5486,7 +5486,7 @@ function exportIncomingCSV(){
   if(!rows.length){ alert('No data to export.'); return; }
   var headers = ['Form #','Work Order','Date','Equipment Description','Area','Manufacturer','Model #','Serial #','Type/Size','HP','RPM','Frame','Customer Stock #','KW','Other Data','Location','Bench Name','What to Do','Delivered By','Received By','Notes'];
   var data = rows.map(function(r){
-    return [r.formNum,r.wo,r.date,r.equipment,r.area,r.manufacturer,r.modelNumber,r.serialNumber,r.typeSize,r.hp,r.rpm,r.frame,r.customerStockNumber,r.kw,r.otherData,r.designatedLocation,r.benchName,r.whatToDo,(r.deliveryBy||'').toUpperCase(),r.receivedBy,r.notes];
+    return [r.formNum,r.wo,r.date,(r.equipment||'').toUpperCase(),r.area,r.manufacturer,r.modelNumber,r.serialNumber,r.typeSize,r.hp,r.rpm,r.frame,r.customerStockNumber,r.kw,r.otherData,r.designatedLocation,r.benchName,r.whatToDo,(r.deliveryBy||'').toUpperCase(),r.receivedBy,r.notes];
   });
   toXLS('incoming-forms', headers, data);
 }
