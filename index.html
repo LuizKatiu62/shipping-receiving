@@ -2522,7 +2522,7 @@ function renderIncoming(){
       '<td title="'+escAttr(r.equipment||'')+'">'+escHtml(r.equipment||'—')+'</td>'+
       '<td>'+areaBadge(r.area)+'</td>'+
       '<td>'+locationBadge(r.designatedLocation, r.benchName)+'</td>'+
-      '<td>'+escHtml(r.deliveryBy||'—')+'</td>'+
+      '<td>'+escHtml((r.deliveryBy||'—').toUpperCase())+'</td>'+
       '<td>'+escHtml(r.receivedBy||'—')+'</td>'+
       '<td onclick="event.stopPropagation()">'+
         '<div class="act-cell">'+
@@ -5486,7 +5486,7 @@ function exportIncomingCSV(){
   if(!rows.length){ alert('No data to export.'); return; }
   var headers = ['Form #','Work Order','Date','Equipment Description','Area','Manufacturer','Model #','Serial #','Type/Size','HP','RPM','Frame','Customer Stock #','KW','Other Data','Location','Bench Name','What to Do','Delivered By','Received By','Notes'];
   var data = rows.map(function(r){
-    return [r.formNum,r.wo,r.date,r.equipment,r.area,r.manufacturer,r.modelNumber,r.serialNumber,r.typeSize,r.hp,r.rpm,r.frame,r.customerStockNumber,r.kw,r.otherData,r.designatedLocation,r.benchName,r.whatToDo,r.deliveryBy,r.receivedBy,r.notes];
+    return [r.formNum,r.wo,r.date,r.equipment,r.area,r.manufacturer,r.modelNumber,r.serialNumber,r.typeSize,r.hp,r.rpm,r.frame,r.customerStockNumber,r.kw,r.otherData,r.designatedLocation,r.benchName,r.whatToDo,(r.deliveryBy||'').toUpperCase(),r.receivedBy,r.notes];
   });
   toXLS('incoming-forms', headers, data);
 }
