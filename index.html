@@ -313,6 +313,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .user-bar-badge.admin{background:rgba(251,191,36,.9);color:#1a1a2e;border-color:rgba(251,191,36,.5)}
 .user-bar-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);border-radius:var(--radius-sm);padding:6px 13px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:'Inter',inherit;transition:all .15s;letter-spacing:.1px}
 .user-bar-btn:hover{background:rgba(255,255,255,.16);color:#fff}
+.online-btn{display:none;align-items:center;gap:5px;background:rgba(16,185,129,.18);border:1px solid rgba(16,185,129,.4);color:#6ee7b7;border-radius:20px;padding:4px 11px;font-size:.68rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .18s;position:relative}
+.online-btn:hover{background:rgba(16,185,129,.28)}
+.online-dot{width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block;box-shadow:0 0 0 2px rgba(16,185,129,.35);animation:pulse 2s infinite}
+.online-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;background:#1e293b;border:1px solid rgba(255,255,255,.12);border-radius:10px;min-width:260px;padding:8px 0;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.online-dropdown.open{display:block}
+.online-dropdown-title{font-size:.62rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;padding:4px 14px 8px}
+.online-dropdown-item{display:flex;align-items:center;gap:8px;padding:6px 14px;font-size:.76rem;color:rgba(255,255,255,.85)}
+.online-dropdown-item .dot-sm{width:6px;height:6px;border-radius:50%;background:#10b981;flex-shrink:0}
 
 /* ── READ-ONLY MODE ── */
 body.readonly-mode .admin-only{display:none!important}
@@ -527,6 +535,14 @@ document.addEventListener('keydown', function(ev){
     <div class="user-bar" id="user-bar" style="display:none">
       <div class="user-bar-email" id="user-bar-email"></div>
       <div class="user-bar-badge" id="user-bar-badge">Viewer</div>
+      <button class="online-btn" id="online-btn" onclick="toggleOnlineDropdown(event)">
+        <span class="online-dot"></span>
+        <span id="online-count">0</span> online
+        <div class="online-dropdown" id="online-dropdown">
+          <div class="online-dropdown-title">Currently Online</div>
+          <div id="online-list"></div>
+        </div>
+      </button>
       <button class="user-bar-btn" onclick="doLogout()">Sign Out</button>
     </div>
   </div>
@@ -1999,12 +2015,41 @@ function processAuthUser(user){
     }
   }
   document.getElementById('auth-overlay').style.display = 'none';
+  if(isAdmin && db) initPresence(user);
   if(!isAdmin && !isPaymentsViewer){
     return;
   }
   document.getElementById('app-loading').style.display = 'flex';
   initDataListeners();
 }
+
+// ── PRESENCE ──
+function initPresence(user){
+  var presRef = db.ref(SR_PATH+'/presence/'+user.uid);
+  var presData = { email: user.email, online: true, lastSeen: firebase.database.ServerValue.TIMESTAMP };
+  presRef.set(presData);
+  presRef.onDisconnect().update({ online: false, lastSeen: firebase.database.ServerValue.TIMESTAMP });
+  // listen for all presence
+  db.ref(SR_PATH+'/presence').on('value', function(snap){
+    var all = snap.val() || {};
+    var online = Object.values(all).filter(function(u){ return u.online; });
+    var btn = document.getElementById('online-btn');
+    var countEl = document.getElementById('online-count');
+    var listEl = document.getElementById('online-list');
+    if(!btn) return;
+    btn.style.display = 'flex';
+    countEl.textContent = online.length;
+    listEl.innerHTML = online.length
+      ? online.map(function(u){ return '<div class="online-dropdown-item"><span class="dot-sm"></span>'+u.email+'</div>'; }).join('')
+      : '<div class="online-dropdown-item" style="color:#64748b">No users online</div>';
+  });
+}
+
+function toggleOnlineDropdown(e){
+  e.stopPropagation();
+  document.getElementById('online-dropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(){ var d = document.getElementById('online-dropdown'); if(d) d.classList.remove('open'); });
 
 function buildMonthSelects(){
   var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
