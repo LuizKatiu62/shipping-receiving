@@ -1106,15 +1106,15 @@ document.addEventListener('keydown', function(ev){
           <label>Delivered By</label>
           <select id="inc-delivery">
             <option value="">— Select Carrier —</option>
-            <option>Midland Transport</option>
-            <option>Midland Courier</option>
-            <option>Kate Lynne</option>
-            <option>Day & Ross</option>
-            <option>Armour</option>
-            <option>Our Truck</option>
-            <option>Customer</option>
-            <option>Purolator</option>
-            <option>FedEx</option>
+            <option>MIDLAND TRANSPORT</option>
+            <option>MIDLAND COURIER</option>
+            <option>KATE LYNNE</option>
+            <option>DAY &amp; ROSS</option>
+            <option>ARMOUR</option>
+            <option>OUR TRUCK</option>
+            <option>CUSTOMER</option>
+            <option>PUROLATOR</option>
+            <option>FEDEX</option>
             <option>UPS</option>
           </select>
         </div>
@@ -1583,7 +1583,7 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="form-group full" id="shp-material-other-group" style="display:none">
           <label>Other — Describe Material</label>
-          <input type="text" id="shp-material-other" class="no-upper" placeholder="Describe the material..." list="material-suggestions" autocomplete="off">
+          <input type="text" id="shp-material-other" placeholder="Describe the material..." list="material-suggestions" autocomplete="off" oninput="enforceUpper(this)">
         </div>
         <div class="form-subgrid" style="grid-template-columns:1fr 1fr 1fr">
           <div class="form-group">
@@ -2595,7 +2595,7 @@ function openIncomingModal(key){
     document.getElementById('inc-pics-time').value    = r.picsTime||'';
     // Work info
     document.getElementById('inc-whattodo').value     = r.whatToDo||'';
-    document.getElementById('inc-delivery').value     = r.deliveryBy||'';
+    document.getElementById('inc-delivery').value     = (r.deliveryBy||'').toUpperCase();
     var knownRecv = ['Luiz Silva','Dustin Howe','Christine Gardner'];
     if(r.receivedBy && !knownRecv.includes(r.receivedBy)){
       document.getElementById('inc-received').value = 'Outros';
@@ -2670,7 +2670,7 @@ function saveIncoming(){
   var picsTime           = document.getElementById('inc-pics-time').value;
   // Work
   var whatToDo   = document.getElementById('inc-whattodo').value;
-  var deliveryBy = document.getElementById('inc-delivery').value;
+  var deliveryBy = document.getElementById('inc-delivery').value.toUpperCase();
   var receivedBy = (function(){ var v=document.getElementById('inc-received').value; return v==='Outros' ? document.getElementById('inc-received-other').value.trim() : v; })();
   var notes      = document.getElementById('inc-notes').value.trim();
   var photosLink = document.getElementById('inc-photos-link').value.trim();
@@ -3750,8 +3750,8 @@ function saveShipment(){
   });
   lookupProcPhotos();
   var materialType  = document.getElementById('shp-material-type').value;
-  var materialOther = document.getElementById('shp-material-other').value.trim();
-  var material      = materialType === 'Other' ? materialOther : materialType;
+  var materialOther = document.getElementById('shp-material-other').value.trim().toUpperCase();
+  var material      = (materialType === 'Other' ? materialOther : materialType).toUpperCase();
   if(!material){ alert('Material is required.'); return; }
   var frRadio  = document.querySelector('input[name="shp-freight"]:checked');
   var carrier  = document.getElementById('shp-carrier').value;
