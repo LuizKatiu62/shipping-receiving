@@ -280,19 +280,8 @@ textarea:not([data-nocase]){
     </div>
     <div style="display:flex;align-items:center;gap:10px">
       <span class="ready-dot" id="ready-dot" style="display:none"><span></span>Live data</span>
-      <a class="btn-nav" href="stats.html" target="sa-dashboard">📊 Dashboard</a>
-      <a class="btn-nav" href="index.html">← App</a>
+      <a class="btn-nav" href="stats.html">📊 Dashboard</a>
     </div>
-  </div>
-</div>
-
-<!-- ═══ HOME PORTAL ═══ -->
-<div id="page-home" class="page-section active">
-  <div class="portal-home">
-    <div class="portal-eyebrow">Source Atlantic — Industrial Services</div>
-    <div class="portal-heading">EPS Shipping &amp; Receiving</div>
-    <div class="portal-sub">Select a tool to get started</div>
-    <div id="home-cards"></div>
   </div>
 </div>
 
@@ -334,7 +323,7 @@ textarea:not([data-nocase]){
 </div>
 
 <!-- ═══ ORDER & MATERIAL STATUS ═══ -->
-<div id="page-oms" class="page-section">
+<div id="page-oms" class="page-section active">
   <div class="page-back-row">
     <button class="btn-back-page" onclick="history.back()">← Back</button>
     <span class="page-title-inline">Overview List</span>
@@ -513,9 +502,8 @@ auth.onAuthStateChanged(function(user){
     buildHomePage();
     startDataLoad();
     var hash = window.location.hash.replace('#','');
-    if(hash === 'oms') showPage('oms');
-    else if(hash === 'overview') showPage('overview');
-    else showPage('home');
+    if(hash === 'overview') showPage('overview');
+    else showPage('oms');
   } else {
     document.getElementById('auth-overlay').style.display = 'flex';
   }
@@ -590,16 +578,14 @@ function buildHomePage(){
   document.getElementById('home-cards').innerHTML = html;
 }
 
-var currentPage = 'home';
+var currentPage = 'oms';
 function showPage(page){
   if(currentPage === 'overview' && page !== 'overview') clearSearch();
-  ['home','overview','oms'].forEach(function(p){
+  ['overview','oms'].forEach(function(p){
     document.getElementById('page-'+p).classList.toggle('active', p===page);
   });
   currentPage = page;
   window.scrollTo(0,0);
-  document.body.classList.toggle('has-results', page !== 'home');
-  if(page === 'home') buildHomePage();
   if(page === 'oms') omsRender();
 }
 
