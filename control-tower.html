@@ -499,7 +499,6 @@ auth.onAuthStateChanged(function(user){
   if(user && user.emailVerified){
     _ctUserEmail = (user.email||'').toLowerCase();
     document.getElementById('auth-overlay').style.display = 'none';
-    buildHomePage();
     startDataLoad();
     var hash = window.location.hash.replace('#','');
     if(hash === 'overview') showPage('overview');
@@ -539,44 +538,7 @@ function doForgotPassword(){
 }
 
 // PAGE NAV
-var PAYMENTS_EMAILS = ['gardner.christine@sourceatlantic.ca','renouf.holly@sourceatlantic.ca','koncovy.josef@sourceatlantic.ca','lcdsilva@hotmail.com','dasilva.luiz@sourceatlantic.ca'];
 var _ctUserEmail = '';
-
-function buildHomePage(){
-  var hasPayments = PAYMENTS_EMAILS.indexOf(_ctUserEmail) !== -1;
-  var cards = [
-    {page:'overview', color:'portal-card-blue', icon:'🔍', title:'Order Lookup',
-     sub:'Search by Work Order, Sales Order or Incoming # — full order details, components, hold status and shipping history'},
-    {page:'oms', color:'portal-card-navy', icon:'📋', title:'Overview List',
-     sub:'Browse Incoming Forms, WIP components and Shipping activity — filter by year, month and day'}
-  ];
-  if(hasPayments){
-    cards.push({href:'index.html?payments=1', color:'portal-card-navy', icon:'💰', title:'Payments',
-      sub:'View and manage payment records — filter by date, method and order number'});
-  }
-  cards.push({href:'stats.html', color:'portal-card-navy', icon:'📊', title:'Dashboard',
-    sub:'Charts and statistics for Shipping & Receiving activity'});
-
-  var gridCols = cards.length === 4 ? '1fr 1fr' : cards.length === 3 ? '1fr 1fr 1fr' : '1fr 1fr';
-  var html = '<div class="portal-grid" style="grid-template-columns:'+gridCols+';max-width:'+(cards.length>=3?'1000px':'760px')+'">';
-  cards.forEach(function(c){
-    if(c.href){
-      html += '<a href="'+c.href+'" target="sa-dashboard" class="portal-card '+c.color+'" style="text-decoration:none">'+
-        '<div class="portal-card-icon">'+c.icon+'</div>'+
-        '<div class="portal-card-title">'+c.title+'</div>'+
-        '<div class="portal-card-sub">'+c.sub+'</div>'+
-        '<div class="portal-card-arrow">→</div></a>';
-    } else {
-      html += '<div class="portal-card '+c.color+'" onclick="showPage(\''+c.page+'\')">'+
-        '<div class="portal-card-icon">'+c.icon+'</div>'+
-        '<div class="portal-card-title">'+c.title+'</div>'+
-        '<div class="portal-card-sub">'+c.sub+'</div>'+
-        '<div class="portal-card-arrow">→</div></div>';
-    }
-  });
-  html += '</div>';
-  document.getElementById('home-cards').innerHTML = html;
-}
 
 var currentPage = 'oms';
 function showPage(page){
