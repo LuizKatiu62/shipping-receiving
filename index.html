@@ -353,7 +353,7 @@ body.readonly-mode.payments-open #payments-back-bar{display:flex!important}
 /* ── VIEWER PORTAL ── */
 #viewer-portal{display:none;align-items:center;justify-content:center;min-height:calc(100vh - 72px);padding:40px 24px;background:var(--bg);position:relative;overflow:hidden}
 #viewer-portal::before{content:'';position:absolute;inset:0;background:url('warehouse-bg.jpg') 68% 42%/cover no-repeat;opacity:.22;z-index:0;pointer-events:none}
-body.readonly-mode #viewer-portal{display:flex!important}
+body.readonly-mode #viewer-portal{display:none!important}
 .vp-wrap{max-width:1100px;width:100%;text-align:center;position:relative;z-index:1}
 .vp-greeting{font-size:.72rem;font-weight:800;color:var(--text-muted,#94a3b8);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:14px}
 .vp-heading{font-size:2rem;font-weight:900;color:var(--text-primary,#0f172a);margin-bottom:8px;letter-spacing:-.5px}
@@ -604,7 +604,7 @@ document.addEventListener('keydown', function(ev){
 
 <!-- PAYMENTS BACK BAR (only visible in payments-open mode) -->
 <div id="payments-back-bar" style="display:none;align-items:center;gap:14px;padding:12px 24px;background:var(--surface,#fff);border-bottom:1px solid var(--border,#e2e8f0);position:sticky;top:0;z-index:100">
-  <button onclick="closePaymentsPortal()" style="background:#f1f5f9;border:1px solid #e2e8f0;color:#475569;padding:7px 16px;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit">← Back</button>
+  <button onclick="window.location.href='control-tower.html'" style="background:#f1f5f9;border:1px solid #e2e8f0;color:#475569;padding:7px 16px;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit">← Back</button>
   <span style="font-size:.88rem;font-weight:700;color:var(--text,#0f172a)">💰 Payments</span>
 </div>
 
@@ -2034,7 +2034,14 @@ function processAuthUser(user){
   }
   document.getElementById('auth-overlay').style.display = 'none';
   if(isAdmin && db) initPresence(user);
-  if(!isAdmin && !isPaymentsViewer){
+  if(!isAdmin){
+    var wantsPayments = new URLSearchParams(window.location.search).get('payments') === '1';
+    if(wantsPayments && isPaymentsViewer){
+      document.getElementById('app-loading').style.display = 'flex';
+      initDataListeners();
+      return;
+    }
+    window.location.replace('control-tower.html');
     return;
   }
   document.getElementById('app-loading').style.display = 'flex';
@@ -2150,6 +2157,10 @@ function initDataListeners(){
     renderShipErrors();
   });
   document.getElementById('app-loading').style.display = 'none';
+  if(new URLSearchParams(window.location.search).get('payments') === '1'){
+    openPaymentsPortal();
+    return;
+  }
   document.getElementById('inc-date').value = today();
   setTimeout(function(){ var s = document.getElementById('inc-search'); if(s) s.focus(); }, 300);
 }
