@@ -243,7 +243,7 @@ textarea:not([data-nocase]){
 <body>
 
 <!-- AUTH -->
-<div id="auth-overlay" style="display:none">
+<div id="auth-overlay" style="display:flex">
   <div class="auth-box">
     <div class="auth-box-header">
       <div class="auth-box-logo"><img src="logo.png" alt="SA" style="height:44px;border-radius:8px;background:#fff;padding:6px 12px"></div>
@@ -280,7 +280,9 @@ textarea:not([data-nocase]){
     </div>
     <div style="display:flex;align-items:center;gap:10px">
       <span class="ready-dot" id="ready-dot" style="display:none"><span></span>Live data</span>
+      <span id="ct-user-email" style="font-size:.68rem;color:rgba(255,255,255,.5);display:none"></span>
       <a class="btn-nav" href="stats.html">📊 Dashboard</a>
+      <button class="btn-nav" id="ct-signout-btn" onclick="ctSignOut()" style="display:none">Sign Out</button>
     </div>
   </div>
 </div>
@@ -323,7 +325,7 @@ textarea:not([data-nocase]){
 </div>
 
 <!-- ═══ ORDER & MATERIAL STATUS ═══ -->
-<div id="page-oms" class="page-section active">
+<div id="page-oms" class="page-section">
   <div class="page-back-row">
     <button class="btn-back-page" onclick="history.back()">← Back</button>
     <span class="page-title-inline">Overview List</span>
@@ -480,6 +482,16 @@ var allData = {incoming:{}, items:{}, shipping:{}, process:{}, packing:{}};
 var loadedCount = 0;
 var TOTAL = 5;
 
+function ctSignOut(){
+  auth.signOut().then(function(){
+    document.getElementById('auth-overlay').style.display = 'flex';
+    var emailEl = document.getElementById('ct-user-email');
+    if(emailEl){ emailEl.textContent = ''; emailEl.style.display = 'none'; }
+    var soBtn = document.getElementById('ct-signout-btn');
+    if(soBtn) soBtn.style.display = 'none';
+  });
+}
+
 function startDataLoad(){
   loadedCount = 0;
   Object.keys(allData).forEach(function(key){
@@ -499,6 +511,10 @@ auth.onAuthStateChanged(function(user){
   if(user && user.emailVerified){
     _ctUserEmail = (user.email||'').toLowerCase();
     document.getElementById('auth-overlay').style.display = 'none';
+    var emailEl = document.getElementById('ct-user-email');
+    if(emailEl){ emailEl.textContent = user.email; emailEl.style.display = 'inline'; }
+    var soBtn = document.getElementById('ct-signout-btn');
+    if(soBtn) soBtn.style.display = 'inline-block';
     startDataLoad();
     var hash = window.location.hash.replace('#','');
     if(hash === 'overview') showPage('overview');
