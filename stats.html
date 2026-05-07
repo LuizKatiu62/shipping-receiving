@@ -252,30 +252,6 @@ tbody tr.row-click:hover{background:#f0f7ff}
   </div>
 </div>
 
-<!-- PROVINCE DRILL-THROUGH MODAL -->
-<div id="prov-modal-overlay" onclick="if(event.target===this)closeProvModal()">
-  <div id="prov-modal">
-    <div class="pm-header">
-      <div class="pm-icon">📍</div>
-      <div>
-        <div class="pm-htitle">Shipments by Destination</div>
-        <div class="pm-hsub">Open filtered list in Control Tower</div>
-      </div>
-    </div>
-    <div class="pm-body">
-      <div class="pm-badge">🚚 <span id="prov-modal-name"></span></div>
-      <div class="pm-desc">
-        Would you like to view all shipments for this destination in
-        <strong>Order &amp; Material Status</strong>?<br>
-        The list will be pre-filtered and ready for you.
-      </div>
-    </div>
-    <div class="pm-footer">
-      <button class="pm-cancel" onclick="closeProvModal()">Cancel</button>
-      <button class="pm-confirm" onclick="confirmProvModal()">View Shipments &rarr;</button>
-    </div>
-  </div>
-</div>
 
 <div class="hdr">
   <div class="hdr-inner">
@@ -288,7 +264,7 @@ tbody tr.row-click:hover{background:#f0f7ff}
     </div>
     <div style="display:flex;align-items:center;gap:12px">
       <span class="hdr-date" id="hdr-date"></span>
-<a class="btn-back" href="index.html">← Back</a>
+<button class="btn-back" onclick="history.back()">← Back</button>
     </div>
   </div>
 </div>
@@ -1051,19 +1027,8 @@ function buildTable(cats, cYr, pYr, lastMo, live){
   return h;
 }
 
-// ── PROVINCE DRILL-THROUGH MODAL ──
-var _provModalTarget = null;
 function openProvModal(prov){
   window.location.href = 'control-tower.html?page=oms&section=shipping&province='+encodeURIComponent(prov);
-}
-function closeProvModal(){
-  document.getElementById('prov-modal-overlay').classList.remove('open');
-  _provModalTarget = null;
-}
-function confirmProvModal(){
-  if(_provModalTarget)
-    window.open('control-tower.html?page=oms&section=shipping&province='+encodeURIComponent(_provModalTarget),'sa-control');
-  closeProvModal();
 }
 </script>
 </body>
