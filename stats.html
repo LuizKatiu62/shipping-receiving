@@ -941,7 +941,6 @@ function render(){
         onClick:function(evt,elements){
           if(!elements.length) return;
           var prov = topProvs[elements[0].index][0];
-          toggleFilter('province', prov);
           openProvModal(prov);
         },
         onHover:function(evt,elements){ evt.native.target.style.cursor=elements.length?'pointer':'default'; },
