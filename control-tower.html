@@ -290,7 +290,7 @@ textarea:not([data-nocase]){
 <!-- ═══ OPERATION OVERVIEW ═══ -->
 <div id="page-overview" class="page-section">
   <div class="page-back-row">
-    <button class="btn-back-page" onclick="history.back()">← Back</button>
+    <button class="btn-back-page" onclick="overviewBack()">← Back</button>
     <span class="page-title-inline">Order Lookup</span>
   </div>
   <div class="search-wrap">
@@ -565,6 +565,11 @@ function showPage(page){
   currentPage = page;
   window.scrollTo(0,0);
   if(page === 'oms') omsRender();
+}
+
+function overviewBack(){
+  if(overviewFrom){ var dest = overviewFrom; overviewFrom = null; showPage(dest); }
+  else { history.back(); }
 }
 
 // Navigate from OMS into Overview with pre-filled search
