@@ -109,18 +109,18 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
 
   <div class="fr">
     <div class="fc" style="flex:1"><span class="fl">Customer:</span><span class="fv" id="f-customer"></span></div>
-    <div class="fc" style="flex:1"><span class="fl">Customer Contact:</span><span class="fv"></span></div>
+    <div class="fc" style="flex:1"><span class="fl">Customer Contact:</span><span class="fv" id="f-customercontact"></span></div>
     <div class="fc" style="flex:1"><span class="fl">Previous Work Order No.:</span><span class="fv" id="f-prevwo"></span></div>
   </div>
 
   <div class="fr">
-    <div class="fc" style="flex:1"><span class="fl">Address:</span><span class="fv"></span></div>
-    <div class="fc" style="flex:1"><span class="fl">Customer Work Order No.:</span><span class="fv"></span></div>
+    <div class="fc" style="flex:1"><span class="fl">Address:</span><span class="fv" id="f-address"></span></div>
+    <div class="fc" style="flex:1"><span class="fl">Customer Work Order No.:</span><span class="fv" id="f-custwo"></span></div>
     <div class="fc" style="flex:1"><span class="fl">Purchase Order No.:</span><span class="fv" id="f-customerpo"></span></div>
   </div>
 
   <div class="fr">
-    <div class="fc" style="flex:1"><span class="fl">Telephone Number:</span><span class="fv"></span></div>
+    <div class="fc" style="flex:1"><span class="fl">Telephone Number:</span><span class="fv" id="f-telephone"></span></div>
     <div class="fc" style="flex:1">
       <span class="fl">Job Priority:</span>
       <div style="padding:1px 0;font-size:9pt;line-height:1.6">
@@ -278,11 +278,15 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
     var ptime = g('picstime');
 
     // Section 1
-    set('f-customer',   cust);
-    set('f-prevwo',     g('prevWo'));
-    set('f-customerpo', g('customerPO'));
-    set('f-date',       date);
-    set('f-datepics',   date);
+    set('f-customer',        cust);
+    set('f-customercontact', g('customerContact'));
+    set('f-prevwo',          g('prevWo'));
+    set('f-address',         g('address'));
+    set('f-custwo',          g('custwo'));
+    set('f-customerpo',      g('customerPO'));
+    set('f-telephone',       g('telephone'));
+    set('f-date',            date);
+    set('f-datepics',        date);
 
     // Priority — only check if explicitly set
     if(prio==='Rush')    chk('cb-rush');

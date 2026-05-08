@@ -203,6 +203,18 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 /* ── 3-COLUMN SUB-GRID ── */
 .form-subgrid{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 
+/* ── INC TOGGLE BUTTONS ── */
+.inc-toggle-group{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.inc-toggle-btn{padding:4px 12px;border:1.5px solid var(--border);border-radius:6px;background:#fff;color:var(--text-muted);cursor:pointer;font-size:.75rem;font-weight:600;transition:all .15s;white-space:nowrap;font-family:inherit}
+.inc-toggle-btn:hover{border-color:var(--blue-400);color:var(--blue-600);background:var(--blue-50)}
+.inc-toggle-btn.active{background:var(--blue-600);border-color:var(--blue-600);color:#fff}
+.inc-toggle-btn.rush-active{background:#dc2626;border-color:#dc2626;color:#fff}
+/* ── INC CHECKBOXES ── */
+.inc-cb-group{display:flex;flex-direction:column;gap:5px;margin-top:4px}
+.inc-cb-row{flex-direction:row;flex-wrap:wrap;gap:8px 18px}
+.inc-cb-item{display:flex;align-items:center;gap:5px;font-size:.8rem;cursor:pointer;color:var(--text-primary);user-select:none}
+.inc-cb-item input[type="checkbox"]{width:14px;height:14px;cursor:pointer;accent-color:var(--blue-600);flex-shrink:0}
+
 /* ── STATS BAR ── */
 .stats-bar{display:flex;gap:14px;margin-bottom:22px;flex-wrap:wrap}
 .stat-card{background:var(--surface);border-radius:var(--radius-lg);padding:14px 20px;box-shadow:var(--shadow-sm);min-width:130px;text-align:center;border:1px solid var(--border);transition:box-shadow .18s}
@@ -991,53 +1003,115 @@ document.addEventListener('keydown', function(ev){
       <input type="hidden" id="inc-eps-num">
       <div class="form-grid">
 
-        <!-- ── Basic Info ── -->
-        <div class="form-section-header">Basic Information</div>
-
+        <!-- ── Incoming # + WO # ── -->
         <div class="form-group">
           <label>Incoming Form #</label>
-          <input type="text" id="inc-form-num" placeholder="e.g. INC-2024-001">
+          <input type="text" id="inc-form-num" placeholder="e.g. 32850">
         </div>
         <div class="form-group">
           <label>Work Order #</label>
           <input type="text" id="inc-wo" placeholder="e.g. WO-2024-100" maxlength="7">
+        </div>
+
+        <!-- ══ 1. CUSTOMER INFORMATION ══ -->
+        <div class="form-section-header">1. Customer Information</div>
+
+        <div class="form-group full">
+          <label>Customer</label>
+          <input type="text" id="inc-customer" placeholder="Customer name" list="customer-suggestions" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Customer Contact</label>
+          <input type="text" id="inc-customer-contact" placeholder="Contact person name">
+        </div>
+        <div class="form-group">
+          <label>Telephone Number</label>
+          <input type="text" id="inc-telephone" placeholder="Phone number">
+        </div>
+        <div class="form-group full">
+          <label>Address</label>
+          <input type="text" id="inc-address" placeholder="Customer address">
+        </div>
+        <div class="form-group">
+          <label>Customer Work Order No.</label>
+          <input type="text" id="inc-custwo" placeholder="Customer's WO #">
+        </div>
+        <div class="form-group">
+          <label>Purchase Order No.</label>
+          <input type="text" id="inc-customer-po" placeholder="e.g. PO-12345">
         </div>
         <div class="form-group">
           <label>Previous Work Order #</label>
           <input type="text" id="inc-prev-wo" placeholder="e.g. WO-2023-050" maxlength="7">
         </div>
         <div class="form-group">
-          <label>Customer PO #</label>
-          <input type="text" id="inc-customer-po" placeholder="e.g. PO-12345">
+          <label>Job Priority</label>
+          <div class="inc-toggle-group">
+            <button type="button" class="inc-toggle-btn" id="btn-prio-regular" onclick="setIncPriority('Regular')">REGULAR</button>
+            <button type="button" class="inc-toggle-btn" id="btn-prio-rush" onclick="setIncPriority('Rush')">🔴 RUSH</button>
+          </div>
+          <input type="hidden" id="inc-priority">
         </div>
         <div class="form-group">
           <label>Date</label>
           <input type="date" id="inc-date">
         </div>
         <div class="form-group">
-          <label>Area</label>
-          <select id="inc-area">
-            <option value="">— Select Area —</option>
-            <option>Electrical</option>
-            <option>Mechanical</option>
-            <option>Air Compressor</option>
-            <option>Generator</option>
-          </select>
+          <label>Date Pictures Taken</label>
+          <input type="date" id="inc-datepics">
+        </div>
+        <div class="form-group">
+          <label>Pictures Taken</label>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px">
+            <div class="inc-toggle-group" style="margin:0">
+              <button type="button" class="inc-toggle-btn" id="btn-pics-yes" onclick="setIncPicsTaken('YES')">YES</button>
+              <button type="button" class="inc-toggle-btn" id="btn-pics-no" onclick="setIncPicsTaken('NO')">NO</button>
+            </div>
+            <input type="time" id="inc-pics-time" style="flex:1;min-width:90px">
+            <input type="number" id="inc-pics-qty" placeholder="Num." min="0" style="width:68px">
+          </div>
         </div>
         <div class="form-group full">
-          <label>Customer</label>
-          <input type="text" id="inc-customer" placeholder="Customer name" list="customer-suggestions" autocomplete="off">
+          <label>What to Do</label>
+          <div class="inc-cb-group">
+            <label class="inc-cb-item"><input type="checkbox" id="inc-wtd-dismantle"> Dismantle, Inspect and Estimate</label>
+            <label class="inc-cb-item"><input type="checkbox" id="inc-wtd-repair-return"> Repair Unit and Return</label>
+            <label class="inc-cb-item"><input type="checkbox" id="inc-wtd-repair-store"> Repair Unit and Store at EPS</label>
+            <label class="inc-cb-item"><input type="checkbox" id="inc-wtd-balancing"> Balancing</label>
+            <label class="inc-cb-item"><input type="checkbox" id="inc-wtd-other" onchange="toggleWtdOther()"> Others</label>
+          </div>
+          <div id="inc-wtd-other-group" style="display:none;margin-top:6px">
+            <input type="text" id="inc-whattodo-other" placeholder="Specify...">
+          </div>
+          <input type="hidden" id="inc-whattodo">
+        </div>
+
+        <!-- ══ 2. UNIT DESCRIPTION & IDENTIFICATION ══ -->
+        <div class="form-section-header">2. Unit Description &amp; Identification</div>
+
+        <div class="form-group full">
+          <label>Department</label>
+          <div class="inc-toggle-group">
+            <button type="button" class="inc-toggle-btn" id="btn-dept-elec" onclick="setIncDept('Electrical')">Electrical</button>
+            <button type="button" class="inc-toggle-btn" id="btn-dept-mech" onclick="setIncDept('Mechanical')">Mechanical</button>
+            <button type="button" class="inc-toggle-btn" id="btn-dept-air" onclick="setIncDept('Air Compressor')">Air</button>
+            <button type="button" class="inc-toggle-btn" id="btn-dept-gen" onclick="setIncDept('Generator')">Generator</button>
+            <button type="button" class="inc-toggle-btn" id="btn-dept-weld" onclick="setIncDept('Welding')">Welding</button>
+          </div>
+          <input type="hidden" id="inc-area">
         </div>
         <div class="form-group full">
-          <label>Equipment Description</label>
+          <label>Basic Description</label>
           <select id="inc-equip-type" onchange="toggleEquipOther()">
-            <option value="">— Select Equipment —</option>
-            <option>Electric Motor</option>
-            <option>Pump</option>
-            <option>Submersible Pump</option>
-            <option>Air Compressor</option>
+            <option value="">— Select —</option>
+            <option>AC Motor</option>
             <option>DC Motor</option>
+            <option>Submersible Pump</option>
+            <option>Pump</option>
+            <option>Air Compressor</option>
             <option>Generator</option>
+            <option>Aero Motor</option>
+            <option>DRUM</option>
             <option value="Other">Other</option>
           </select>
         </div>
@@ -1045,10 +1119,6 @@ document.addEventListener('keydown', function(ev){
           <label>Other — Describe Equipment</label>
           <input type="text" id="inc-equip-other" placeholder="Describe the equipment..." list="material-suggestions" autocomplete="off" oninput="enforceUpper(this)">
         </div>
-
-        <!-- ── Nameplate Details ── -->
-        <div class="form-section-header">Equipment Nameplate Details</div>
-
         <div class="form-subgrid">
           <div class="form-group">
             <label>Manufacturer</label>
@@ -1075,6 +1145,10 @@ document.addEventListener('keydown', function(ev){
             <input type="text" id="inc-rpm" placeholder="e.g. 1800">
           </div>
           <div class="form-group">
+            <label>KW</label>
+            <input type="text" id="inc-kw" placeholder="e.g. 75">
+          </div>
+          <div class="form-group">
             <label>Frame</label>
             <input type="text" id="inc-frame" placeholder="e.g. 444T">
           </div>
@@ -1082,82 +1156,73 @@ document.addEventListener('keydown', function(ev){
             <label>Customer Stock #</label>
             <input type="text" id="inc-custstock" placeholder="Stock #">
           </div>
-          <div class="form-group">
-            <label>KW</label>
-            <input type="text" id="inc-kw" placeholder="e.g. 75">
-          </div>
         </div>
-
+        <div class="form-group full">
+          <label>Customer Asset / Component Number</label>
+          <input type="text" id="inc-custasset" placeholder="Asset / Component #">
+        </div>
         <div class="form-group full">
           <label>Other Data</label>
           <input type="text" id="inc-otherdata" placeholder="Any other nameplate data...">
         </div>
 
-        <!-- ── Designated Location ── -->
-        <div class="form-section-header">Designated Location</div>
+        <!-- ══ 3. ATTACHMENTS ══ -->
+        <div class="form-section-header">3. Attachments for Unit Listed Above</div>
+        <div class="form-group full">
+          <div class="inc-cb-group inc-cb-row">
+            <label class="inc-cb-item"><input type="checkbox" id="inc-attach-coupling"> Coupling</label>
+            <label class="inc-cb-item"><input type="checkbox" id="inc-attach-pulley"> Pulley</label>
+            <label class="inc-cb-item"><input type="checkbox" id="inc-attach-junctionbox"> Junction Box</label>
+            <label class="inc-cb-item"><input type="checkbox" id="inc-attach-mountingfoot"> Mounting Foot</label>
+            <label class="inc-cb-item"><input type="checkbox" id="inc-attach-impeller"> Impeller</label>
+            <label class="inc-cb-item"><input type="checkbox" id="inc-attach-volute"> Volute</label>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label>Other Incoming Attachments</label>
+          <input type="text" id="inc-attach-other" placeholder="Describe other attachments...">
+        </div>
 
-        <div class="form-group">
+        <!-- ══ 4. DESIGNATED LOCATION ══ -->
+        <div class="form-section-header">4. Designated Location</div>
+        <div class="form-group full">
           <label>Location</label>
-          <select id="inc-location" onchange="toggleBenchName()">
-            <option value="">— Select Location —</option>
-            <option>Laydown Area</option>
-            <option>Shop Floor</option>
-            <option>Receiving Area</option>
-            <option>Bench</option>
-            <option>Paint Area</option>
-          </select>
+          <div class="inc-toggle-group">
+            <button type="button" class="inc-toggle-btn" id="btn-loc-laydown" onclick="setIncLocation('Laydown Area')">Laydown Area</button>
+            <button type="button" class="inc-toggle-btn" id="btn-loc-shopfloor" onclick="setIncLocation('Shop Floor')">Shop Floor</button>
+            <button type="button" class="inc-toggle-btn" id="btn-loc-painting" onclick="setIncLocation('Painting Area')">Painting Area</button>
+            <button type="button" class="inc-toggle-btn" id="btn-loc-bench" onclick="setIncLocation('Receiving Bench')">Receiving Bench</button>
+            <button type="button" class="inc-toggle-btn" id="btn-loc-other" onclick="setIncLocation('Others')">Others</button>
+          </div>
+          <input type="hidden" id="inc-location">
         </div>
-        <div class="form-group" id="bench-name-group" style="display:none">
-          <label>Bench — Person Name</label>
-          <input type="text" id="inc-bench-name" placeholder="Person's name">
+        <div id="inc-location-other-group" style="display:none" class="form-group full">
+          <label>Location — Specify</label>
+          <input type="text" id="inc-location-other" placeholder="Specify location...">
         </div>
-
-        <div class="form-group">
-          <label>Pictures Qty</label>
-          <input type="number" id="inc-pics-qty" placeholder="0" min="0">
-        </div>
-        <div class="form-group">
-          <label>Pictures Time</label>
-          <input type="time" id="inc-pics-time">
-        </div>
-
-        <!-- ── Work Info ── -->
-        <div class="form-section-header">Work Information</div>
-
-        <div class="form-group">
-          <label>What to Do</label>
-          <select id="inc-whattodo">
-            <option value="">— Select Action —</option>
-            <option>Dismantle</option>
-            <option>Inspect and Estimate</option>
-            <option>Repair Unit and Return</option>
-            <option>Partner</option>
-            <option>Balancing</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Priority</label>
-          <select id="inc-priority">
-            <option value="">— Select Priority —</option>
-            <option value="Regular">Regular</option>
-            <option value="Rush">🔴 Rush</option>
-          </select>
-        </div>
+        <input type="hidden" id="inc-bench-name">
         <div class="form-group">
           <label>Delivered By</label>
-          <select id="inc-delivery">
+          <select id="inc-delivery" onchange="toggleIncDelivery()">
             <option value="">— Select Carrier —</option>
             <option>MIDLAND TRANSPORT</option>
             <option>MIDLAND COURIER</option>
-            <option>KATE LYNNE</option>
             <option>DAY &amp; ROSS</option>
             <option>ARMOUR</option>
-            <option>OUR TRUCK</option>
+            <option>PUROLATOR TRANSPORT</option>
+            <option>KATE LYNNE</option>
             <option>CUSTOMER</option>
-            <option>PUROLATOR</option>
-            <option>FEDEX</option>
-            <option>UPS</option>
+            <option>OUR TRUCK</option>
+            <option value="OTHERS">OTHERS</option>
           </select>
+        </div>
+        <div class="form-group" id="inc-delivery-driver-group" style="display:none">
+          <label>Our Truck — Driver Name</label>
+          <input type="text" id="inc-delivery-driver" placeholder="Driver name">
+        </div>
+        <div class="form-group" id="inc-delivery-other-group" style="display:none">
+          <label>Delivered By — Specify</label>
+          <input type="text" id="inc-delivery-other" placeholder="Specify carrier...">
         </div>
         <div class="form-group">
           <label>Received By</label>
@@ -1169,8 +1234,8 @@ document.addEventListener('keydown', function(ev){
           </select>
         </div>
         <div class="form-group" id="inc-received-other-group" style="display:none">
-          <label>Received By — Nome</label>
-          <input type="text" id="inc-received-other" placeholder="Digite o nome">
+          <label>Received By — Name</label>
+          <input type="text" id="inc-received-other" placeholder="Enter name">
         </div>
         <div class="form-group full">
           <label>Notes</label>
@@ -2527,12 +2592,55 @@ function toggleEquipOther(){
   if(val !== 'Other') document.getElementById('inc-equip-other').value = '';
 }
 
-// ── BENCH NAME TOGGLE ──
-function toggleBenchName(){
-  var loc = document.getElementById('inc-location').value;
-  var grp = document.getElementById('bench-name-group');
-  grp.style.display = loc === 'Bench' ? 'flex' : 'none';
-  if(loc !== 'Bench') document.getElementById('inc-bench-name').value = '';
+// ── BENCH NAME TOGGLE (kept for backward compat) ──
+function toggleBenchName(){}
+
+// ── INC TOGGLE HELPERS ──
+function incActivateToggle(idA, idB, val){
+  var a=document.getElementById(idA), b=document.getElementById(idB);
+  if(!a||!b) return;
+  a.classList.toggle('active', val==='YES');
+  b.classList.toggle('active', val==='NO');
+}
+function setIncPriority(val){
+  document.getElementById('inc-priority').value = val;
+  var r=document.getElementById('btn-prio-regular'), u=document.getElementById('btn-prio-rush');
+  r.classList.toggle('active', val==='Regular');
+  u.classList.remove('active'); u.classList.remove('rush-active');
+  if(val==='Rush') u.classList.add('rush-active');
+}
+function setIncDept(val){
+  document.getElementById('inc-area').value = val;
+  var map={'Electrical':'btn-dept-elec','Mechanical':'btn-dept-mech','Air Compressor':'btn-dept-air','Generator':'btn-dept-gen','Welding':'btn-dept-weld'};
+  ['btn-dept-elec','btn-dept-mech','btn-dept-air','btn-dept-gen','btn-dept-weld'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.classList.remove('active');
+  });
+  if(map[val]){ var el=document.getElementById(map[val]); if(el) el.classList.add('active'); }
+}
+function setIncLocation(val){
+  document.getElementById('inc-location').value = val;
+  var map={'Laydown Area':'btn-loc-laydown','Shop Floor':'btn-loc-shopfloor','Painting Area':'btn-loc-painting','Receiving Bench':'btn-loc-bench','Others':'btn-loc-other',
+           'Bench':'btn-loc-bench','Paint Area':'btn-loc-painting','Receiving Area':'btn-loc-bench'};
+  ['btn-loc-laydown','btn-loc-shopfloor','btn-loc-painting','btn-loc-bench','btn-loc-other'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.classList.remove('active');
+  });
+  var btnId=map[val]; if(btnId){ var el=document.getElementById(btnId); if(el) el.classList.add('active'); }
+  document.getElementById('inc-location-other-group').style.display = val==='Others' ? 'flex' : 'none';
+}
+function setIncPicsTaken(val){
+  incActivateToggle('btn-pics-yes','btn-pics-no',val);
+}
+function toggleWtdOther(){
+  var checked = document.getElementById('inc-wtd-other').checked;
+  document.getElementById('inc-wtd-other-group').style.display = checked ? 'block' : 'none';
+  if(!checked) document.getElementById('inc-whattodo-other').value = '';
+}
+function toggleIncDelivery(){
+  var val = document.getElementById('inc-delivery').value;
+  document.getElementById('inc-delivery-driver-group').style.display = val==='OUR TRUCK' ? 'flex' : 'none';
+  document.getElementById('inc-delivery-other-group').style.display  = val==='OTHERS'    ? 'flex' : 'none';
+  if(val!=='OUR TRUCK') document.getElementById('inc-delivery-driver').value = '';
+  if(val!=='OTHERS')    document.getElementById('inc-delivery-other').value  = '';
 }
 
 // ── RENDER TABLE ──
@@ -2619,18 +2727,28 @@ function openIncomingModal(key){
   if(key && incomingData[key]){
     var r = incomingData[key];
     document.getElementById('inc-modal-title').textContent = 'Edit Incoming Form';
-    document.getElementById('inc-form-num').value    = r.formNum||'';
-    document.getElementById('inc-wo').value           = r.wo||'';
-    document.getElementById('inc-prev-wo').value      = r.prevWo||'';
-    document.getElementById('inc-customer-po').value  = r.customerPO||'';
-    document.getElementById('inc-date').value         = r.date||today();
-    document.getElementById('inc-customer').value     = r.customer||'';
-    document.getElementById('inc-area').value         = r.area||'';
-    var knownTypes = ['Electric Motor','Pump','Submersible Pump','Air Compressor','DC Motor','Generator'];
+    document.getElementById('inc-form-num').value         = r.formNum||'';
+    document.getElementById('inc-wo').value               = r.wo||'';
+    document.getElementById('inc-prev-wo').value          = r.prevWo||'';
+    document.getElementById('inc-customer-po').value      = r.customerPO||'';
+    document.getElementById('inc-date').value             = r.date||today();
+    document.getElementById('inc-customer').value         = r.customer||'';
+    document.getElementById('inc-customer-contact').value = r.customerContact||'';
+    document.getElementById('inc-telephone').value        = r.telephone||'';
+    document.getElementById('inc-address').value          = r.address||'';
+    document.getElementById('inc-custwo').value           = r.customerWorkOrder||'';
+    document.getElementById('inc-datepics').value         = r.datePicsTaken||r.date||'';
+    // Equipment
+    var knownTypes = ['AC Motor','DC Motor','Submersible Pump','Pump','Air Compressor','Generator','Aero Motor','DRUM',
+                      'Electric Motor','DC Motor']; // include legacy values
     var eType = r.equipmentType || (knownTypes.includes(r.equipment) ? r.equipment : (r.equipment ? 'Other' : ''));
+    // Map legacy equipment types to new names
+    if(eType === 'Electric Motor') eType = 'AC Motor';
     document.getElementById('inc-equip-type').value  = eType;
     document.getElementById('inc-equip-other').value = eType === 'Other' ? (r.equipment||'').toUpperCase() : '';
     document.getElementById('equip-other-group').style.display = eType === 'Other' ? 'flex' : 'none';
+    // Department
+    setIncDept(r.area||'');
     // Nameplate
     document.getElementById('inc-manufacturer').value = r.manufacturer||'';
     document.getElementById('inc-model').value        = r.modelNumber||'';
@@ -2642,16 +2760,70 @@ function openIncomingModal(key){
     document.getElementById('inc-custstock').value    = r.customerStockNumber||'';
     document.getElementById('inc-kw').value           = r.kw||'';
     document.getElementById('inc-otherdata').value    = r.otherData||'';
+    document.getElementById('inc-custasset').value    = r.customerAsset||'';
+    // Attachments
+    var aStr = (r.attachments||'').toLowerCase();
+    document.getElementById('inc-attach-coupling').checked     = aStr.includes('coupling');
+    document.getElementById('inc-attach-pulley').checked       = aStr.includes('pulley');
+    document.getElementById('inc-attach-junctionbox').checked  = aStr.includes('junction');
+    document.getElementById('inc-attach-mountingfoot').checked = aStr.includes('mounting');
+    document.getElementById('inc-attach-impeller').checked     = aStr.includes('impeller');
+    document.getElementById('inc-attach-volute').checked       = aStr.includes('volute');
+    document.getElementById('inc-attach-other').value          = r.attachOther||'';
     // Location
-    document.getElementById('inc-location').value     = r.designatedLocation||'';
-    document.getElementById('inc-bench-name').value   = r.benchName||'';
-    document.getElementById('bench-name-group').style.display = r.designatedLocation === 'Bench' ? 'flex' : 'none';
-    document.getElementById('inc-pics-qty').value     = r.picsQty||'';
-    document.getElementById('inc-pics-time').value    = r.picsTime||'';
-    // Work info
-    document.getElementById('inc-whattodo').value     = r.whatToDo||'';
-    document.getElementById('inc-priority').value     = r.priority||'';
-    document.getElementById('inc-delivery').value     = (r.deliveryBy||'').toUpperCase();
+    setIncLocation(r.designatedLocation||'');
+    document.getElementById('inc-location-other').value = r.locationOther||'';
+    // Pictures
+    document.getElementById('inc-pics-qty').value  = r.picsQty||'';
+    document.getElementById('inc-pics-time').value = r.picsTime||'';
+    incActivateToggle('btn-pics-yes','btn-pics-no', r.picsQty && parseInt(r.picsQty)>0 ? 'YES' : (r.picsQty===''||r.picsQty===undefined ? '' : 'NO'));
+    // What to Do
+    var wtd = (r.whatToDo||'').toLowerCase();
+    document.getElementById('inc-wtd-dismantle').checked     = wtd.includes('dismantle')||wtd.includes('inspect');
+    document.getElementById('inc-wtd-repair-return').checked = wtd.includes('repair')&&wtd.includes('return');
+    document.getElementById('inc-wtd-repair-store').checked  = wtd.includes('store');
+    document.getElementById('inc-wtd-balancing').checked     = wtd.includes('balancing');
+    var hasOther = wtd.includes('others')||wtd.includes('partner');
+    document.getElementById('inc-wtd-other').checked = hasOther;
+    if(hasOther){
+      var om = (r.whatToDo||'').match(/Others:\s*(.+)/i);
+      document.getElementById('inc-whattodo-other').value = om ? om[1] : (wtd.includes('partner') ? r.whatToDo : '');
+      document.getElementById('inc-wtd-other-group').style.display = 'block';
+    } else {
+      document.getElementById('inc-whattodo-other').value = '';
+      document.getElementById('inc-wtd-other-group').style.display = 'none';
+    }
+    // Priority
+    setIncPriority(r.priority||'');
+    // Delivery — backward compat
+    var knownDel = ['MIDLAND TRANSPORT','MIDLAND COURIER','DAY & ROSS','ARMOUR','PUROLATOR TRANSPORT','KATE LYNNE','CUSTOMER','OUR TRUCK','OTHERS'];
+    var delRaw = (r.deliveryBy||'').toUpperCase();
+    // map legacy values
+    var delMapped = delRaw.replace('PUROLATOR','PUROLATOR TRANSPORT').replace('FEDEX','OTHERS').replace('UPS','OTHERS');
+    if(delRaw.startsWith('OUR TRUCK')){
+      document.getElementById('inc-delivery').value = 'OUR TRUCK';
+      document.getElementById('inc-delivery-driver').value = delRaw.replace('OUR TRUCK','').replace(/^[\s—-]+/,'') || (r.deliveryDriver||'');
+      document.getElementById('inc-delivery-driver-group').style.display = 'flex';
+      document.getElementById('inc-delivery-other-group').style.display = 'none';
+    } else if(knownDel.includes(delMapped)){
+      document.getElementById('inc-delivery').value = delMapped;
+      document.getElementById('inc-delivery-driver-group').style.display = 'none';
+      document.getElementById('inc-delivery-other-group').style.display = 'none';
+      if(delMapped === 'OTHERS'){
+        document.getElementById('inc-delivery-other').value = r.deliveryOther||delRaw;
+        document.getElementById('inc-delivery-other-group').style.display = 'flex';
+      }
+    } else if(delRaw){
+      document.getElementById('inc-delivery').value = 'OTHERS';
+      document.getElementById('inc-delivery-other').value = r.deliveryBy;
+      document.getElementById('inc-delivery-other-group').style.display = 'flex';
+      document.getElementById('inc-delivery-driver-group').style.display = 'none';
+    } else {
+      document.getElementById('inc-delivery').value = '';
+      document.getElementById('inc-delivery-driver-group').style.display = 'none';
+      document.getElementById('inc-delivery-other-group').style.display = 'none';
+    }
+    // Received By
     var knownRecv = ['Luiz Silva','Dustin Howe','Christine Gardner'];
     if(r.receivedBy && !knownRecv.includes(r.receivedBy)){
       document.getElementById('inc-received').value = 'Outros';
@@ -2662,30 +2834,42 @@ function openIncomingModal(key){
       document.getElementById('inc-received-other').value = '';
       document.getElementById('inc-received-other-group').style.display = 'none';
     }
-    document.getElementById('inc-notes').value        = r.notes||'';
-    document.getElementById('inc-photos-link').value  = r.photosLink||'';
-    document.getElementById('inc-eps-num').value       = r.epsNum||'';
+    document.getElementById('inc-notes').value       = r.notes||'';
+    document.getElementById('inc-photos-link').value = r.photosLink||'';
+    document.getElementById('inc-eps-num').value     = r.epsNum||'';
     delBtn.style.display = 'inline-flex';
   } else {
     document.getElementById('inc-modal-title').textContent = 'New Incoming Form';
     document.getElementById('inc-eps-num').value = '';
     ['inc-form-num','inc-wo','inc-prev-wo','inc-customer-po','inc-customer',
+     'inc-customer-contact','inc-telephone','inc-address','inc-custwo',
      'inc-manufacturer','inc-model','inc-serial','inc-typesize',
-     'inc-hp','inc-rpm','inc-frame','inc-custstock','inc-kw','inc-otherdata',
-     'inc-equip-other','inc-bench-name','inc-notes','inc-photos-link'].forEach(function(id){
-      document.getElementById(id).value = '';
+     'inc-hp','inc-rpm','inc-frame','inc-custstock','inc-kw','inc-otherdata','inc-custasset',
+     'inc-attach-other','inc-location-other','inc-whattodo-other',
+     'inc-delivery-driver','inc-delivery-other',
+     'inc-notes','inc-photos-link'].forEach(function(id){
+      var el = document.getElementById(id); if(el) el.value = '';
     });
+    document.getElementById('inc-datepics').value = today();
+    // Clear checkboxes
+    ['inc-wtd-dismantle','inc-wtd-repair-return','inc-wtd-repair-store','inc-wtd-balancing','inc-wtd-other',
+     'inc-attach-coupling','inc-attach-pulley','inc-attach-junctionbox','inc-attach-mountingfoot','inc-attach-impeller','inc-attach-volute'
+    ].forEach(function(id){ document.getElementById(id).checked = false; });
+    document.getElementById('inc-wtd-other-group').style.display = 'none';
+    // Clear toggles
+    setIncDept(''); setIncLocation(''); setIncPriority('');
+    incActivateToggle('btn-pics-yes','btn-pics-no','');
+    // Clear selects / inputs
     document.getElementById('inc-received').value = 'Luiz Silva';
     document.getElementById('inc-received-other').value = '';
     document.getElementById('inc-received-other-group').style.display = 'none';
     document.getElementById('inc-equip-type').value = '';
+    document.getElementById('inc-equip-other').value = '';
     document.getElementById('equip-other-group').style.display = 'none';
-    document.getElementById('inc-area').value     = '';
-    document.getElementById('inc-location').value = '';
-    document.getElementById('inc-whattodo').value = '';
-    document.getElementById('inc-priority').value = '';
     document.getElementById('inc-delivery').value = '';
-    document.getElementById('bench-name-group').style.display = 'none';
+    document.getElementById('inc-delivery-driver-group').style.display = 'none';
+    document.getElementById('inc-delivery-other-group').style.display = 'none';
+    document.getElementById('inc-location-other-group').style.display = 'none';
     document.getElementById('inc-pics-qty').value  = '';
     document.getElementById('inc-pics-time').value = '';
     delBtn.style.display = 'none';
@@ -2711,6 +2895,12 @@ function saveIncoming(){
   var equipmentOther = document.getElementById('inc-equip-other').value.trim().toUpperCase();
   var equipment    = (equipmentType === 'Other' ? equipmentOther : equipmentType).toUpperCase();
   var area         = document.getElementById('inc-area').value;
+  // New Section 1 fields
+  var customerContact  = document.getElementById('inc-customer-contact').value.trim();
+  var telephone        = document.getElementById('inc-telephone').value.trim();
+  var address          = document.getElementById('inc-address').value.trim();
+  var customerWorkOrder = document.getElementById('inc-custwo').value.trim();
+  var datePicsTaken    = document.getElementById('inc-datepics').value;
   // Nameplate
   var manufacturer      = document.getElementById('inc-manufacturer').value.trim();
   var modelNumber       = document.getElementById('inc-model').value.trim();
@@ -2722,15 +2912,40 @@ function saveIncoming(){
   var customerStockNumber = document.getElementById('inc-custstock').value.trim();
   var kw                = document.getElementById('inc-kw').value.trim();
   var otherData         = document.getElementById('inc-otherdata').value.trim();
+  var customerAsset     = document.getElementById('inc-custasset').value.trim();
+  // Attachments
+  var attachIds   = ['coupling','pulley','junctionbox','mountingfoot','impeller','volute'];
+  var attachNames = ['Coupling','Pulley','Junction Box','Mounting Foot','Impeller','Volute'];
+  var attachList  = [];
+  attachIds.forEach(function(id,i){ if(document.getElementById('inc-attach-'+id).checked) attachList.push(attachNames[i]); });
+  var attachments = attachList.join(', ');
+  var attachOther = document.getElementById('inc-attach-other').value.trim();
   // Location
   var designatedLocation = document.getElementById('inc-location').value;
-  var benchName          = document.getElementById('inc-bench-name').value.trim();
+  var locationOther      = document.getElementById('inc-location-other').value.trim();
+  var benchName          = '';
   var picsQty            = document.getElementById('inc-pics-qty').value;
   var picsTime           = document.getElementById('inc-pics-time').value;
-  // Work
-  var whatToDo   = document.getElementById('inc-whattodo').value;
+  // What to Do (checkboxes → string)
+  var wtdParts = [];
+  if(document.getElementById('inc-wtd-dismantle').checked)     wtdParts.push('Dismantle, Inspect and Estimate');
+  if(document.getElementById('inc-wtd-repair-return').checked) wtdParts.push('Repair Unit and Return');
+  if(document.getElementById('inc-wtd-repair-store').checked)  wtdParts.push('Repair Unit and Store at EPS');
+  if(document.getElementById('inc-wtd-balancing').checked)     wtdParts.push('Balancing');
+  if(document.getElementById('inc-wtd-other').checked){
+    var otherText = document.getElementById('inc-whattodo-other').value.trim();
+    wtdParts.push(otherText ? 'Others: '+otherText : 'Others');
+  }
+  var whatToDo = wtdParts.join('; ');
+  // Priority
   var priority   = document.getElementById('inc-priority').value;
-  var deliveryBy = document.getElementById('inc-delivery').value.toUpperCase();
+  // Delivery
+  var deliveryBase   = document.getElementById('inc-delivery').value;
+  var deliveryDriver = document.getElementById('inc-delivery-driver').value.trim();
+  var deliveryOther  = document.getElementById('inc-delivery-other').value.trim();
+  var deliveryBy = deliveryBase === 'OTHERS' ? (deliveryOther.toUpperCase()||'OTHERS')
+                 : deliveryBase === 'OUR TRUCK' && deliveryDriver ? 'OUR TRUCK — '+deliveryDriver.toUpperCase()
+                 : deliveryBase;
   var receivedBy = (function(){ var v=document.getElementById('inc-received').value; return v==='Outros' ? document.getElementById('inc-received-other').value.trim() : v; })();
   var notes      = document.getElementById('inc-notes').value.trim();
   var photosLink = document.getElementById('inc-photos-link').value.trim();
@@ -2741,8 +2956,10 @@ function saveIncoming(){
 
   var record = {
     formNum, wo, prevWo, customerPO, date, customer, equipment, equipmentType, area,
-    manufacturer, modelNumber, serialNumber, typeSize, hp, rpm, frame, customerStockNumber, kw, otherData,
-    designatedLocation, benchName, picsQty, picsTime,
+    customerContact, telephone, address, customerWorkOrder, datePicsTaken,
+    manufacturer, modelNumber, serialNumber, typeSize, hp, rpm, frame, customerStockNumber, kw, otherData, customerAsset,
+    attachments, attachOther,
+    designatedLocation, locationOther, benchName, picsQty, picsTime,
     whatToDo, priority, deliveryBy, receivedBy, notes, photosLink,
     updatedAt: new Date().toISOString()
   };
@@ -2886,33 +3103,46 @@ function openEpsForm(){
               ? document.getElementById('inc-equip-other').value.trim()
               : document.getElementById('inc-equip-type').value;
   var data = {
-    formNum:    document.getElementById('inc-form-num').value.trim(),
-    wo:         document.getElementById('inc-wo').value.trim(),
-    prevWo:     document.getElementById('inc-prev-wo').value.trim(),
-    customerPO: document.getElementById('inc-customer-po').value.trim(),
-    date:       document.getElementById('inc-date').value,
-    customer:   document.getElementById('inc-customer').value.trim(),
-    equipment:  equip,
-    area:       document.getElementById('inc-area').value,
-    manufacturer: document.getElementById('inc-manufacturer').value.trim(),
-    model:      document.getElementById('inc-model').value.trim(),
-    serial:     document.getElementById('inc-serial').value.trim(),
-    typesize:   document.getElementById('inc-typesize').value.trim(),
-    hp:         document.getElementById('inc-hp').value.trim(),
-    rpm:        document.getElementById('inc-rpm').value.trim(),
-    frame:      document.getElementById('inc-frame').value.trim(),
-    kw:         document.getElementById('inc-kw').value.trim(),
-    custstock:  document.getElementById('inc-custstock').value.trim(),
-    otherdata:  document.getElementById('inc-otherdata').value.trim(),
-    location:   document.getElementById('inc-location').value,
-    benchname:  document.getElementById('inc-bench-name').value.trim(),
-    picsqty:    document.getElementById('inc-pics-qty').value,
-    picstime:   document.getElementById('inc-pics-time').value,
-    whattodo:   document.getElementById('inc-whattodo').value,
-    priority:   document.getElementById('inc-priority').value,
-    delivery:   document.getElementById('inc-delivery').value,
-    received:   (function(){ var v=document.getElementById('inc-received').value; return v==='Outros' ? document.getElementById('inc-received-other').value.trim() : v; })(),
-    notes:      document.getElementById('inc-notes').value.trim()
+    formNum:         document.getElementById('inc-form-num').value.trim(),
+    wo:              document.getElementById('inc-wo').value.trim(),
+    prevWo:          document.getElementById('inc-prev-wo').value.trim(),
+    customerPO:      document.getElementById('inc-customer-po').value.trim(),
+    date:            document.getElementById('inc-date').value,
+    customer:        document.getElementById('inc-customer').value.trim(),
+    customerContact: document.getElementById('inc-customer-contact').value.trim(),
+    telephone:       document.getElementById('inc-telephone').value.trim(),
+    address:         document.getElementById('inc-address').value.trim(),
+    custwo:          document.getElementById('inc-custwo').value.trim(),
+    equipment:       equip,
+    area:            document.getElementById('inc-area').value,
+    manufacturer:    document.getElementById('inc-manufacturer').value.trim(),
+    model:           document.getElementById('inc-model').value.trim(),
+    serial:          document.getElementById('inc-serial').value.trim(),
+    typesize:        document.getElementById('inc-typesize').value.trim(),
+    hp:              document.getElementById('inc-hp').value.trim(),
+    rpm:             document.getElementById('inc-rpm').value.trim(),
+    frame:           document.getElementById('inc-frame').value.trim(),
+    kw:              document.getElementById('inc-kw').value.trim(),
+    custstock:       document.getElementById('inc-custstock').value.trim(),
+    custasset:       document.getElementById('inc-custasset').value.trim(),
+    otherdata:       document.getElementById('inc-otherdata').value.trim(),
+    location:        document.getElementById('inc-location').value,
+    locationOther:   document.getElementById('inc-location-other').value.trim(),
+    picsqty:         document.getElementById('inc-pics-qty').value,
+    picstime:        document.getElementById('inc-pics-time').value,
+    whattodo:        (function(){
+      var parts=[];
+      if(document.getElementById('inc-wtd-dismantle').checked)     parts.push('Dismantle, Inspect and Estimate');
+      if(document.getElementById('inc-wtd-repair-return').checked) parts.push('Repair Unit and Return');
+      if(document.getElementById('inc-wtd-repair-store').checked)  parts.push('Repair Unit and Store at EPS');
+      if(document.getElementById('inc-wtd-balancing').checked)     parts.push('Balancing');
+      if(document.getElementById('inc-wtd-other').checked){ var t=document.getElementById('inc-whattodo-other').value.trim(); parts.push(t?'Others: '+t:'Others'); }
+      return parts.join('; ');
+    })(),
+    priority:        document.getElementById('inc-priority').value,
+    delivery:        document.getElementById('inc-delivery').value,
+    received:        (function(){ var v=document.getElementById('inc-received').value; return v==='Outros' ? document.getElementById('inc-received-other').value.trim() : v; })(),
+    notes:           document.getElementById('inc-notes').value.trim()
   };
 
   var existingEps = document.getElementById('inc-eps-num').value.trim();
