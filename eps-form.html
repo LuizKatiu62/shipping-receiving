@@ -363,12 +363,10 @@ function epsPrint(){
     done = true;
     setTimeout(function(){
       if(window.opener && !window.opener.closed) window.opener.focus();
-      window.close();
+      window.location.replace('index.html');
     }, 400);
   }
-  // Standard event
   window.addEventListener('afterprint', closeMe);
-  // Safari / older browsers fallback via matchMedia
   var mq = window.matchMedia && window.matchMedia('print');
   if(mq && mq.addEventListener){
     mq.addEventListener('change', function(e){ if(!e.matches) closeMe(); });
