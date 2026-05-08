@@ -2877,6 +2877,7 @@ function openIncomingModal(key){
   modal.style.display = 'flex';
   var mc = modal.querySelector('.modal-content');
   if(mc) mc.scrollTop = 0;
+  setTimeout(function(){ var f = document.getElementById('inc-form-num'); if(f) f.focus(); }, 50);
 }
 
 function closeIncomingModal(){
