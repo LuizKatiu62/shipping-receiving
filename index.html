@@ -988,6 +988,7 @@ document.addEventListener('keydown', function(ev){
     </div>
     <div class="modal-body">
       <input type="hidden" id="inc-edit-id">
+      <input type="hidden" id="inc-eps-num">
       <div class="form-grid">
 
         <!-- ── Basic Info ── -->
@@ -1185,6 +1186,7 @@ document.addEventListener('keydown', function(ev){
         <button class="btn btn-danger" id="inc-del-btn" style="display:none;margin-right:auto" onclick="deleteIncoming()">🗑 Delete</button>
         <button class="btn btn-secondary" onclick="closeIncomingModal()">Cancel</button>
         <button class="btn btn-secondary" onclick="printIncomingLabel()">🏷️ Print Label</button>
+        <button class="btn btn-secondary" onclick="openEpsForm()" style="background:#e3f2fd;color:#1565c0;border-color:#90caf9;font-weight:700">📄 EPS Form</button>
         <button class="btn btn-primary" onclick="saveIncoming()">💾 Save</button>
       </div>
     </div>
@@ -2662,9 +2664,11 @@ function openIncomingModal(key){
     }
     document.getElementById('inc-notes').value        = r.notes||'';
     document.getElementById('inc-photos-link').value  = r.photosLink||'';
+    document.getElementById('inc-eps-num').value       = r.epsNum||'';
     delBtn.style.display = 'inline-flex';
   } else {
     document.getElementById('inc-modal-title').textContent = 'New Incoming Form';
+    document.getElementById('inc-eps-num').value = '';
     ['inc-form-num','inc-wo','inc-prev-wo','inc-customer-po','inc-customer',
      'inc-manufacturer','inc-model','inc-serial','inc-typesize',
      'inc-hp','inc-rpm','inc-frame','inc-custstock','inc-kw','inc-otherdata',
@@ -2730,6 +2734,7 @@ function saveIncoming(){
   var receivedBy = (function(){ var v=document.getElementById('inc-received').value; return v==='Outros' ? document.getElementById('inc-received-other').value.trim() : v; })();
   var notes      = document.getElementById('inc-notes').value.trim();
   var photosLink = document.getElementById('inc-photos-link').value.trim();
+  var epsNum     = document.getElementById('inc-eps-num').value.trim();
 
   if(!formNum){ alert('Incoming Form # is required.'); return; }
   if(!equipment){ alert('Equipment Description is required.'); return; }
@@ -2741,6 +2746,7 @@ function saveIncoming(){
     whatToDo, priority, deliveryBy, receivedBy, notes, photosLink,
     updatedAt: new Date().toISOString()
   };
+  if(epsNum) record.epsNum = epsNum;
   var key = document.getElementById('inc-edit-id').value;
 
   if(db){
@@ -2873,6 +2879,63 @@ function printItemWipLabel(i){
   '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>'+
   '</body></html>');
   win.document.close();
+}
+
+function openEpsForm(){
+  var equip = document.getElementById('inc-equip-type').value === 'Other'
+              ? document.getElementById('inc-equip-other').value.trim()
+              : document.getElementById('inc-equip-type').value;
+  var data = {
+    formNum:    document.getElementById('inc-form-num').value.trim(),
+    wo:         document.getElementById('inc-wo').value.trim(),
+    prevWo:     document.getElementById('inc-prev-wo').value.trim(),
+    customerPO: document.getElementById('inc-customer-po').value.trim(),
+    date:       document.getElementById('inc-date').value,
+    customer:   document.getElementById('inc-customer').value.trim(),
+    equipment:  equip,
+    area:       document.getElementById('inc-area').value,
+    manufacturer: document.getElementById('inc-manufacturer').value.trim(),
+    model:      document.getElementById('inc-model').value.trim(),
+    serial:     document.getElementById('inc-serial').value.trim(),
+    typesize:   document.getElementById('inc-typesize').value.trim(),
+    hp:         document.getElementById('inc-hp').value.trim(),
+    rpm:        document.getElementById('inc-rpm').value.trim(),
+    frame:      document.getElementById('inc-frame').value.trim(),
+    kw:         document.getElementById('inc-kw').value.trim(),
+    custstock:  document.getElementById('inc-custstock').value.trim(),
+    otherdata:  document.getElementById('inc-otherdata').value.trim(),
+    location:   document.getElementById('inc-location').value,
+    benchname:  document.getElementById('inc-bench-name').value.trim(),
+    picsqty:    document.getElementById('inc-pics-qty').value,
+    picstime:   document.getElementById('inc-pics-time').value,
+    whattodo:   document.getElementById('inc-whattodo').value,
+    priority:   document.getElementById('inc-priority').value,
+    delivery:   document.getElementById('inc-delivery').value,
+    received:   (function(){ var v=document.getElementById('inc-received').value; return v==='Outros' ? document.getElementById('inc-received-other').value.trim() : v; })(),
+    notes:      document.getElementById('inc-notes').value.trim()
+  };
+
+  var existingEps = document.getElementById('inc-eps-num').value.trim();
+  if(existingEps){
+    data.epsNum = existingEps;
+    var qs = new URLSearchParams(data).toString();
+    window.open('eps-form.html?' + qs, '_blank');
+    return;
+  }
+
+  if(!db){ showToast('Firebase not connected — EPS number unavailable.'); return; }
+  var metaRef = db.ref(SR_PATH + '/meta/nextEpsNum');
+  metaRef.transaction(function(cur){ return (cur || 32850) + 1; }, function(err, committed, snap){
+    if(err || !committed){ showToast('Error assigning EPS number.'); return; }
+    var assigned = (snap.val() || 32850) - 1;
+    data.epsNum = assigned;
+    document.getElementById('inc-eps-num').value = assigned;
+    // persist to record if already saved
+    var key = document.getElementById('inc-edit-id').value;
+    if(key && db) db.ref(SR_PATH + '/incoming/' + key).update({ epsNum: assigned });
+    var qs = new URLSearchParams(data).toString();
+    window.open('eps-form.html?' + qs, '_blank');
+  });
 }
 
 function printItemGenericLabel(i){
