@@ -3455,6 +3455,76 @@ function prefillFromIncoming(woNum){
   }
 }
 
+function prefillFromSO(soNum){
+  var so = soNum.trim().toUpperCase();
+  var knownMats = ['Electric Motor','Pump','Submersible Pump','Air Compressor','DC Motor','Generator'];
+  var customer = '', equipment = '', equipmentType = '', source = '';
+
+  // 1. Incoming Items — line items linked to this Sales Order
+  Object.values(itemsData).some(function(doc){
+    return (doc.lineItems||[]).some(function(li){
+      if((li.salesOrderNum||'').trim().toUpperCase() !== so) return false;
+      customer  = customer  || (li.customer||'');
+      equipment = equipment || (li.material||'');
+      source    = source    || ('Incoming Items receipt ' + (doc.docNum||so));
+      return customer && equipment;
+    });
+  });
+
+  // 2. Shipping On Hold — has salesOrders array
+  if(!equipment || !customer){
+    Object.values(procData).some(function(r){
+      var sos = (r.salesOrders||[]).map(function(x){ return x.trim().toUpperCase(); });
+      if(!sos.includes(so)) return false;
+      customer  = customer  || (r.customer||'');
+      equipment = equipment || (r.material||'');
+      source    = source    || ('Shipping On Hold');
+      return customer && equipment;
+    });
+  }
+
+  // 3. Incoming Forms — look up WO from items, then get customer/equipment
+  if(!customer || !equipment){
+    var relWo = '';
+    Object.values(itemsData).some(function(doc){
+      return (doc.lineItems||[]).some(function(li){
+        if((li.salesOrderNum||'').trim().toUpperCase() !== so) return false;
+        relWo = (li.workOrderNum||'').trim().toUpperCase();
+        return !!relWo;
+      });
+    });
+    if(relWo){
+      Object.values(incomingData).some(function(r){
+        if((r.wo||'').trim().toUpperCase() !== relWo) return false;
+        customer      = customer      || (r.customer||'');
+        equipment     = equipment     || (r.equipment||'');
+        equipmentType = equipmentType || (r.equipmentType||'');
+        source        = source        || ('Incoming Form ' + (r.formNum||relWo));
+        return customer && equipment;
+      });
+    }
+  }
+
+  var filled = [];
+  if(customer && !document.getElementById('shp-customer').value){
+    document.getElementById('shp-customer').value = customer;
+    filled.push('Customer');
+    setTimeout(lookupPostalFromCustomer, 0);
+  }
+  if(equipment && !document.getElementById('shp-material-type').value){
+    var mType = equipmentType || (knownMats.includes(equipment) ? equipment : 'Other');
+    document.getElementById('shp-material-type').value = mType;
+    if(mType === 'Other'){
+      document.getElementById('shp-material-other').value = equipment;
+      document.getElementById('shp-material-other-group').style.display = 'flex';
+    } else {
+      document.getElementById('shp-material-other-group').style.display = 'none';
+    }
+    filled.push(equipment);
+  }
+  if(filled.length) showToast('✔ Pre-filled from ' + source + ' — ' + filled.join(', '));
+}
+
 function toggleShpMaterialOther(){
   var val = document.getElementById('shp-material-type').value;
   document.getElementById('shp-material-other-group').style.display = val === 'Other' ? 'flex' : 'none';
@@ -3558,6 +3628,7 @@ function addShpTag(field){
   if(hintId){ var h=document.getElementById(hintId); if(h){ h.textContent=''; h.classList.remove('visible'); } }
   renderShpTags(field);
   if(field === 'wo') prefillFromIncoming(val);
+  if(field === 'so') prefillFromSO(val);
   if(field === 'wo' || field === 'so') lookupProcPhotos();
   updateShpOrderFields();
 }
