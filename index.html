@@ -639,6 +639,7 @@ document.addEventListener('keydown', function(ev){
             <th>Customer</th>
             <th>Equipment Description</th>
             <th>Area</th>
+            <th>Priority</th>
             <th>Location</th>
             <th>Delivered By</th>
             <th>Received By</th>
@@ -1104,6 +1105,14 @@ document.addEventListener('keydown', function(ev){
             <option>Repair Unit and Return</option>
             <option>Partner</option>
             <option>Balancing</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="inc-priority">
+            <option value="">— Select Priority —</option>
+            <option value="Regular">Regular</option>
+            <option value="Rush">🔴 Rush</option>
           </select>
         </div>
         <div class="form-group">
@@ -2524,7 +2533,7 @@ function renderIncoming(){
 
   var tbody = document.getElementById('inc-tbody');
   if(!incomingFiltered.length){
-    tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No incoming forms yet. Click "+ New Incoming" to add one.</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No incoming forms yet. Click "+ New Incoming" to add one.</div></div></td></tr>';
     renderStats(rows);
     return;
   }
@@ -2537,6 +2546,7 @@ function renderIncoming(){
       '<td title="'+escAttr(r.customer||'')+'">'+escHtml(r.customer||'—')+'</td>'+
       '<td title="'+escAttr((r.equipment||'').toUpperCase())+'">'+escHtml((r.equipment||'—').toUpperCase())+'</td>'+
       '<td>'+areaBadge(r.area)+'</td>'+
+      '<td>'+(r.priority==='Rush'?'<span style="background:#fee2e2;color:#dc2626;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap">🔴 Rush</span>':(r.priority||'—'))+'</td>'+
       '<td>'+locationBadge(r.designatedLocation, r.benchName)+'</td>'+
       '<td>'+escHtml((r.deliveryBy||'—').toUpperCase())+'</td>'+
       '<td>'+escHtml(r.receivedBy||'—')+'</td>'+
@@ -2611,6 +2621,7 @@ function openIncomingModal(key){
     document.getElementById('inc-pics-time').value    = r.picsTime||'';
     // Work info
     document.getElementById('inc-whattodo').value     = r.whatToDo||'';
+    document.getElementById('inc-priority').value     = r.priority||'';
     document.getElementById('inc-delivery').value     = (r.deliveryBy||'').toUpperCase();
     var knownRecv = ['Luiz Silva','Dustin Howe','Christine Gardner'];
     if(r.receivedBy && !knownRecv.includes(r.receivedBy)){
@@ -2641,6 +2652,7 @@ function openIncomingModal(key){
     document.getElementById('inc-area').value     = '';
     document.getElementById('inc-location').value = '';
     document.getElementById('inc-whattodo').value = '';
+    document.getElementById('inc-priority').value = '';
     document.getElementById('inc-delivery').value = '';
     document.getElementById('bench-name-group').style.display = 'none';
     document.getElementById('inc-pics-qty').value  = '';
@@ -2686,6 +2698,7 @@ function saveIncoming(){
   var picsTime           = document.getElementById('inc-pics-time').value;
   // Work
   var whatToDo   = document.getElementById('inc-whattodo').value;
+  var priority   = document.getElementById('inc-priority').value;
   var deliveryBy = document.getElementById('inc-delivery').value.toUpperCase();
   var receivedBy = (function(){ var v=document.getElementById('inc-received').value; return v==='Outros' ? document.getElementById('inc-received-other').value.trim() : v; })();
   var notes      = document.getElementById('inc-notes').value.trim();
@@ -2698,7 +2711,7 @@ function saveIncoming(){
     formNum, wo, prevWo, customerPO, date, customer, equipment, equipmentType, area,
     manufacturer, modelNumber, serialNumber, typeSize, hp, rpm, frame, customerStockNumber, kw, otherData,
     designatedLocation, benchName, picsQty, picsTime,
-    whatToDo, deliveryBy, receivedBy, notes, photosLink,
+    whatToDo, priority, deliveryBy, receivedBy, notes, photosLink,
     updatedAt: new Date().toISOString()
   };
   var key = document.getElementById('inc-edit-id').value;
