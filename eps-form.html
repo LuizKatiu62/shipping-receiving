@@ -74,7 +74,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
 
 <div class="pbar">
   <b>EPS Incoming Form &nbsp;#<span id="pb-num">—</span><span id="pb-cust" style="font-weight:400;opacity:.8"></span></b>
-  <button class="pbtn pbtn-p" onclick="window.print()">🖨 Print / Save PDF</button>
+  <button class="pbtn pbtn-p" onclick="window.onafterprint=function(){window.close()};window.print()">🖨 Print / Save PDF</button>
   <button class="pbtn" onclick="window.close()">✕ Close</button>
 </div>
 
