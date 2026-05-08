@@ -343,9 +343,11 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
     if(attOther){ chk('cb-att-other'); set('f-attach-other', attOther); }
 
     // Designated location
-    var loc   = g('location');
-    var bench = g('benchname');
-    set('f-location',  loc);
+    var loc      = g('location');
+    var bench    = g('benchname');
+    var locOther = g('locationOther');
+    var locLabel = (loc === 'Others' && locOther) ? locOther : loc;
+    set('f-location',  locLabel);
     set('f-benchname', bench ? '— '+bench : '');
 
     // Signatures

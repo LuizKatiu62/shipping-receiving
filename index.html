@@ -2563,9 +2563,11 @@ function areaBadge(area){
   return area ? '<span class="badge badge-'+cls+'">'+area+'</span>' : '—';
 }
 
-function locationBadge(loc, benchName){
+function locationBadge(loc, benchName, locationOther){
   if(!loc) return '—';
-  var label = loc === 'Bench' && benchName ? 'Bench: '+benchName : loc;
+  var label = loc === 'Bench' && benchName ? 'Bench: '+benchName
+            : loc === 'Others' && locationOther ? locationOther
+            : loc;
   return '<span class="badge badge-location">'+escHtml(label)+'</span>';
 }
 
@@ -2684,7 +2686,7 @@ function renderIncoming(){
       '<td title="'+escAttr((r.equipment||'').toUpperCase())+'">'+escHtml((r.equipment||'—').toUpperCase())+'</td>'+
       '<td>'+areaBadge(r.area)+'</td>'+
       '<td>'+(r.priority==='Rush'?'<span style="background:#fee2e2;color:#dc2626;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap">🔴 Rush</span>':(r.priority||'Regular'))+'</td>'+
-      '<td>'+locationBadge(r.designatedLocation, r.benchName)+'</td>'+
+      '<td>'+locationBadge(r.designatedLocation, r.benchName, r.locationOther)+'</td>'+
       '<td>'+escHtml((r.deliveryBy||'—').toUpperCase())+'</td>'+
       '<td>'+escHtml(r.receivedBy||'—')+'</td>'+
       '<td onclick="event.stopPropagation()">'+
@@ -2986,6 +2988,8 @@ function printIncomingLabel(){
   var date     = document.getElementById('inc-date').value;
   var area     = document.getElementById('inc-area').value;
   var location = document.getElementById('inc-location').value;
+  var _locOther = document.getElementById('inc-location-other').value.trim();
+  if(location === 'Others' && _locOther) location = _locOther;
   var picsQty  = document.getElementById('inc-pics-qty').value;
   var picsTime = document.getElementById('inc-pics-time').value;
   var customer = document.getElementById('inc-customer').value.trim();

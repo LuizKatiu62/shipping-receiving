@@ -938,7 +938,7 @@ function renderResults(result, raw){
     h += infoRow('Cust. Stock #',inc.customerStockNumber)+infoRow('Delivered by',inc.deliveryBy)+infoRow('Received by',inc.receivedBy);
     if(inc.notes) h += infoRow('Notes',inc.notes);
     h += '</div>';
-    if(result.type!=='so') h += '<div class="ct-card" style="margin-bottom:0"><div class="ct-card-title">📍 Location</div>'+infoRow('Location',inc.designatedLocation)+'</div>';
+    if(result.type!=='so'){ var _locDisp = (inc.designatedLocation==='Others' && inc.locationOther) ? inc.locationOther : inc.designatedLocation; h += '<div class="ct-card" style="margin-bottom:0"><div class="ct-card-title">📍 Location</div>'+infoRow('Location',_locDisp)+'</div>'; }
     h += '</div>';
 
     var shpPhotosLink = '';
