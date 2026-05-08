@@ -49,7 +49,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
 .inc-val{padding:1px 8px;font-size:17pt;font-weight:700;color:#c0392b;letter-spacing:1.5px;flex:1;display:flex;align-items:center}
 .wo-row{display:flex;align-items:stretch}
 .wo-lbl{padding:2px 6px;font-weight:700;font-size:8.5pt;border-right:1px solid #000;display:flex;align-items:center;white-space:nowrap}
-.wo-val{padding:2px 6px;flex:1;font-size:9pt;display:flex;align-items:center}
+.wo-val{padding:2px 8px;flex:1;font-size:15pt;font-weight:900;display:flex;align-items:center;letter-spacing:.5px}
 
 /* ── DEPARTMENT row ── */
 .dept-row{padding:3px 6px;font-size:9pt;display:flex;align-items:center;gap:12px;border-bottom:1px solid #000;flex-wrap:wrap}
@@ -135,10 +135,11 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
     <div class="fc" style="flex:0 0 34%"><span class="fl">Date Pictures Taken:</span><span class="fv" id="f-datepics"></span></div>
     <div class="fc" style="flex:1">
       <span class="fl">Pictures Taken:</span>
-      <div style="font-size:9pt;padding:1px 0">
-        <span class="cb" id="cb-pics-yes"></span>&nbsp;YES &nbsp;&nbsp;
-        <span class="cb" id="cb-pics-no"></span>&nbsp;NO &nbsp;&nbsp;&nbsp;
-        <span id="f-picstime-disp"></span>&nbsp;&nbsp;Num.:&nbsp;<span id="f-picsqty-disp"></span>
+      <div style="font-size:9pt;padding:1px 0;line-height:1.8">
+        <span class="cb" id="cb-pics-yes"></span>&nbsp;YES &nbsp;
+        <span class="cb" id="cb-pics-no"></span>&nbsp;NO &nbsp;&nbsp;
+        <span id="f-picstime-disp" style="display:inline-block;border-bottom:1px solid #000;min-width:44px;text-align:center;vertical-align:bottom;padding-bottom:1px"></span>&nbsp;<span class="cb" id="cb-am"></span>&nbsp;AM&nbsp;<span class="cb" id="cb-pm"></span>&nbsp;PM
+        &nbsp;&nbsp;Num.:&nbsp;<span id="f-picsqty-disp" style="display:inline-block;border-bottom:1px solid #000;min-width:28px;text-align:center;vertical-align:bottom;padding-bottom:1px"></span>
       </div>
     </div>
   </div>
@@ -288,12 +289,17 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
     else if(prio==='Regular') chk('cb-reg');
 
     // Pictures
-    if(pqty || ptime){
-      var hasPics = pqty && parseInt(pqty)>0;
-      chk(hasPics ? 'cb-pics-yes' : 'cb-pics-no');
-      document.getElementById('f-picstime-disp').textContent = ptime || '';
-      document.getElementById('f-picsqty-disp').textContent  = pqty  || '';
+    var hasPics = pqty && parseInt(pqty)>0;
+    if(pqty) chk(hasPics ? 'cb-pics-yes' : 'cb-pics-no');
+    if(ptime){
+      var tp = ptime.split(':');
+      var hh = parseInt(tp[0]), mm = tp[1]||'00';
+      var isPM = hh >= 12;
+      var h12 = (hh % 12)||12;
+      document.getElementById('f-picstime-disp').textContent = h12+':'+mm;
+      chk(isPM ? 'cb-pm' : 'cb-am');
     }
+    if(pqty) document.getElementById('f-picsqty-disp').textContent = pqty;
 
     // What to do checkboxes
     if(wtd.includes('dismantle')||wtd.includes('inspect')) chk('cb-dis');
