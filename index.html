@@ -836,6 +836,14 @@ document.addEventListener('keydown', function(ev){
         <select class="year-select" id="proc-year" onchange="filterProcess()"><option value="">All Years</option></select>
         <select class="year-select" id="proc-month" onchange="filterProcess()"><option value="">All Months</option></select>
         <select class="year-select" id="proc-day" onchange="filterProcess()" style="min-width:80px"><option value="">All Days</option></select>
+        <select class="year-select" id="proc-reason-filter" onchange="filterProcess()" style="min-width:160px">
+          <option value="">All Reasons</option>
+          <option value="Waiting QA">Waiting QA</option>
+          <option value="Missing PO">Missing PO</option>
+          <option value="Waiting Customer Pick Up">Waiting Customer Pick Up</option>
+          <option value="Others">Others</option>
+          <option value="(none)">(No Reason)</option>
+        </select>
         <input class="search-input" type="text" id="proc-search" placeholder="Search outgoing #, WO #, customer..." oninput="filterProcess()">
         <button class="btn btn-secondary" onclick="exportProcessCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openProcModal()">+ New Record</button>
@@ -853,6 +861,7 @@ document.addEventListener('keydown', function(ev){
             <th>Purchase Order</th>
             <th>Shipping Area Received</th>
             <th>Current Date</th>
+            <th>Hold Reason</th>
             <th>Days On Hold</th>
             <th style="width:90px">Actions</th>
           </tr>
@@ -1599,6 +1608,20 @@ document.addEventListener('keydown', function(ev){
           <div style="font-size:.75rem;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.4px">Days On Hold</div>
           <div id="proc-days-badge" style="display:none"></div>
           <div id="proc-days-pending" style="font-size:.82rem;color:#9ca3af;font-style:italic">Select received date to calculate</div>
+        </div>
+
+        <div class="form-group full">
+          <label>Hold Reason</label>
+          <input type="hidden" id="proc-hold-reason">
+          <div class="inc-toggle-group" id="proc-reason-btns">
+            <button type="button" class="inc-toggle-btn" id="btn-reason-qa"       onclick="setProcReason('Waiting QA')">Waiting QA</button>
+            <button type="button" class="inc-toggle-btn" id="btn-reason-po"       onclick="setProcReason('Missing PO')">Missing PO</button>
+            <button type="button" class="inc-toggle-btn" id="btn-reason-pickup"   onclick="setProcReason('Waiting Customer Pick Up')">Waiting Customer Pick Up</button>
+            <button type="button" class="inc-toggle-btn" id="btn-reason-others"   onclick="setProcReason('Others')">Others</button>
+          </div>
+          <div id="proc-reason-other-group" style="display:none;margin-top:6px">
+            <input type="text" id="proc-reason-other" placeholder="Specify reason..." style="width:100%;padding:7px 11px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.86rem;font-family:inherit;outline:none" onfocus="this.style.borderColor='var(--blue-500)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
         </div>
 
       </div>
@@ -4844,7 +4867,7 @@ function renderProcess(){
   }
   procFiltered = rows;
   var q = (document.getElementById('proc-search').value||'').toLowerCase();
-  if(q) procFiltered = rows.filter(function(r){
+  if(q) procFiltered = procFiltered.filter(function(r){
     return (r.outgoing||'').toLowerCase().includes(q)
       ||(r.wo||'').toLowerCase().includes(q)
       ||(r.so||'').toLowerCase().includes(q)
@@ -4852,9 +4875,14 @@ function renderProcess(){
       ||(r.material||'').toLowerCase().includes(q)
       ||(r.po||'').toLowerCase().includes(q);
   });
+  var rf = (document.getElementById('proc-reason-filter')||{}).value||'';
+  if(rf) procFiltered = procFiltered.filter(function(r){
+    if(rf==='(none)') return !r.holdReason;
+    return (r.holdReason||'')=== rf;
+  });
   var tbody = document.getElementById('proc-tbody');
   if(!procFiltered.length){
-    tbody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">⏸</div><div class="empty-text">No shipping on hold records yet.</div></div></td></tr>';
+    tbody.innerHTML='<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">⏸</div><div class="empty-text">No shipping on hold records yet.</div></div></td></tr>';
     renderProcStats(rows); return;
   }
   tbody.innerHTML = procFiltered.map(function(r){
@@ -4874,6 +4902,7 @@ function renderProcess(){
       '<td>'+escHtml(r.po||'—')+'</td>'+
       '<td style="white-space:nowrap">'+fmtDate(r.receivedDate)+'</td>'+
       '<td style="white-space:nowrap">'+curCell+'</td>'+
+      '<td>'+holdReasonBadge(r.holdReason, r.holdReasonOther)+'</td>'+
       '<td>'+daysOnHoldBadge(days, frozen)+'</td>'+
       '<td onclick="event.stopPropagation()"><div class="act-cell">'+
         (r.photosLink?'<a href="'+escAttr(r.photosLink)+'" target="_blank" class="act-btn" title="Photos" onclick="event.stopPropagation()">📷</a>':'')+
@@ -4893,11 +4922,20 @@ function renderProcStats(rows){
     var sd = findProcShipDate(r);
     return s+(calcDaysOnHold(r.receivedDate, sd||today())||0);
   },0)/total);
+  var holdRows = rows.filter(function(r){ return !findProcShipDate(r); });
+  var cntQA     = holdRows.filter(function(r){ return r.holdReason==='Waiting QA'; }).length;
+  var cntPO     = holdRows.filter(function(r){ return r.holdReason==='Missing PO'; }).length;
+  var cntPickup = holdRows.filter(function(r){ return r.holdReason==='Waiting Customer Pick Up'; }).length;
+  var cntOthers = holdRows.filter(function(r){ return r.holdReason==='Others'; }).length;
   document.getElementById('proc-stats').innerHTML =
     '<div class="stat-card"><div class="stat-val">'+total+'</div><div class="stat-lbl">Total</div></div>'+
     '<div class="stat-card"><div class="stat-val" style="color:#e65100">'+onHold+'</div><div class="stat-lbl">On Hold</div></div>'+
     '<div class="stat-card"><div class="stat-val" style="color:#2e7d32">'+shipped+'</div><div class="stat-lbl">Shipped</div></div>'+
-    '<div class="stat-card"><div class="stat-val">'+avgDays+'</div><div class="stat-lbl">Avg Days</div></div>';
+    '<div class="stat-card"><div class="stat-val">'+avgDays+'</div><div class="stat-lbl">Avg Days</div></div>'+
+    (cntQA?'<div class="stat-card"><div class="stat-val" style="color:#d97706">'+cntQA+'</div><div class="stat-lbl">Waiting QA</div></div>':'')+
+    (cntPO?'<div class="stat-card"><div class="stat-val" style="color:#dc2626">'+cntPO+'</div><div class="stat-lbl">Missing PO</div></div>':'')+
+    (cntPickup?'<div class="stat-card"><div class="stat-val" style="color:#1565c0">'+cntPickup+'</div><div class="stat-lbl">Cust. Pick Up</div></div>':'')+
+    (cntOthers?'<div class="stat-card"><div class="stat-val" style="color:#6b7280">'+cntOthers+'</div><div class="stat-lbl">Others</div></div>':'');
 }
 
 function filterProcess(){ renderProcess(); }
@@ -5085,13 +5123,16 @@ function openProcModal(key){
     document.getElementById('proc-comments').value      = r.comments||'';
     document.getElementById('proc-received-date').value = r.receivedDate||'';
     document.getElementById('proc-del-btn').style.display='';
+    setProcReason(r.holdReason||'');
+    document.getElementById('proc-reason-other').value = r.holdReasonOther||'';
     updateProcDays();
   } else {
     document.getElementById('proc-modal-title').textContent = 'New Shipping On Hold';
     document.getElementById('proc-pics-qty').value = '';
-    ['proc-outgoing','proc-wo','proc-so','proc-customer','proc-po','proc-material','proc-received-date','proc-photos-link','proc-comments'].forEach(function(id){
+    ['proc-outgoing','proc-wo','proc-so','proc-customer','proc-po','proc-material','proc-received-date','proc-photos-link','proc-comments','proc-reason-other'].forEach(function(id){
       document.getElementById(id).value='';
     });
+    setProcReason('');
     document.getElementById('proc-del-btn').style.display='none';
   }
   updateProcOrderFields();
@@ -5100,6 +5141,25 @@ function openProcModal(key){
 }
 
 function closeProcModal(){ document.getElementById('proc-modal').style.display='none'; }
+
+function setProcReason(val){
+  document.getElementById('proc-hold-reason').value = val;
+  var map = {'Waiting QA':'btn-reason-qa','Missing PO':'btn-reason-po','Waiting Customer Pick Up':'btn-reason-pickup','Others':'btn-reason-others'};
+  ['btn-reason-qa','btn-reason-po','btn-reason-pickup','btn-reason-others'].forEach(function(id){
+    var el = document.getElementById(id); if(el){ el.classList.toggle('active', map[val]===id); }
+  });
+  document.getElementById('proc-reason-other-group').style.display = val==='Others' ? 'block' : 'none';
+}
+
+function holdReasonBadge(reason, other){
+  if(!reason) return '<span style="color:#9ca3af;font-size:.75rem">—</span>';
+  var label = reason==='Others' && other ? 'Others: '+other : reason;
+  var color = reason==='Waiting QA' ? '#d97706'
+            : reason==='Missing PO' ? '#dc2626'
+            : reason==='Waiting Customer Pick Up' ? '#1565c0'
+            : '#6b7280';
+  return '<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:.7rem;font-weight:700;color:#fff;background:'+color+';white-space:nowrap">'+escHtml(label)+'</span>';
+}
 
 function printProcLabel(){
   var customer  = document.getElementById('proc-customer').value.trim();
@@ -5214,18 +5274,22 @@ function saveProcRecord(){
   if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var receivedDate = document.getElementById('proc-received-date').value;
   if(!receivedDate){ alert('Shipping Area Received Date is required.'); return; }
+  var holdReason = document.getElementById('proc-hold-reason').value;
+  var holdReasonOther = document.getElementById('proc-reason-other').value.trim();
   var record = {
-    outgoing:     document.getElementById('proc-outgoing').value.trim(),
-    wo:           document.getElementById('proc-wo').value.trim(),
-    so:           document.getElementById('proc-so').value.trim(),
-    customer:     document.getElementById('proc-customer').value.trim(),
-    po:           document.getElementById('proc-po').value.trim(),
-    material:     document.getElementById('proc-material').value.trim(),
-    picsQty:      document.getElementById('proc-pics-qty').value,
-    photosLink:   document.getElementById('proc-photos-link').value.trim(),
-    comments:     document.getElementById('proc-comments').value.trim(),
+    outgoing:        document.getElementById('proc-outgoing').value.trim(),
+    wo:              document.getElementById('proc-wo').value.trim(),
+    so:              document.getElementById('proc-so').value.trim(),
+    customer:        document.getElementById('proc-customer').value.trim(),
+    po:              document.getElementById('proc-po').value.trim(),
+    material:        document.getElementById('proc-material').value.trim(),
+    picsQty:         document.getElementById('proc-pics-qty').value,
+    photosLink:      document.getElementById('proc-photos-link').value.trim(),
+    comments:        document.getElementById('proc-comments').value.trim(),
+    holdReason:      holdReason,
+    holdReasonOther: holdReason==='Others' ? holdReasonOther : '',
     receivedDate,
-    updatedAt:    new Date().toISOString()
+    updatedAt:       new Date().toISOString()
   };
   var key = document.getElementById('proc-edit-id').value;
   if(db){
@@ -5254,11 +5318,12 @@ function deleteProcRecord(){
 function exportProcessCSV(){
   var rows = procFiltered.length ? procFiltered : Object.entries(procData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   if(!rows.length){ alert('No data to export.'); return; }
-  var headers = ['Outgoing #','Work Order #','Sales Order #','Customer','Purchase Order','Material','Shipping Area Received','Current Date','Days On Hold','Status'];
+  var headers = ['Outgoing #','Work Order #','Sales Order #','Customer','Purchase Order','Material','Shipping Area Received','Current Date','Days On Hold','Hold Reason','Status'];
   var data = rows.map(function(r){
     var sd = findProcShipDate(r);
     var frozen = !!sd;
-    return [r.outgoing,r.wo,r.so,r.customer,r.po,r.material,r.receivedDate,frozen?sd:today(),calcDaysOnHold(r.receivedDate,frozen?sd:today()),frozen?'Shipped':'On Hold'];
+    var reason = r.holdReason==='Others' && r.holdReasonOther ? 'Others: '+r.holdReasonOther : (r.holdReason||'');
+    return [r.outgoing,r.wo,r.so,r.customer,r.po,r.material,r.receivedDate,frozen?sd:today(),calcDaysOnHold(r.receivedDate,frozen?sd:today()),reason,frozen?'Shipped':'On Hold'];
   });
   toXLS('process-hold', headers, data);
 }
