@@ -199,17 +199,17 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
   <div class="sh">3. ATTACHMENTS FOR UNIT LISTED ABOVE</div>
 
   <div class="fr">
-    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb"></span>&nbsp;Coupling</div>
-    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb"></span>&nbsp;Junction Box</div>
-    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb"></span>&nbsp;Impeller</div>
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb" id="cb-att-coupling"></span>&nbsp;Coupling</div>
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb" id="cb-att-junctionbox"></span>&nbsp;Junction Box</div>
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb" id="cb-att-impeller"></span>&nbsp;Impeller</div>
   </div>
   <div class="fr">
-    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb"></span>&nbsp;Pulley</div>
-    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb"></span>&nbsp;Mounting Foot</div>
-    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb"></span>&nbsp;Volute</div>
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb" id="cb-att-pulley"></span>&nbsp;Pulley</div>
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb" id="cb-att-mountingfoot"></span>&nbsp;Mounting Foot</div>
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb" id="cb-att-volute"></span>&nbsp;Volute</div>
   </div>
   <div class="fr">
-    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb"></span>&nbsp;<strong>OTHER INCOMING ATTACHMENTS:</strong></div>
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb" id="cb-att-other"></span>&nbsp;<strong>OTHER INCOMING ATTACHMENTS:</strong>&nbsp;<span id="f-attach-other"></span></div>
   </div>
 
   <!-- ═══ 4. DESIGNATED LOCATION ═══ -->
@@ -330,6 +330,17 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
     set('f-custstock',    g('custstock'));
     set('f-serial',       g('serial'));
     set('f-otherdata',    g('otherdata'));
+
+    // Attachments
+    var attStr = g('attachments').toLowerCase();
+    var attOther = g('attachOther');
+    if(attStr.includes('coupling'))     chk('cb-att-coupling');
+    if(attStr.includes('junction'))     chk('cb-att-junctionbox');
+    if(attStr.includes('impeller'))     chk('cb-att-impeller');
+    if(attStr.includes('pulley'))       chk('cb-att-pulley');
+    if(attStr.includes('mounting'))     chk('cb-att-mountingfoot');
+    if(attStr.includes('volute'))       chk('cb-att-volute');
+    if(attOther){ chk('cb-att-other'); set('f-attach-other', attOther); }
 
     // Designated location
     var loc   = g('location');

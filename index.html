@@ -3128,6 +3128,8 @@ function openEpsForm(){
     otherdata:       document.getElementById('inc-otherdata').value.trim(),
     location:        document.getElementById('inc-location').value,
     locationOther:   document.getElementById('inc-location-other').value.trim(),
+    attachments:     (function(){ var ids=['coupling','pulley','junctionbox','mountingfoot','impeller','volute'],names=['Coupling','Pulley','Junction Box','Mounting Foot','Impeller','Volute'],out=[]; ids.forEach(function(id,i){ if(document.getElementById('inc-attach-'+id).checked) out.push(names[i]); }); return out.join(', '); })(),
+    attachOther:     document.getElementById('inc-attach-other').value.trim(),
     picsqty:         document.getElementById('inc-pics-qty').value,
     picstime:        document.getElementById('inc-pics-time').value,
     whattodo:        (function(){
