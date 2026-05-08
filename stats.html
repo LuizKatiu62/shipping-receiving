@@ -200,9 +200,19 @@ tbody tr.row-click:hover{background:#f0f7ff}
 .pm-confirm:hover{background:linear-gradient(160deg,#1e40af,#1d4ed8);transform:translateY(-1px);box-shadow:0 6px 18px rgba(37,99,235,.46)}
 
 @media(max-width:960px){
-  .kpi-row{grid-template-columns:1fr}
+  .kpi-row{grid-template-columns:1fr 1fr}
   .r2.g6040,.r2.g5545{grid-template-columns:1fr}
   .body{padding:14px 16px 32px}
+}
+@media(max-width:600px){
+  .kpi-row{grid-template-columns:1fr 1fr}
+  .header-inner{padding:8px 12px}
+  .body{padding:10px 10px 24px}
+  .chart-card{padding:14px 10px}
+  .back-btn{padding:6px 12px;font-size:.75rem}
+}
+@media(max-width:400px){
+  .kpi-row{grid-template-columns:1fr}
 }
 #auth-overlay{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;padding:20px;background:url('warehouse-bg.jpg') center center/cover no-repeat}
 #auth-overlay::before{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(10,25,60,.82) 0%,rgba(15,40,90,.75) 50%,rgba(20,55,110,.70) 100%);backdrop-filter:blur(2px)}

@@ -209,8 +209,31 @@ body>*{position:relative;z-index:1}
 @media(max-width:760px){
   .ct-grid2,.ct-grid3{grid-template-columns:1fr}
   .search-row{flex-direction:column}
-  #home-cards .portal-grid{grid-template-columns:1fr}
+  #home-cards .portal-grid{grid-template-columns:1fr 1fr}
   .portal-heading{font-size:1.6rem}
+  /* Topbar compact */
+  .topbar-inner{padding:8px 12px}
+  .topbar-brand{font-size:.95rem}
+  /* OMS filters wrap */
+  .oms-filter-row{flex-wrap:wrap;gap:8px}
+  .oms-filter-group{min-width:120px}
+  /* Table scroll */
+  .oms-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .oms-table-scroll{max-height:calc(100vh - 320px)}
+  /* Back row */
+  .page-back-row{padding:10px 12px}
+  /* Auth box */
+  .auth-box{border-radius:12px}
+}
+@media(max-width:480px){
+  #home-cards .portal-grid{grid-template-columns:1fr}
+  .portal-heading{font-size:1.4rem}
+  .portal-card{min-height:180px;padding:24px 20px 20px}
+  .portal-card-icon{font-size:2rem}
+  .portal-card-title{font-size:1.1rem}
+  .oms-filter-row{flex-direction:column}
+  .oms-pills{flex-wrap:wrap}
+  .topbar-inner{padding:6px 10px}
 }
 
 /* AUTH */
