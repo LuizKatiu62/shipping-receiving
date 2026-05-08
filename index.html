@@ -2821,12 +2821,19 @@ function printIncomingLabel(){
 }
 
 function printItemWipLabel(i){
-  var wo       = document.getElementById('itm-l'+i+'-wipwo').value.trim();
+  var wo       = document.getElementById('itm-l'+i+'-wipwo').value.trim().toUpperCase();
   var area     = document.getElementById('itm-area').value;
-  var material = document.getElementById('itm-l'+i+'-mat').value.trim();
   var customer = (document.getElementById('inc-customer')||{value:''}).value.trim();
   var priority = (document.getElementById('inc-priority')||{value:''}).value;
   var date     = document.getElementById('itm-date').value;
+  // Count how many line items share the same WIP WO
+  var woCount = 0, j = 0;
+  while(document.getElementById('itm-l'+j+'-wipwo') !== null){
+    var woel = document.getElementById('itm-l'+j+'-wipwo');
+    if(woel.value.trim().toUpperCase() === wo) woCount++;
+    j++;
+  }
+  var material = woCount > 1 ? 'Assorted Items' : document.getElementById('itm-l'+i+'-mat').value.trim();
 
   var win = window.open('','_blank','width=600,height=380');
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>WIP Label</title><style>'+
