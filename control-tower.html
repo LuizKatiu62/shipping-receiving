@@ -46,8 +46,8 @@ body>*{position:relative;z-index:1}
 .portal-eyebrow{font-size:.7rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--light);margin-bottom:10px}
 .portal-heading{font-size:2rem;font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:8px}
 .portal-sub{font-size:.88rem;color:var(--muted);margin-bottom:44px}
-.portal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;width:100%;max-width:1120px}
-.portal-card{border-radius:20px;padding:30px 26px 24px;cursor:pointer;text-align:left;transition:transform .2s,box-shadow .2s;min-height:220px;display:flex;flex-direction:column;user-select:none}
+.portal-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;width:100%;max-width:1120px}
+.portal-card{flex:0 0 calc(25% - 15px);min-width:220px;max-width:265px;border-radius:20px;padding:30px 26px 24px;cursor:pointer;text-align:left;transition:transform .2s,box-shadow .2s;min-height:220px;display:flex;flex-direction:column;user-select:none}
 .portal-card:hover{transform:translateY(-5px);box-shadow:0 24px 64px rgba(0,0,0,.22)}
 .portal-card:active{transform:translateY(-2px)}
 .portal-card-blue{background:linear-gradient(160deg,#1e3a8a 0%,#2563eb 100%)}
@@ -207,12 +207,12 @@ body>*{position:relative;z-index:1}
 .oms-empty{text-align:center;padding:36px;color:var(--light);font-size:.83rem;font-style:italic}
 
 @media(max-width:900px){
-  #home-cards .portal-grid{grid-template-columns:1fr 1fr}
+  #home-cards .portal-card{flex:0 0 calc(50% - 10px);max-width:none}
 }
 @media(max-width:760px){
   .ct-grid2,.ct-grid3{grid-template-columns:1fr}
   .search-row{flex-direction:column}
-  #home-cards .portal-grid{grid-template-columns:1fr 1fr}
+  #home-cards .portal-card{flex:0 0 calc(50% - 10px);max-width:none}
   .portal-heading{font-size:1.6rem}
   /* Topbar compact */
   .topbar-inner{padding:8px 12px}
@@ -229,7 +229,7 @@ body>*{position:relative;z-index:1}
   .auth-box{border-radius:12px}
 }
 @media(max-width:480px){
-  #home-cards .portal-grid{grid-template-columns:1fr}
+  #home-cards .portal-card{flex:0 0 100%;max-width:none}
   .portal-heading{font-size:1.4rem}
   .portal-card{min-height:180px;padding:24px 20px 20px}
   .portal-card-icon{font-size:2rem}
