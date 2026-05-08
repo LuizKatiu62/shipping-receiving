@@ -5329,7 +5329,7 @@ function _showHoldDays(type, active, startDate, closeDate){
 function _updateProcDaysBreakdown(h){
   var bd = document.getElementById('proc-days-breakdown');
   if(!bd) return;
-  var parts=[], totalCat=0, allClosed=true, lastClose='';
+  var parts=[], allClosed=true, lastClose='';
   var meta = {
     qa:    {lbl:'Waiting QA',    bg:'#fef3c7',bg2:'#dcfce7',clr:'#d97706'},
     po:    {lbl:'Missing PO',    bg:'#fee2e2',bg2:'#dcfce7',clr:'#dc2626'},
@@ -5340,7 +5340,6 @@ function _updateProcDaysBreakdown(h){
     var ho = h[type];
     if(!ho.active || !ho.start) return;
     var d = calcDaysOnHold(ho.start, ho.close||undefined);
-    totalCat += d;
     var closed = !!ho.close;
     if(!closed) allClosed = false;
     if(closed && ho.close > lastClose) lastClose = ho.close;
@@ -5350,12 +5349,14 @@ function _updateProcDaysBreakdown(h){
     parts.push('<span style="font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:20px;color:'+clr+';background:'+bg+'">'+m.lbl+': '+d+'d'+(closed?' ✓':'')+'</span>');
   });
   if(!parts.length){ bd.style.display='none'; return; }
-  var expedDays = 0;
   if(allClosed && lastClose){
-    expedDays = calcDaysOnHold(lastClose);
+    var expedDays = calcDaysOnHold(lastClose);
     if(expedDays>0) parts.push('<span style="font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:20px;color:#166534;background:#dcfce7">Expedition: '+expedDays+'d</span>');
   }
-  parts.push('<span style="font-size:.7rem;font-weight:800;padding:2px 8px;border-radius:20px;color:#fff;background:#0f172a">Total: '+(totalCat+expedDays)+'d</span>');
+  // Total = actual calendar days on hold (concurrent categories must not be double-counted)
+  var receivedDate = document.getElementById('proc-received-date').value;
+  var totalDays = receivedDate ? calcDaysOnHold(receivedDate) : 0;
+  parts.push('<span style="font-size:.7rem;font-weight:800;padding:2px 8px;border-radius:20px;color:#fff;background:#0f172a">Total: '+totalDays+'d</span>');
   bd.innerHTML = parts.join('');
   bd.style.display = 'flex';
 }
