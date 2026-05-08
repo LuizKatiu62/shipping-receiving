@@ -1621,10 +1621,13 @@ document.addEventListener('keydown', function(ev){
           <textarea id="proc-comments" rows="3" placeholder="Additional notes or comments..." style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.83rem;font-family:'Inter',inherit;resize:vertical;outline:none;transition:border-color .2s;color:var(--text-primary)" onfocus="this.style.borderColor='var(--blue-500)'" onblur="this.style.borderColor='var(--border)'"></textarea>
         </div>
 
-        <div class="full" style="display:flex;align-items:center;gap:16px;padding:6px 0">
-          <div style="font-size:.75rem;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.4px">Days On Hold</div>
-          <div id="proc-days-badge" style="display:none"></div>
-          <div id="proc-days-pending" style="font-size:.82rem;color:#9ca3af;font-style:italic">Select received date to calculate</div>
+        <div class="full" style="display:flex;flex-direction:column;gap:6px;padding:6px 0">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="font-size:.75rem;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.4px">Days On Hold</div>
+            <div id="proc-days-badge" style="display:none"></div>
+            <div id="proc-days-pending" style="font-size:.82rem;color:#9ca3af;font-style:italic">Select received date to calculate</div>
+          </div>
+          <div id="proc-days-breakdown" style="display:none;flex-wrap:wrap;gap:6px"></div>
         </div>
 
         <div class="form-group full">
@@ -1645,6 +1648,7 @@ document.addEventListener('keydown', function(ev){
                 <div class="hold-date-group">
                   <span class="hold-date-lbl">Closed</span>
                   <input type="date" class="hold-date-inp" id="hold-qa-close" onchange="onHoldChange()">
+                  <span id="hold-qa-days" style="font-size:.72rem;font-weight:800;padding:2px 8px;border-radius:20px;background:#fef3c7;color:#d97706;display:none"></span>
                 </div>
               </div>
             </div>
@@ -1663,6 +1667,7 @@ document.addEventListener('keydown', function(ev){
                 <div class="hold-date-group">
                   <span class="hold-date-lbl">Closed</span>
                   <input type="date" class="hold-date-inp" id="hold-po-close" onchange="onHoldChange()">
+                  <span id="hold-po-days" style="font-size:.72rem;font-weight:800;padding:2px 8px;border-radius:20px;background:#fee2e2;color:#dc2626;display:none"></span>
                 </div>
               </div>
             </div>
@@ -1681,6 +1686,7 @@ document.addEventListener('keydown', function(ev){
                 <div class="hold-date-group">
                   <span class="hold-date-lbl">Closed</span>
                   <input type="date" class="hold-date-inp" id="hold-pickup-close" onchange="onHoldChange()">
+                  <span id="hold-pickup-days" style="font-size:.72rem;font-weight:800;padding:2px 8px;border-radius:20px;background:#dbeafe;color:#1565c0;display:none"></span>
                 </div>
               </div>
               <div id="hold-pickup-note" style="font-size:.72rem;color:var(--text-muted);padding-left:24px">Available after Waiting QA and Missing PO are resolved</div>
@@ -1700,6 +1706,7 @@ document.addEventListener('keydown', function(ev){
                 <div class="hold-date-group">
                   <span class="hold-date-lbl">Closed</span>
                   <input type="date" class="hold-date-inp" id="hold-others-close" onchange="onHoldChange()">
+                  <span id="hold-others-days" style="font-size:.72rem;font-weight:800;padding:2px 8px;border-radius:20px;background:#f1f5f9;color:#475569;display:none"></span>
                 </div>
               </div>
               <div id="hold-others-desc-group" style="display:none;padding-left:24px;margin-top:2px">
@@ -4933,6 +4940,7 @@ function updateProcDays(){
   }
   badge.style.display=''; badge.innerHTML = daysOnHoldBadge(calcDaysOnHold(recv), false);
   pend.style.display='none';
+  onHoldChange();
 }
 
 function renderProcess(){
@@ -5281,6 +5289,17 @@ function onHoldChange(){
   _updateHoldPill('others', othersActive, document.getElementById('hold-others-start').value, othersClose);
   var rot = document.getElementById('hold-row-others');
   rot.className = 'hold-row'+(othersActive ? (othersClose ? ' hold-closed' : ' hold-active') : '');
+
+  _showHoldDays('qa',     qaActive,     document.getElementById('hold-qa-start').value,     qaClose);
+  _showHoldDays('po',     poActive,     document.getElementById('hold-po-start').value,     poClose);
+  _showHoldDays('pickup', pickupActive, document.getElementById('hold-pickup-start').value, pickupClose);
+  _showHoldDays('others', othersActive, document.getElementById('hold-others-start').value, othersClose);
+  _updateProcDaysBreakdown({
+    qa:     {active:qaActive,     start:document.getElementById('hold-qa-start').value,     close:qaClose},
+    po:     {active:poActive,     start:document.getElementById('hold-po-start').value,     close:poClose},
+    pickup: {active:pickupActive, start:document.getElementById('hold-pickup-start').value, close:pickupClose},
+    others: {active:othersActive, start:document.getElementById('hold-others-start').value, close:othersClose}
+  });
 }
 
 function _updateHoldPill(type, active, startDate, closeDate){
@@ -5296,6 +5315,49 @@ function _updateHoldPill(type, active, startDate, closeDate){
     var d = startDate ? calcDaysOnHold(startDate) : 0;
     pill.textContent = 'OPEN'+(d>0?' · '+d+'d':'');
   }
+}
+
+function _showHoldDays(type, active, startDate, closeDate){
+  var el = document.getElementById('hold-'+type+'-days');
+  if(!el) return;
+  if(!active || !startDate){ el.style.display='none'; return; }
+  var d = calcDaysOnHold(startDate, closeDate||undefined);
+  el.textContent = d+'d';
+  el.style.display = '';
+}
+
+function _updateProcDaysBreakdown(h){
+  var bd = document.getElementById('proc-days-breakdown');
+  if(!bd) return;
+  var parts=[], totalCat=0, allClosed=true, lastClose='';
+  var meta = {
+    qa:    {lbl:'Waiting QA',    bg:'#fef3c7',bg2:'#dcfce7',clr:'#d97706'},
+    po:    {lbl:'Missing PO',    bg:'#fee2e2',bg2:'#dcfce7',clr:'#dc2626'},
+    pickup:{lbl:'Cust. Pick Up', bg:'#dbeafe',bg2:'#dcfce7',clr:'#1565c0'},
+    others:{lbl:'Others',        bg:'#f1f5f9',bg2:'#dcfce7',clr:'#475569'}
+  };
+  ['qa','po','pickup','others'].forEach(function(type){
+    var ho = h[type];
+    if(!ho.active || !ho.start) return;
+    var d = calcDaysOnHold(ho.start, ho.close||undefined);
+    totalCat += d;
+    var closed = !!ho.close;
+    if(!closed) allClosed = false;
+    if(closed && ho.close > lastClose) lastClose = ho.close;
+    var m = meta[type];
+    var bg  = closed ? m.bg2 : m.bg;
+    var clr = closed ? '#15803d' : m.clr;
+    parts.push('<span style="font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:20px;color:'+clr+';background:'+bg+'">'+m.lbl+': '+d+'d'+(closed?' ✓':'')+'</span>');
+  });
+  if(!parts.length){ bd.style.display='none'; return; }
+  var expedDays = 0;
+  if(allClosed && lastClose){
+    expedDays = calcDaysOnHold(lastClose);
+    if(expedDays>0) parts.push('<span style="font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:20px;color:#166534;background:#dcfce7">Expedition: '+expedDays+'d</span>');
+  }
+  parts.push('<span style="font-size:.7rem;font-weight:800;padding:2px 8px;border-radius:20px;color:#fff;background:#0f172a">Total: '+(totalCat+expedDays)+'d</span>');
+  bd.innerHTML = parts.join('');
+  bd.style.display = 'flex';
 }
 
 function setHoldsToModal(holds, receivedDate){
