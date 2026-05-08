@@ -4938,7 +4938,7 @@ function updateProcDays(){
     badge.style.display='none'; pend.style.display='';
     pend.textContent='Select received date to calculate'; return;
   }
-  badge.style.display=''; badge.innerHTML = daysOnHoldBadge(calcDaysOnHold(recv), false);
+  badge.style.display=''; badge.innerHTML = daysOnHoldBadge(calcBusinessDays(recv), false);
   pend.style.display='none';
   onHoldChange();
 }
@@ -5312,7 +5312,7 @@ function _updateHoldPill(type, active, startDate, closeDate){
     pill.textContent='Closed '+fmtDate(closeDate);
   } else {
     pill.className='hold-status-pill hold-status-open';
-    var d = startDate ? calcDaysOnHold(startDate) : 0;
+    var d = startDate ? calcBusinessDays(startDate) : 0;
     pill.textContent = 'OPEN'+(d>0?' · '+d+'d':'');
   }
 }
@@ -5321,7 +5321,7 @@ function _showHoldDays(type, active, startDate, closeDate){
   var el = document.getElementById('hold-'+type+'-days');
   if(!el) return;
   if(!active || !startDate){ el.style.display='none'; return; }
-  var d = calcDaysOnHold(startDate, closeDate||undefined);
+  var d = calcBusinessDays(startDate, closeDate||undefined);
   el.textContent = d+'d';
   el.style.display = '';
 }
@@ -5339,7 +5339,7 @@ function _updateProcDaysBreakdown(h){
   ['qa','po','pickup','others'].forEach(function(type){
     var ho = h[type];
     if(!ho.active || !ho.start) return;
-    var d = calcDaysOnHold(ho.start, ho.close||undefined);
+    var d = calcBusinessDays(ho.start, ho.close||undefined);
     var closed = !!ho.close;
     if(!closed) allClosed = false;
     if(closed && ho.close > lastClose) lastClose = ho.close;
@@ -5350,12 +5350,12 @@ function _updateProcDaysBreakdown(h){
   });
   if(!parts.length){ bd.style.display='none'; return; }
   if(allClosed && lastClose){
-    var expedDays = calcDaysOnHold(lastClose);
+    var expedDays = calcBusinessDays(lastClose);
     if(expedDays>0) parts.push('<span style="font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:20px;color:#166534;background:#dcfce7">Expedition: '+expedDays+'d</span>');
   }
-  // Total = actual calendar days on hold (concurrent categories must not be double-counted)
+  // Total = actual business days on hold (concurrent categories must not be double-counted)
   var receivedDate = document.getElementById('proc-received-date').value;
-  var totalDays = receivedDate ? calcDaysOnHold(receivedDate) : 0;
+  var totalDays = receivedDate ? calcBusinessDays(receivedDate) : 0;
   parts.push('<span style="font-size:.7rem;font-weight:800;padding:2px 8px;border-radius:20px;color:#fff;background:#0f172a">Total: '+totalDays+'d</span>');
   bd.innerHTML = parts.join('');
   bd.style.display = 'flex';
@@ -5621,6 +5621,42 @@ function exportProcessCSV(){
 
 // ══ PACKING & HOLD ══
 
+function _easterSunday(y){
+  var a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4;
+  var f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30;
+  var i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7;
+  var m=Math.floor((a+11*h+22*l)/451);
+  var mo=Math.floor((h+l-7*m+114)/31),dy=((h+l-7*m+114)%31)+1;
+  return new Date(y,mo-1,dy);
+}
+function _nbHolidays(y){
+  var h=[]; function add(d){ h.push(d.toISOString().slice(0,10)); }
+  function observed(d){ var wd=d.getDay(); if(wd===6) return new Date(d.getFullYear(),d.getMonth(),d.getDate()+2); if(wd===0) return new Date(d.getFullYear(),d.getMonth(),d.getDate()+1); return d; }
+  function nthMonday(mo,n){ var d=new Date(y,mo,1); d.setDate(d.getDate()+(((1-d.getDay())+7)%7)+(n-1)*7); return d; }
+  add(observed(new Date(y,0,1)));   // New Year's
+  add(nthMonday(1,3));               // Family Day NB
+  var easter=_easterSunday(y); add(new Date(easter.getFullYear(),easter.getMonth(),easter.getDate()-2)); // Good Friday
+  var may25=new Date(y,4,25); add(new Date(y,4,25-((may25.getDay()+6)%7))); // Victoria Day
+  add(observed(new Date(y,6,1)));   // Canada Day
+  add(nthMonday(7,1));               // NB Day
+  add(nthMonday(8,1));               // Labour Day
+  add(observed(new Date(y,8,30)));  // Truth & Reconciliation
+  add(nthMonday(9,2));               // Thanksgiving
+  add(observed(new Date(y,10,11))); // Remembrance Day
+  add(observed(new Date(y,11,25))); // Christmas
+  add(observed(new Date(y,11,26))); // Boxing Day
+  return h;
+}
+function calcBusinessDays(start, end){
+  if(!start) return 0;
+  var s=new Date(start+'T00:00:00'), e=end?new Date(end+'T00:00:00'):new Date();
+  if(e<=s) return 0;
+  var holidays={};
+  for(var y=s.getFullYear();y<=e.getFullYear();y++) _nbHolidays(y).forEach(function(d){ holidays[d]=1; });
+  var days=0, cur=new Date(s);
+  while(cur<e){ var wd=cur.getDay(),iso=cur.toISOString().slice(0,10); if(wd!==0&&wd!==6&&!holidays[iso]) days++; cur.setDate(cur.getDate()+1); }
+  return days;
+}
 function calcDaysOnHold(pickDate, endDate){
   if(!pickDate) return null;
   var pick = new Date(pickDate+'T00:00:00');

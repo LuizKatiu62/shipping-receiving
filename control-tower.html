@@ -699,7 +699,7 @@ function _ctHoldBreakdown(proc, endDate){
       if(!ho || !ho.active) return;
       var m = meta[type];
       var closed = !!ho.closeDate;
-      var d = calcDays(ho.startDate, closed ? ho.closeDate : (endDate||undefined));
+      var d = calcBusinessDays(ho.startDate, closed ? ho.closeDate : (endDate||undefined));
       var lbl = (type==='others' && ho.description) ? 'Others: '+ho.description : m.lbl;
       var bg  = closed ? m.bg2 : m.bg;
       var clr = closed ? '#15803d' : m.clr;
@@ -716,7 +716,7 @@ function _ctHoldBreakdown(proc, endDate){
              : proc.holdReason==='Waiting Customer Pick Up' ? 'pickup' : 'others';
     var m = meta[type];
     var lbl = (proc.holdReason==='Others' && proc.holdReasonOther) ? 'Others: '+proc.holdReasonOther : proc.holdReason;
-    var d = calcDays(proc.receivedDate, endDate||undefined);
+    var d = calcBusinessDays(proc.receivedDate, endDate||undefined);
     parts.push(
       '<div style="margin-top:5px;padding:5px 9px;border-radius:8px;background:'+m.bg+';text-align:left">'+
         '<div style="font-size:.68rem;font-weight:800;color:'+m.clr+'">'+escHtml(lbl)+'</div>'+
