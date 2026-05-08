@@ -421,6 +421,23 @@ body.readonly-mode #viewer-portal{display:none!important}
 .vp-card:hover .vp-arrow{transform:translateX(7px);color:rgba(255,255,255,.9)}
 @media(max-width:720px){.vp-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.vp-grid{grid-template-columns:1fr}}
+/* ── HOLD MANAGEMENT ── */
+.hold-mgmt-grid{display:flex;flex-direction:column;gap:0;margin-top:6px;border:1.5px solid var(--border);border-radius:10px;overflow:hidden}
+.hold-row{padding:10px 14px;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--border);transition:background .15s}
+.hold-row:last-child{border-bottom:none}
+.hold-row.hold-active{background:#f0f7ff}
+.hold-row.hold-closed{background:#f1f8f2}
+.hold-row.hold-disabled{opacity:.45;pointer-events:none}
+.hold-row-check{display:flex;align-items:center;gap:8px}
+.hold-row-check label{cursor:pointer;font-size:.85rem;font-weight:700}
+.hold-row-dates{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-left:24px}
+.hold-date-group{display:flex;align-items:center;gap:6px}
+.hold-date-lbl{font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--text-muted)}
+.hold-date-inp{padding:4px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;font-family:inherit;outline:none;transition:border-color .15s}
+.hold-date-inp:focus{border-color:var(--blue-500)}
+.hold-status-pill{font-size:.65rem;font-weight:800;padding:2px 8px;border-radius:20px}
+.hold-status-open{background:#fee2e2;color:#dc2626}
+.hold-status-closed{background:#dcfce7;color:#16a34a}
 </style>
 <script>
 // ── GLOBAL UPPERCASE ENFORCEMENT ──
@@ -1611,16 +1628,85 @@ document.addEventListener('keydown', function(ev){
         </div>
 
         <div class="form-group full">
-          <label>Hold Reason</label>
-          <input type="hidden" id="proc-hold-reason">
-          <div class="inc-toggle-group" id="proc-reason-btns">
-            <button type="button" class="inc-toggle-btn" id="btn-reason-qa"       onclick="setProcReason('Waiting QA')">Waiting QA</button>
-            <button type="button" class="inc-toggle-btn" id="btn-reason-po"       onclick="setProcReason('Missing PO')">Missing PO</button>
-            <button type="button" class="inc-toggle-btn" id="btn-reason-pickup"   onclick="setProcReason('Waiting Customer Pick Up')">Waiting Customer Pick Up</button>
-            <button type="button" class="inc-toggle-btn" id="btn-reason-others"   onclick="setProcReason('Others')">Others</button>
-          </div>
-          <div id="proc-reason-other-group" style="display:none;margin-top:6px">
-            <input type="text" id="proc-reason-other" placeholder="Specify reason..." style="width:100%;padding:7px 11px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.86rem;font-family:inherit;outline:none" onfocus="this.style.borderColor='var(--blue-500)'" onblur="this.style.borderColor='var(--border)'">
+          <label>Hold Reasons</label>
+          <div class="hold-mgmt-grid">
+
+            <div class="hold-row" id="hold-row-qa">
+              <div class="hold-row-check">
+                <input type="checkbox" id="hold-qa-active" onchange="onHoldChange()">
+                <label for="hold-qa-active">Waiting QA</label>
+                <span class="hold-status-pill" id="hold-qa-pill" style="display:none"></span>
+              </div>
+              <div class="hold-row-dates" id="hold-qa-dates" style="display:none">
+                <div class="hold-date-group">
+                  <span class="hold-date-lbl">Start</span>
+                  <input type="date" class="hold-date-inp" id="hold-qa-start" readonly>
+                </div>
+                <div class="hold-date-group">
+                  <span class="hold-date-lbl">Closed</span>
+                  <input type="date" class="hold-date-inp" id="hold-qa-close" onchange="onHoldChange()">
+                </div>
+              </div>
+            </div>
+
+            <div class="hold-row" id="hold-row-po">
+              <div class="hold-row-check">
+                <input type="checkbox" id="hold-po-active" onchange="onHoldChange()">
+                <label for="hold-po-active">Missing PO</label>
+                <span class="hold-status-pill" id="hold-po-pill" style="display:none"></span>
+              </div>
+              <div class="hold-row-dates" id="hold-po-dates" style="display:none">
+                <div class="hold-date-group">
+                  <span class="hold-date-lbl">Start</span>
+                  <input type="date" class="hold-date-inp" id="hold-po-start" readonly>
+                </div>
+                <div class="hold-date-group">
+                  <span class="hold-date-lbl">Closed</span>
+                  <input type="date" class="hold-date-inp" id="hold-po-close" onchange="onHoldChange()">
+                </div>
+              </div>
+            </div>
+
+            <div class="hold-row hold-disabled" id="hold-row-pickup">
+              <div class="hold-row-check">
+                <input type="checkbox" id="hold-pickup-active" onchange="onHoldChange()" disabled>
+                <label for="hold-pickup-active">Waiting Customer Pick Up</label>
+                <span class="hold-status-pill" id="hold-pickup-pill" style="display:none"></span>
+              </div>
+              <div class="hold-row-dates" id="hold-pickup-dates" style="display:none">
+                <div class="hold-date-group">
+                  <span class="hold-date-lbl">Start</span>
+                  <input type="date" class="hold-date-inp" id="hold-pickup-start" readonly>
+                </div>
+                <div class="hold-date-group">
+                  <span class="hold-date-lbl">Closed</span>
+                  <input type="date" class="hold-date-inp" id="hold-pickup-close" onchange="onHoldChange()">
+                </div>
+              </div>
+              <div id="hold-pickup-note" style="font-size:.72rem;color:var(--text-muted);padding-left:24px">Available after Waiting QA and Missing PO are resolved</div>
+            </div>
+
+            <div class="hold-row" id="hold-row-others">
+              <div class="hold-row-check">
+                <input type="checkbox" id="hold-others-active" onchange="onHoldChange()">
+                <label for="hold-others-active">Others</label>
+                <span class="hold-status-pill" id="hold-others-pill" style="display:none"></span>
+              </div>
+              <div class="hold-row-dates" id="hold-others-dates" style="display:none">
+                <div class="hold-date-group">
+                  <span class="hold-date-lbl">Start</span>
+                  <input type="date" class="hold-date-inp" id="hold-others-start">
+                </div>
+                <div class="hold-date-group">
+                  <span class="hold-date-lbl">Closed</span>
+                  <input type="date" class="hold-date-inp" id="hold-others-close" onchange="onHoldChange()">
+                </div>
+              </div>
+              <div id="hold-others-desc-group" style="display:none;padding-left:24px;margin-top:2px">
+                <input type="text" id="hold-others-desc" placeholder="Describe the reason..." style="width:100%;padding:5px 9px;border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;font-family:inherit;outline:none" onfocus="this.style.borderColor='var(--blue-500)'" onblur="this.style.borderColor='var(--border)'">
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -4877,8 +4963,12 @@ function renderProcess(){
   });
   var rf = (document.getElementById('proc-reason-filter')||{}).value||'';
   if(rf) procFiltered = procFiltered.filter(function(r){
-    if(rf==='(none)') return !r.holdReason;
-    return (r.holdReason||'')=== rf;
+    if(rf==='(none)') return !r.holdReason && (!r.holds || (!r.holds.qa&&!r.holds.po&&!r.holds.pickup&&!r.holds.others));
+    if(rf==='Waiting QA')                  return _holdActive(r,'qa');
+    if(rf==='Missing PO')                  return _holdActive(r,'po');
+    if(rf==='Waiting Customer Pick Up')    return _holdActive(r,'pickup');
+    if(rf==='Others')                      return _holdActive(r,'others');
+    return true;
   });
   var tbody = document.getElementById('proc-tbody');
   if(!procFiltered.length){
@@ -4902,7 +4992,7 @@ function renderProcess(){
       '<td>'+escHtml(r.po||'—')+'</td>'+
       '<td style="white-space:nowrap">'+fmtDate(r.receivedDate)+'</td>'+
       '<td style="white-space:nowrap">'+curCell+'</td>'+
-      '<td>'+holdReasonBadge(r.holdReason, r.holdReasonOther)+'</td>'+
+      '<td>'+holdReasonBadges(r)+'</td>'+
       '<td>'+daysOnHoldBadge(days, frozen)+'</td>'+
       '<td onclick="event.stopPropagation()"><div class="act-cell">'+
         (r.photosLink?'<a href="'+escAttr(r.photosLink)+'" target="_blank" class="act-btn" title="Photos" onclick="event.stopPropagation()">📷</a>':'')+
@@ -4923,10 +5013,10 @@ function renderProcStats(rows){
     return s+(calcDaysOnHold(r.receivedDate, sd||today())||0);
   },0)/total);
   var holdRows = rows.filter(function(r){ return !findProcShipDate(r); });
-  var cntQA     = holdRows.filter(function(r){ return r.holdReason==='Waiting QA'; }).length;
-  var cntPO     = holdRows.filter(function(r){ return r.holdReason==='Missing PO'; }).length;
-  var cntPickup = holdRows.filter(function(r){ return r.holdReason==='Waiting Customer Pick Up'; }).length;
-  var cntOthers = holdRows.filter(function(r){ return r.holdReason==='Others'; }).length;
+  var cntQA     = holdRows.filter(function(r){ return _holdActive(r,'qa'); }).length;
+  var cntPO     = holdRows.filter(function(r){ return _holdActive(r,'po'); }).length;
+  var cntPickup = holdRows.filter(function(r){ return _holdActive(r,'pickup'); }).length;
+  var cntOthers = holdRows.filter(function(r){ return _holdActive(r,'others'); }).length;
   document.getElementById('proc-stats').innerHTML =
     '<div class="stat-card"><div class="stat-val">'+total+'</div><div class="stat-lbl">Total</div></div>'+
     '<div class="stat-card"><div class="stat-val" style="color:#e65100">'+onHold+'</div><div class="stat-lbl">On Hold</div></div>'+
@@ -5123,16 +5213,15 @@ function openProcModal(key){
     document.getElementById('proc-comments').value      = r.comments||'';
     document.getElementById('proc-received-date').value = r.receivedDate||'';
     document.getElementById('proc-del-btn').style.display='';
-    setProcReason(r.holdReason||'');
-    document.getElementById('proc-reason-other').value = r.holdReasonOther||'';
+    setHoldsToModal(r.holds || (r.holdReason ? _migrateHoldReason(r) : {}), r.receivedDate||'');
     updateProcDays();
   } else {
     document.getElementById('proc-modal-title').textContent = 'New Shipping On Hold';
     document.getElementById('proc-pics-qty').value = '';
-    ['proc-outgoing','proc-wo','proc-so','proc-customer','proc-po','proc-material','proc-received-date','proc-photos-link','proc-comments','proc-reason-other'].forEach(function(id){
+    ['proc-outgoing','proc-wo','proc-so','proc-customer','proc-po','proc-material','proc-received-date','proc-photos-link','proc-comments'].forEach(function(id){
       document.getElementById(id).value='';
     });
-    setProcReason('');
+    setHoldsToModal({}, '');
     document.getElementById('proc-del-btn').style.display='none';
   }
   updateProcOrderFields();
@@ -5142,22 +5231,153 @@ function openProcModal(key){
 
 function closeProcModal(){ document.getElementById('proc-modal').style.display='none'; }
 
-function setProcReason(val){
-  document.getElementById('proc-hold-reason').value = val;
-  var map = {'Waiting QA':'btn-reason-qa','Missing PO':'btn-reason-po','Waiting Customer Pick Up':'btn-reason-pickup','Others':'btn-reason-others'};
-  ['btn-reason-qa','btn-reason-po','btn-reason-pickup','btn-reason-others'].forEach(function(id){
-    var el = document.getElementById(id); if(el){ el.classList.toggle('active', map[val]===id); }
-  });
-  document.getElementById('proc-reason-other-group').style.display = val==='Others' ? 'block' : 'none';
+function onHoldChange(){
+  var receivedDate = document.getElementById('proc-received-date').value || today();
+  var qaActive  = document.getElementById('hold-qa-active').checked;
+  var qaClose   = document.getElementById('hold-qa-close').value;
+  var poActive  = document.getElementById('hold-po-active').checked;
+  var poClose   = document.getElementById('hold-po-close').value;
+
+  if(qaActive && !document.getElementById('hold-qa-start').value)
+    document.getElementById('hold-qa-start').value = receivedDate;
+  document.getElementById('hold-qa-dates').style.display = qaActive ? '' : 'none';
+  _updateHoldPill('qa', qaActive, document.getElementById('hold-qa-start').value, qaClose);
+  var rqa = document.getElementById('hold-row-qa');
+  rqa.className = 'hold-row'+(qaActive ? (qaClose ? ' hold-closed' : ' hold-active') : '');
+
+  if(poActive && !document.getElementById('hold-po-start').value)
+    document.getElementById('hold-po-start').value = receivedDate;
+  document.getElementById('hold-po-dates').style.display = poActive ? '' : 'none';
+  _updateHoldPill('po', poActive, document.getElementById('hold-po-start').value, poClose);
+  var rpo = document.getElementById('hold-row-po');
+  rpo.className = 'hold-row'+(poActive ? (poClose ? ' hold-closed' : ' hold-active') : '');
+
+  var qaResolved     = !qaActive || !!qaClose;
+  var poResolved     = !poActive || !!poClose;
+  var pickupEnabled  = qaResolved && poResolved;
+  var pickupCB       = document.getElementById('hold-pickup-active');
+  pickupCB.disabled  = !pickupEnabled;
+  document.getElementById('hold-pickup-note').style.display = pickupEnabled ? 'none' : '';
+  var pickupActive   = pickupEnabled && pickupCB.checked;
+  var pickupClose    = document.getElementById('hold-pickup-close').value;
+  if(pickupActive && !document.getElementById('hold-pickup-start').value){
+    var cands = [receivedDate];
+    if(qaClose) cands.push(qaClose);
+    if(poClose) cands.push(poClose);
+    cands.sort();
+    document.getElementById('hold-pickup-start').value = cands[cands.length-1];
+  }
+  document.getElementById('hold-pickup-dates').style.display = pickupActive ? '' : 'none';
+  _updateHoldPill('pickup', pickupActive, document.getElementById('hold-pickup-start').value, pickupClose);
+  var rpu = document.getElementById('hold-row-pickup');
+  rpu.className = 'hold-row'+(!pickupEnabled ? ' hold-disabled' : '')+(pickupActive ? (pickupClose ? ' hold-closed' : ' hold-active') : '');
+
+  var othersActive = document.getElementById('hold-others-active').checked;
+  var othersClose  = document.getElementById('hold-others-close').value;
+  if(othersActive && !document.getElementById('hold-others-start').value)
+    document.getElementById('hold-others-start').value = receivedDate;
+  document.getElementById('hold-others-dates').style.display = othersActive ? '' : 'none';
+  document.getElementById('hold-others-desc-group').style.display = othersActive ? '' : 'none';
+  _updateHoldPill('others', othersActive, document.getElementById('hold-others-start').value, othersClose);
+  var rot = document.getElementById('hold-row-others');
+  rot.className = 'hold-row'+(othersActive ? (othersClose ? ' hold-closed' : ' hold-active') : '');
+}
+
+function _updateHoldPill(type, active, startDate, closeDate){
+  var pill = document.getElementById('hold-'+type+'-pill');
+  if(!pill) return;
+  if(!active){ pill.style.display='none'; return; }
+  pill.style.display='';
+  if(closeDate){
+    pill.className='hold-status-pill hold-status-closed';
+    pill.textContent='Closed '+fmtDate(closeDate);
+  } else {
+    pill.className='hold-status-pill hold-status-open';
+    var d = startDate ? calcDaysOnHold(startDate) : 0;
+    pill.textContent = 'OPEN'+(d>0?' · '+d+'d':'');
+  }
+}
+
+function setHoldsToModal(holds, receivedDate){
+  var h = holds||{};
+  var qa = h.qa||{}, po = h.po||{}, pickup = h.pickup||{}, others = h.others||{};
+  document.getElementById('hold-qa-active').checked      = !!qa.active;
+  document.getElementById('hold-qa-start').value         = qa.startDate||'';
+  document.getElementById('hold-qa-close').value         = qa.closeDate||'';
+  document.getElementById('hold-po-active').checked      = !!po.active;
+  document.getElementById('hold-po-start').value         = po.startDate||'';
+  document.getElementById('hold-po-close').value         = po.closeDate||'';
+  document.getElementById('hold-pickup-active').checked  = !!pickup.active;
+  document.getElementById('hold-pickup-start').value     = pickup.startDate||'';
+  document.getElementById('hold-pickup-close').value     = pickup.closeDate||'';
+  document.getElementById('hold-others-active').checked  = !!others.active;
+  document.getElementById('hold-others-start').value     = others.startDate||'';
+  document.getElementById('hold-others-close').value     = others.closeDate||'';
+  document.getElementById('hold-others-desc').value      = others.description||'';
+  onHoldChange();
+}
+
+function getHoldsFromModal(){
+  var receivedDate = document.getElementById('proc-received-date').value||today();
+  var qaActive  = document.getElementById('hold-qa-active').checked;
+  var qaClose   = document.getElementById('hold-qa-close').value;
+  var poActive  = document.getElementById('hold-po-active').checked;
+  var poClose   = document.getElementById('hold-po-close').value;
+  var qaResolved    = !qaActive || !!qaClose;
+  var poResolved    = !poActive || !!poClose;
+  var pickupEnabled = qaResolved && poResolved;
+  var pickupActive  = pickupEnabled && document.getElementById('hold-pickup-active').checked;
+  var othersActive  = document.getElementById('hold-others-active').checked;
+  return {
+    qa:     { active:qaActive,  startDate:qaActive  ? (document.getElementById('hold-qa-start').value||receivedDate)     : '', closeDate:qaActive  ? qaClose  : '' },
+    po:     { active:poActive,  startDate:poActive  ? (document.getElementById('hold-po-start').value||receivedDate)     : '', closeDate:poActive  ? poClose  : '' },
+    pickup: { active:pickupActive, startDate:pickupActive ? (document.getElementById('hold-pickup-start').value||receivedDate) : '', closeDate:pickupActive ? document.getElementById('hold-pickup-close').value : '' },
+    others: { active:othersActive, startDate:othersActive ? (document.getElementById('hold-others-start').value||receivedDate) : '', closeDate:othersActive ? document.getElementById('hold-others-close').value : '', description:othersActive ? document.getElementById('hold-others-desc').value.trim() : '' }
+  };
+}
+
+function _migrateHoldReason(r){
+  if(!r.holdReason) return {};
+  var holds = {};
+  if(r.holdReason==='Waiting QA')                 holds.qa     = {active:true,startDate:r.receivedDate||'',closeDate:''};
+  else if(r.holdReason==='Missing PO')            holds.po     = {active:true,startDate:r.receivedDate||'',closeDate:''};
+  else if(r.holdReason==='Waiting Customer Pick Up') holds.pickup = {active:true,startDate:r.receivedDate||'',closeDate:''};
+  else if(r.holdReason==='Others')                holds.others = {active:true,startDate:r.receivedDate||'',closeDate:'',description:r.holdReasonOther||''};
+  return holds;
+}
+
+function _holdBadge(label, bg, clr){
+  return '<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:.68rem;font-weight:700;color:'+clr+';background:'+bg+';white-space:nowrap">'+escHtml(label)+'</span>';
+}
+
+function holdReasonBadges(r){
+  var h = r.holds || (r.holdReason ? _migrateHoldReason(r) : null);
+  if(!h) return '<span style="color:#9ca3af;font-size:.75rem">—</span>';
+  var badges = [];
+  if(h.qa && h.qa.active)     badges.push(h.qa.closeDate     ? _holdBadge('QA ✓','#dcfce7','#15803d')     : _holdBadge('Waiting QA','#fef3c7','#d97706'));
+  if(h.po && h.po.active)     badges.push(h.po.closeDate     ? _holdBadge('PO ✓','#dcfce7','#15803d')     : _holdBadge('Missing PO','#fee2e2','#dc2626'));
+  if(h.pickup && h.pickup.active) badges.push(h.pickup.closeDate ? _holdBadge('Pick Up ✓','#dcfce7','#15803d') : _holdBadge('Cust. Pick Up','#dbeafe','#1565c0'));
+  if(h.others && h.others.active){
+    var lbl = h.others.closeDate ? 'Others ✓' : (h.others.description ? 'Others: '+h.others.description : 'Others');
+    badges.push(h.others.closeDate ? _holdBadge(lbl,'#dcfce7','#15803d') : _holdBadge(lbl,'#f1f5f9','#475569'));
+  }
+  if(!badges.length) return '<span style="color:#9ca3af;font-size:.75rem">—</span>';
+  return '<div style="display:flex;flex-wrap:wrap;gap:3px">'+badges.join('')+'</div>';
+}
+
+function _holdActive(r, type){
+  if(r.holds && r.holds[type]) return !!(r.holds[type].active && !r.holds[type].closeDate);
+  if(type==='qa')     return r.holdReason==='Waiting QA';
+  if(type==='po')     return r.holdReason==='Missing PO';
+  if(type==='pickup') return r.holdReason==='Waiting Customer Pick Up';
+  if(type==='others') return r.holdReason==='Others';
+  return false;
 }
 
 function holdReasonBadge(reason, other){
   if(!reason) return '<span style="color:#9ca3af;font-size:.75rem">—</span>';
   var label = reason==='Others' && other ? 'Others: '+other : reason;
-  var color = reason==='Waiting QA' ? '#d97706'
-            : reason==='Missing PO' ? '#dc2626'
-            : reason==='Waiting Customer Pick Up' ? '#1565c0'
-            : '#6b7280';
+  var color = reason==='Waiting QA' ? '#d97706' : reason==='Missing PO' ? '#dc2626' : reason==='Waiting Customer Pick Up' ? '#1565c0' : '#6b7280';
   return '<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:.7rem;font-weight:700;color:#fff;background:'+color+';white-space:nowrap">'+escHtml(label)+'</span>';
 }
 
@@ -5274,22 +5494,20 @@ function saveProcRecord(){
   if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var receivedDate = document.getElementById('proc-received-date').value;
   if(!receivedDate){ alert('Shipping Area Received Date is required.'); return; }
-  var holdReason = document.getElementById('proc-hold-reason').value;
-  var holdReasonOther = document.getElementById('proc-reason-other').value.trim();
+  var holds = getHoldsFromModal();
   var record = {
-    outgoing:        document.getElementById('proc-outgoing').value.trim(),
-    wo:              document.getElementById('proc-wo').value.trim(),
-    so:              document.getElementById('proc-so').value.trim(),
-    customer:        document.getElementById('proc-customer').value.trim(),
-    po:              document.getElementById('proc-po').value.trim(),
-    material:        document.getElementById('proc-material').value.trim(),
-    picsQty:         document.getElementById('proc-pics-qty').value,
-    photosLink:      document.getElementById('proc-photos-link').value.trim(),
-    comments:        document.getElementById('proc-comments').value.trim(),
-    holdReason:      holdReason,
-    holdReasonOther: holdReason==='Others' ? holdReasonOther : '',
+    outgoing:   document.getElementById('proc-outgoing').value.trim(),
+    wo:         document.getElementById('proc-wo').value.trim(),
+    so:         document.getElementById('proc-so').value.trim(),
+    customer:   document.getElementById('proc-customer').value.trim(),
+    po:         document.getElementById('proc-po').value.trim(),
+    material:   document.getElementById('proc-material').value.trim(),
+    picsQty:    document.getElementById('proc-pics-qty').value,
+    photosLink: document.getElementById('proc-photos-link').value.trim(),
+    comments:   document.getElementById('proc-comments').value.trim(),
+    holds:      holds,
     receivedDate,
-    updatedAt:       new Date().toISOString()
+    updatedAt:  new Date().toISOString()
   };
   var key = document.getElementById('proc-edit-id').value;
   if(db){
@@ -5322,7 +5540,17 @@ function exportProcessCSV(){
   var data = rows.map(function(r){
     var sd = findProcShipDate(r);
     var frozen = !!sd;
-    var reason = r.holdReason==='Others' && r.holdReasonOther ? 'Others: '+r.holdReasonOther : (r.holdReason||'');
+    var reason = (function(){
+      if(r.holds){
+        var h = r.holds, parts=[];
+        if(h.qa&&h.qa.active)     parts.push('Waiting QA'    +(h.qa.closeDate?     ' (closed '+h.qa.closeDate+')':''));
+        if(h.po&&h.po.active)     parts.push('Missing PO'    +(h.po.closeDate?     ' (closed '+h.po.closeDate+')':''));
+        if(h.pickup&&h.pickup.active) parts.push('Cust. Pick Up'+(h.pickup.closeDate?' (closed '+h.pickup.closeDate+')':''));
+        if(h.others&&h.others.active) parts.push('Others'+(h.others.description?': '+h.others.description:'')+(h.others.closeDate?' (closed '+h.others.closeDate+')':''));
+        return parts.join('; ');
+      }
+      return r.holdReason==='Others'&&r.holdReasonOther ? 'Others: '+r.holdReasonOther : (r.holdReason||'');
+    })();
     return [r.outgoing,r.wo,r.so,r.customer,r.po,r.material,r.receivedDate,frozen?sd:today(),calcDaysOnHold(r.receivedDate,frozen?sd:today()),reason,frozen?'Shipped':'On Hold'];
   });
   toXLS('process-hold', headers, data);
