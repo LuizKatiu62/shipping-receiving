@@ -311,7 +311,7 @@ textarea:not([data-nocase]){
             <div class="portal-card-sub">Browse Incoming Forms, WIP components and Shipping activity — filter by year, month and day</div>
             <div class="portal-card-arrow">→</div>
           </div>
-          <div class="portal-card portal-card-green" onclick="window.location.href='index.html?payments=1'">
+          <div id="home-card-payments" class="portal-card portal-card-green" onclick="window.location.href='index.html?payments=1'" style="display:none">
             <div class="portal-card-icon">💰</div>
             <div class="portal-card-title">Payments</div>
             <div class="portal-card-sub">View and manage daily payment records — cash, cheque, card and debit transactions</div>
@@ -552,6 +552,13 @@ function startDataLoad(){
   });
 }
 
+var PAYMENTS_ALLOWED = [
+  'gardner.christine@sourceatlantic.ca',
+  'koncovy.joseph@sourceatlantic.ca',
+  'renouf.holly@sourceatlantic.ca',
+  'lcdsilva@hotmail.com'
+];
+
 auth.onAuthStateChanged(function(user){
   if(user && user.emailVerified){
     _ctUserEmail = (user.email||'').toLowerCase();
@@ -560,6 +567,8 @@ auth.onAuthStateChanged(function(user){
     if(emailEl){ emailEl.textContent = user.email; emailEl.style.display = 'inline'; }
     var soBtn = document.getElementById('ct-signout-btn');
     if(soBtn) soBtn.style.display = 'inline-block';
+    var payCard = document.getElementById('home-card-payments');
+    if(payCard) payCard.style.display = PAYMENTS_ALLOWED.indexOf(_ctUserEmail) !== -1 ? 'flex' : 'none';
     startDataLoad();
     var hash = window.location.hash.replace('#','');
     if(hash === 'overview') showPage('overview');
