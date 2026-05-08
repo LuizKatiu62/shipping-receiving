@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Shipping & Receiving — Source Atlantic</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -294,10 +294,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
   /* Tables scroll horizontally */
   .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
   /* Modal full-screen on mobile */
-  .modal{max-width:100%!important;max-height:98vh;border-radius:12px 12px 0 0;margin-top:auto}
-  .modal-overlay{align-items:flex-end}
-  /* Buttons full width in form actions */
-  .form-actions{flex-wrap:wrap;padding:10px 16px 14px}
+  .modal{max-width:100%!important;max-height:92dvh;border-radius:12px 12px 0 0;margin-top:auto}
+  .modal-overlay{align-items:flex-end;padding:0}
+  /* Buttons full width in form actions — clear iOS home bar */
+  .form-actions{flex-wrap:wrap;padding:10px 16px calc(14px + env(safe-area-inset-bottom))}
   /* Stats grid single column */
   .stats-grid{grid-template-columns:1fr 1fr}
 }
