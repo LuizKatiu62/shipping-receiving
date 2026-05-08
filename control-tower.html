@@ -288,7 +288,7 @@ textarea:not([data-nocase]){
       <div class="auth-screen active" id="auth-login">
         <div class="auth-error" id="auth-login-err"></div>
         <div class="auth-field"><label>Email</label><input type="email" id="auth-login-email" placeholder="your@email.com" autocomplete="email"></div>
-        <div class="auth-field"><label>Password</label><div class="pw-wrap"><input type="password" id="auth-login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"><button type="button" class="pw-toggle" onclick="togglePw('auth-login-pass',this)" title="Show/hide password">👁</button></div></div>
+        <div class="auth-field"><label>Password</label><div class="pw-wrap"><input type="password" id="auth-login-pass" placeholder="••••••••" autocomplete="current-password" autocapitalize="none" autocorrect="off" onkeydown="if(event.key==='Enter')doLogin()"><button type="button" class="pw-toggle" onclick="togglePw('auth-login-pass',this)" title="Show/hide password">👁</button></div></div>
         <button class="auth-btn" id="auth-login-btn" onclick="doLogin()">Sign In</button>
         <div class="auth-footer"><button class="auth-link" onclick="authShow('forgot')">Forgot password?</button></div>
       </div>
