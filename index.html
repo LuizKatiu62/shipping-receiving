@@ -294,6 +294,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .pw-toggle:hover{color:#475569}
 .file-upload-area{border:2px dashed #d1d5db;border-radius:8px;padding:14px 16px;cursor:pointer;transition:all .18s;background:#f8faff;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .file-upload-area:hover{border-color:#3b82f6;background:#eff6ff}
+.file-upload-area.file-ready{border:1.5px solid #86efac;background:#f0fdf4;padding:8px 12px;cursor:default}
+.file-upload-area.file-ready:hover{border-color:#86efac;background:#f0fdf4}
+.file-upload-area.file-ready .file-upload-btn{display:none}
+.file-remove-btn{font-size:.72rem;color:#dc2626;background:none;border:none;cursor:pointer;font-family:inherit;padding:0;font-weight:600;white-space:nowrap}
 .file-upload-area input[type=file]{display:none}
 .file-upload-btn{background:#e0e7ff;color:#3730a3;border:none;border-radius:6px;padding:5px 12px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
 .file-upload-name{font-size:.78rem;color:#475569;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1865,12 +1869,13 @@ document.addEventListener('keydown', function(ev){
         <div class="form-section-header">Follow-up & Resolution</div>
         <div class="form-group">
           <label>Document / Email Attachment</label>
-          <div class="file-upload-area" onclick="document.getElementById('sherr-file-input').click()">
+          <div class="file-upload-area" id="sherr-upload-area" onclick="document.getElementById('sherr-file-input').click()">
             <input type="file" id="sherr-file-input" accept=".pdf,.doc,.docx,.eml,.msg,.png,.jpg,.jpeg" onchange="handleSherrFile(this)">
             <button type="button" class="file-upload-btn" onclick="event.stopPropagation();document.getElementById('sherr-file-input').click()">📎 Choose File</button>
             <span class="file-upload-name" id="sherr-file-name">No file selected</span>
             <span class="file-upload-progress" id="sherr-file-progress"></span>
-            <a class="file-upload-link" id="sherr-file-link" href="#" target="_blank" style="display:none">View ↗</a>
+            <a class="file-upload-link" id="sherr-file-link" href="#" target="_blank" style="display:none" onclick="event.stopPropagation()">View ↗</a>
+            <button type="button" class="file-remove-btn" id="sherr-file-remove" onclick="event.stopPropagation();removeSherrFile()" style="display:none">✕ Remove</button>
           </div>
           <input type="hidden" id="sherr-appt">
         </div>
@@ -5561,16 +5566,22 @@ function renderShipErrors(){
 function filterShipErrors(){ renderShipErrors(); }
 
 function _sherrShowFile(name, dataUrl){
-  var nameEl  = document.getElementById('sherr-file-name');
-  var linkEl  = document.getElementById('sherr-file-link');
+  var nameEl    = document.getElementById('sherr-file-name');
+  var linkEl    = document.getElementById('sherr-file-link');
+  var removeEl  = document.getElementById('sherr-file-remove');
+  var areaEl    = document.getElementById('sherr-upload-area');
   var fileInput = document.getElementById('sherr-file-input');
   if(fileInput) fileInput.value = '';
   if(dataUrl){
     if(nameEl) nameEl.textContent = name || 'Attached file';
     if(linkEl){ linkEl.href = dataUrl; linkEl.download = name||'attachment'; linkEl.style.display = 'inline'; }
+    if(removeEl) removeEl.style.display = 'inline';
+    if(areaEl){ areaEl.classList.add('file-ready'); areaEl.onclick = null; }
   } else {
     if(nameEl) nameEl.textContent = 'No file selected';
     if(linkEl) linkEl.style.display = 'none';
+    if(removeEl) removeEl.style.display = 'none';
+    if(areaEl){ areaEl.classList.remove('file-ready'); areaEl.onclick = function(){ document.getElementById('sherr-file-input').click(); }; }
   }
   var prog = document.getElementById('sherr-file-progress');
   if(prog) prog.textContent = '';
@@ -5580,21 +5591,35 @@ function handleSherrFile(input){
   var file = input.files[0];
   if(!file) return;
   if(file.size > 3 * 1024 * 1024){ alert('File too large — maximum 3 MB.'); input.value=''; return; }
-  var nameEl = document.getElementById('sherr-file-name');
-  var progEl = document.getElementById('sherr-file-progress');
-  var linkEl = document.getElementById('sherr-file-link');
+  var nameEl   = document.getElementById('sherr-file-name');
+  var progEl   = document.getElementById('sherr-file-progress');
+  var linkEl   = document.getElementById('sherr-file-link');
+  var removeEl = document.getElementById('sherr-file-remove');
+  var areaEl   = document.getElementById('sherr-upload-area');
   if(nameEl) nameEl.textContent = file.name;
-  if(progEl) progEl.textContent = 'Reading…';
+  if(progEl) progEl.textContent = '';
   var reader = new FileReader();
   reader.onload = function(e){
     var dataUrl = e.target.result;
-    document.getElementById('sherr-appt').value       = dataUrl;
-    document.getElementById('sherr-file-name').textContent = file.name;
-    if(progEl) progEl.textContent = '✓ Ready';
+    document.getElementById('sherr-appt').value = dataUrl;
+    if(nameEl) nameEl.textContent = file.name;
     if(linkEl){ linkEl.href = dataUrl; linkEl.download = file.name; linkEl.style.display = 'inline'; }
+    if(removeEl) removeEl.style.display = 'inline';
+    if(areaEl){ areaEl.classList.add('file-ready'); areaEl.onclick = null; }
   };
   reader.onerror = function(){ if(progEl) progEl.textContent = 'Read error'; };
   reader.readAsDataURL(file);
+}
+function removeSherrFile(){
+  document.getElementById('sherr-appt').value = '';
+  document.getElementById('sherr-file-name').textContent = 'No file selected';
+  document.getElementById('sherr-file-input').value = '';
+  var linkEl = document.getElementById('sherr-file-link');
+  if(linkEl){ linkEl.style.display = 'none'; linkEl.href = '#'; }
+  var removeEl = document.getElementById('sherr-file-remove');
+  if(removeEl) removeEl.style.display = 'none';
+  var areaEl = document.getElementById('sherr-upload-area');
+  if(areaEl){ areaEl.classList.remove('file-ready'); areaEl.onclick = function(){ document.getElementById('sherr-file-input').click(); }; }
 }
 
 function openShipErrorModal(key){
