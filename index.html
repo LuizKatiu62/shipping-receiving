@@ -5534,11 +5534,15 @@ function sendWipEmail(){
     + '&subject=' + encodeURIComponent(subject)
     + '&body='    + encodeURIComponent(body);
 
-  window.location.href = mailto;
-  // closeWipEmailModal advances to next in queue
+  // Close modal first, then open email client
+  document.getElementById('wip-email-modal').style.display = 'none';
   var rec = pendingWipEmailRec.record;
   pendingWipEmailRec = null;
-  document.getElementById('wip-email-modal').style.display = 'none';
+  var a = document.createElement('a');
+  a.href = mailto;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
   if(wipEmailQueue.length) setTimeout(function(){ showNextWipEmail(rec); }, 400);
 }
 
