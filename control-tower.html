@@ -552,6 +552,7 @@ function startDataLoad(){
   });
 }
 
+var ADMIN_EMAILS = ['dasilva.luiz@sourceatlantic.ca'];
 var PAYMENTS_ALLOWED = [
   'gardner.christine@sourceatlantic.ca',
   'koncovy.joseph@sourceatlantic.ca',
@@ -562,6 +563,12 @@ var PAYMENTS_ALLOWED = [
 auth.onAuthStateChanged(function(user){
   if(user && user.emailVerified){
     _ctUserEmail = (user.email||'').toLowerCase();
+    // Redirect admins to the main app
+    if(ADMIN_EMAILS.indexOf(_ctUserEmail) !== -1){
+      sessionStorage.setItem('ct-session','1');
+      window.location.replace('index.html');
+      return;
+    }
     document.getElementById('auth-overlay').style.display = 'none';
     var emailEl = document.getElementById('ct-user-email');
     if(emailEl){ emailEl.textContent = user.email; emailEl.style.display = 'inline'; }
