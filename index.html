@@ -2738,6 +2738,7 @@ function printIncomingLabel(){
   var picsQty  = document.getElementById('inc-pics-qty').value;
   var picsTime = document.getElementById('inc-pics-time').value;
   var customer = document.getElementById('inc-customer').value.trim();
+  var priority = document.getElementById('inc-priority').value;
   var equip    = document.getElementById('inc-equip-type').value === 'Other'
                    ? document.getElementById('inc-equip-other').value.trim()
                    : document.getElementById('inc-equip-type').value;
@@ -2758,6 +2759,7 @@ function printIncomingLabel(){
     '.wo-block{text-align:center;background:#000;color:#fff;padding:6px 0;margin-bottom:6px;border-radius:4px}'+
     '.wo-label{font-size:7pt;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.7}'+
     '.wo-value{font-size:26pt;font-weight:900;letter-spacing:1px;line-height:1}'+
+    '.rush-banner{background:#dc2626;color:#fff;text-align:center;font-size:16pt;font-weight:900;letter-spacing:4px;padding:4px 0;border-radius:4px;margin-bottom:6px}'+
     '.grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px}'+
     '.field{display:flex;flex-direction:column}'+
     '.f-label{font-size:6pt;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#666}'+
@@ -2776,6 +2778,7 @@ function printIncomingLabel(){
       '<div class="wo-label">Work Order #</div>'+
       '<div class="wo-value">'+(wo||'—')+'</div>'+
     '</div>'+
+    (priority==='Rush'?'<div class="rush-banner">⚡ RUSH</div>':'')+
     '<div class="grid">'+
       '<div class="field"><span class="f-label">Date</span><span class="f-value">'+(date?fmtDate(date):'—')+'</span></div>'+
       '<div class="field"><span class="f-label">Area</span><span class="f-value">'+(area||'—')+'</span></div>'+
@@ -2795,6 +2798,7 @@ function printItemWipLabel(i){
   var area     = document.getElementById('itm-area').value;
   var material = document.getElementById('itm-l'+i+'-mat').value.trim();
   var customer = (document.getElementById('inc-customer')||{value:''}).value.trim();
+  var priority = (document.getElementById('inc-priority')||{value:''}).value;
   var date     = document.getElementById('itm-date').value;
 
   var win = window.open('','_blank','width=600,height=380');
@@ -2808,6 +2812,7 @@ function printItemWipLabel(i){
     '.wo-block{text-align:center;background:#000;color:#fff;padding:6px 0;margin-bottom:6px;border-radius:4px}'+
     '.wo-label{font-size:7pt;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.7}'+
     '.wo-value{font-size:28pt;font-weight:900;line-height:1}'+
+    '.rush-banner{background:#dc2626;color:#fff;text-align:center;font-size:16pt;font-weight:900;letter-spacing:4px;padding:4px 0;border-radius:4px;margin-bottom:6px}'+
     '.grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px}'+
     '.field{display:flex;flex-direction:column}'+
     '.f-label{font-size:6pt;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#666}'+
@@ -2823,6 +2828,7 @@ function printItemWipLabel(i){
       '<div class="wo-label">Work Order #</div>'+
       '<div class="wo-value">'+(wo||'—')+'</div>'+
     '</div>'+
+    (priority==='Rush'?'<div class="rush-banner">⚡ RUSH</div>':'')+
     '<div class="grid">'+
       '<div class="field"><span class="f-label">Material</span><span class="f-value">'+(material||'—')+'</span></div>'+
       '<div class="field"><span class="f-label">Area</span><span class="f-value">'+(area||'—')+'</span></div>'+
