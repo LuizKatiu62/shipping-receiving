@@ -477,6 +477,7 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var db   = firebase.database();
 var auth = firebase.auth();
+auth.signOut(); // Always require fresh login on every page load
 
 var allData = {incoming:{}, items:{}, shipping:{}, process:{}, packing:{}};
 var loadedCount = 0;
