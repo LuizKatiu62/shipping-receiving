@@ -52,6 +52,8 @@ body>*{position:relative;z-index:1}
 .portal-card:active{transform:translateY(-2px)}
 .portal-card-blue{background:linear-gradient(160deg,#1e3a8a 0%,#2563eb 100%)}
 .portal-card-navy{background:linear-gradient(160deg,#0f172a 0%,#1e293b 100%)}
+.portal-card-green{background:linear-gradient(160deg,#064e3b 0%,#059669 100%)}
+.portal-card-dark{background:linear-gradient(160deg,#0f172a 0%,#1e3a5f 100%)}
 .portal-card-icon{font-size:2.6rem;margin-bottom:20px;line-height:1}
 .portal-card-title{font-size:1.35rem;font-weight:900;color:#fff;margin-bottom:10px;letter-spacing:-.3px}
 .portal-card-sub{font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.6;flex:1}
@@ -287,6 +289,46 @@ textarea:not([data-nocase]){
   </div>
 </div>
 
+<!-- ═══ HOME PORTAL ═══ -->
+<div id="page-home" class="page-section active">
+  <div style="min-height:calc(100vh - 60px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;background:url('warehouse-bg.jpg') center center/cover no-repeat;position:relative">
+    <div style="position:absolute;inset:0;background:linear-gradient(160deg,rgba(10,25,60,.55) 0%,rgba(15,40,90,.45) 100%);backdrop-filter:blur(1px)"></div>
+    <div style="position:relative;z-index:1;text-align:center;width:100%;max-width:800px">
+      <div style="font-size:.72rem;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.55);text-transform:uppercase;margin-bottom:12px">Source Atlantic — Industrial Services</div>
+      <h1 class="portal-heading" style="color:#fff;font-size:2.4rem;margin-bottom:8px">EPS Shipping &amp; Receiving</h1>
+      <div class="portal-sub" style="color:rgba(255,255,255,.6)">Select a tool to get started</div>
+      <div id="home-cards" style="display:flex;justify-content:center">
+        <div class="portal-grid">
+          <div class="portal-card portal-card-blue" onclick="showPage('overview')">
+            <div class="portal-card-icon">🔍</div>
+            <div class="portal-card-title">Order Lookup</div>
+            <div class="portal-card-sub">Search by Work Order, Sales Order or Incoming # — full order details, components, hold status and shipping history</div>
+            <div class="portal-card-arrow">→</div>
+          </div>
+          <div class="portal-card portal-card-navy" onclick="showPage('oms')">
+            <div class="portal-card-icon">📋</div>
+            <div class="portal-card-title">Overview List</div>
+            <div class="portal-card-sub">Browse Incoming Forms, WIP components and Shipping activity — filter by year, month and day</div>
+            <div class="portal-card-arrow">→</div>
+          </div>
+          <div class="portal-card portal-card-green" onclick="window.location.href='index.html?payments=1'">
+            <div class="portal-card-icon">💰</div>
+            <div class="portal-card-title">Payments</div>
+            <div class="portal-card-sub">View and manage daily payment records — cash, cheque, card and debit transactions</div>
+            <div class="portal-card-arrow">→</div>
+          </div>
+          <div class="portal-card portal-card-dark" onclick="window.location.href='stats.html'">
+            <div class="portal-card-icon">📊</div>
+            <div class="portal-card-title">Dashboard</div>
+            <div class="portal-card-sub">Operations overview — shipping volume, top carriers and monthly trends</div>
+            <div class="portal-card-arrow">→</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ OPERATION OVERVIEW ═══ -->
 <div id="page-overview" class="page-section">
   <div class="page-back-row">
@@ -327,7 +369,7 @@ textarea:not([data-nocase]){
 <!-- ═══ ORDER & MATERIAL STATUS ═══ -->
 <div id="page-oms" class="page-section">
   <div class="page-back-row">
-    <button class="btn-back-page" onclick="history.back()">← Back</button>
+    <button class="btn-back-page" onclick="showPage('home')">← Back</button>
     <span class="page-title-inline">Overview List</span>
   </div>
   <div class="oms-wrap">
@@ -519,7 +561,8 @@ auth.onAuthStateChanged(function(user){
     startDataLoad();
     var hash = window.location.hash.replace('#','');
     if(hash === 'overview') showPage('overview');
-    else showPage('oms');
+    else if(hash === 'oms') showPage('oms');
+    else showPage('home');
   } else {
     document.getElementById('auth-overlay').style.display = 'flex';
   }
@@ -557,10 +600,10 @@ function doForgotPassword(){
 // PAGE NAV
 var _ctUserEmail = '';
 
-var currentPage = 'oms';
+var currentPage = 'home';
 function showPage(page){
   if(currentPage === 'overview' && page !== 'overview') clearSearch();
-  ['overview','oms'].forEach(function(p){
+  ['home','overview','oms'].forEach(function(p){
     document.getElementById('page-'+p).classList.toggle('active', p===page);
   });
   currentPage = page;
@@ -570,7 +613,7 @@ function showPage(page){
 
 function overviewBack(){
   if(overviewFrom){ var dest = overviewFrom; overviewFrom = null; showPage(dest); }
-  else { history.back(); }
+  else { showPage('home'); }
 }
 
 // Navigate from OMS into Overview with pre-filled search
