@@ -5650,11 +5650,11 @@ function _nbHolidays(y){
 function calcBusinessDays(start, end){
   if(!start) return 0;
   var s=new Date(start+'T00:00:00'), e=end?new Date(end+'T00:00:00'):new Date();
-  if(e<=s) return 0;
+  if(e<s) return 0;
   var holidays={};
   for(var y=s.getFullYear();y<=e.getFullYear();y++) _nbHolidays(y).forEach(function(d){ holidays[d]=1; });
   var days=0, cur=new Date(s);
-  while(cur<e){ var wd=cur.getDay(),iso=cur.toISOString().slice(0,10); if(wd!==0&&wd!==6&&!holidays[iso]) days++; cur.setDate(cur.getDate()+1); }
+  while(cur<=e){ var wd=cur.getDay(),iso=cur.toISOString().slice(0,10); if(wd!==0&&wd!==6&&!holidays[iso]) days++; cur.setDate(cur.getDate()+1); }
   return days;
 }
 function calcDaysOnHold(pickDate, endDate){

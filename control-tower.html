@@ -796,14 +796,14 @@ function calcBusinessDays(start, end){
   if(!start) return null;
   var s = new Date(start+'T00:00:00');
   var e = end ? new Date(end+'T00:00:00') : new Date();
-  if(e <= s) return 0;
+  if(e < s) return 0;
   // Collect holiday sets for all years in range
   var holidays = {};
   for(var y=s.getFullYear(); y<=e.getFullYear(); y++){
     nbHolidays(y).forEach(function(d){ holidays[d]=1; });
   }
   var days=0, cur=new Date(s);
-  while(cur < e){
+  while(cur <= e){
     var wd=cur.getDay();
     var iso=cur.toISOString().slice(0,10);
     if(wd!==0 && wd!==6 && !holidays[iso]) days++;
