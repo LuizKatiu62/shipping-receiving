@@ -192,7 +192,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(21,101,192,.1)}
 .form-group textarea{resize:vertical;min-height:80px}
 .form-group input::placeholder,.form-group textarea::placeholder{color:var(--text-muted)}
-.form-actions{position:sticky;bottom:0;display:flex;gap:10px;justify-content:flex-end;margin-top:10px;padding:10px 0 14px;border-top:1px solid var(--border);background:var(--surface);z-index:1}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;flex-shrink:0;padding:12px 24px 16px;border-top:1px solid var(--border);background:var(--surface)}
 
 /* ── FORM SECTION DIVIDER ── */
 .form-section-header{grid-column:1/-1;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--blue-600);padding:7px 0 2px;border-top:1.5px solid var(--blue-100);margin-top:3px;display:flex;align-items:center;gap:8px}
@@ -297,7 +297,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
   .modal{max-width:100%!important;max-height:98vh;border-radius:12px 12px 0 0;margin-top:auto}
   .modal-overlay{align-items:flex-end}
   /* Buttons full width in form actions */
-  .form-actions{flex-wrap:wrap}
+  .form-actions{flex-wrap:wrap;padding:10px 16px 14px}
   /* Stats grid single column */
   .stats-grid{grid-template-columns:1fr 1fr}
 }
@@ -1247,13 +1247,13 @@ document.addEventListener('keydown', function(ev){
         </div>
 
       </div>
-      <div class="form-actions">
-        <button class="btn btn-danger" id="inc-del-btn" style="display:none;margin-right:auto" onclick="deleteIncoming()">🗑 Delete</button>
-        <button class="btn btn-secondary" onclick="closeIncomingModal()">Cancel</button>
-        <button class="btn btn-secondary" onclick="printIncomingLabel()">🏷️ Print Label</button>
-        <button class="btn btn-secondary" onclick="openEpsForm()" style="background:#e3f2fd;color:#1565c0;border-color:#90caf9;font-weight:700">📄 EPS Form</button>
-        <button class="btn btn-primary" onclick="saveIncoming()">💾 Save</button>
-      </div>
+    </div><!-- end modal-body -->
+    <div class="form-actions">
+      <button class="btn btn-danger" id="inc-del-btn" style="display:none;margin-right:auto" onclick="deleteIncoming()">🗑 Delete</button>
+      <button class="btn btn-secondary" onclick="closeIncomingModal()">Cancel</button>
+      <button class="btn btn-secondary" onclick="printIncomingLabel()">🏷️ Print Label</button>
+      <button class="btn btn-secondary" onclick="openEpsForm()" style="background:#e3f2fd;color:#1565c0;border-color:#90caf9;font-weight:700">📄 EPS Form</button>
+      <button class="btn btn-primary" onclick="saveIncoming()">💾 Save</button>
     </div>
   </div>
 </div>
@@ -2954,8 +2954,7 @@ function saveIncoming(){
   var photosLink = document.getElementById('inc-photos-link').value.trim();
   var epsNum     = document.getElementById('inc-eps-num').value.trim();
 
-  if(!formNum){ alert('Incoming Form # is required.'); return; }
-  if(!equipment){ alert('Equipment Description is required.'); return; }
+  if(!customer){ alert('Customer Name is required.'); return; }
 
   var record = {
     formNum, wo, prevWo, customerPO, date, customer, equipment, equipmentType, area,
