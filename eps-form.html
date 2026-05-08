@@ -6,375 +6,325 @@
 <title>EPS Incoming Form</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,Helvetica,sans-serif;font-size:10pt;color:#000;background:#e8ecf0}
-/* ── Print bar (screen only) ── */
-.print-bar{
-  position:fixed;top:0;left:0;right:0;height:44px;
-  background:#1565c0;color:#fff;
-  display:flex;align-items:center;gap:10px;padding:0 16px;
-  z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.3)
-}
-.print-bar strong{font-size:11pt;flex:1}
-.pb-btn{
-  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);
-  color:#fff;border-radius:5px;padding:5px 14px;cursor:pointer;
-  font-size:9.5pt;font-weight:600;transition:background .15s
-}
-.pb-btn:hover{background:rgba(255,255,255,.32)}
-.pb-print{background:#fff;color:#1565c0;border-color:#fff}
-.pb-print:hover{background:#e3eeff}
+body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:#999}
+
+/* ── Print bar ── */
+.pbar{position:fixed;top:0;left:0;right:0;height:44px;background:#1a237e;color:#fff;display:flex;align-items:center;gap:10px;padding:0 16px;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.pbar b{flex:1;font-size:10.5pt}
+.pbtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:9pt;font-weight:600;transition:background .15s}
+.pbtn:hover{background:rgba(255,255,255,.3)}
+.pbtn-p{background:#fff;color:#1a237e;border-color:#fff}
+.pbtn-p:hover{background:#e8eaf6}
+
 /* ── Page ── */
-@media screen{.form-page{margin:54px auto 30px;box-shadow:0 4px 24px rgba(0,0,0,.18)}}
-.form-page{
-  width:210mm;min-height:297mm;
-  background:#fff;
-  padding:12mm 14mm 14mm;
-}
-/* ── Header ── */
-.fhdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:2.5px solid #1565c0}
-.fhdr-left img{height:38px;display:block}
-.fhdr-left .co-name{font-size:8.5pt;font-weight:700;color:#1a237e;margin-top:4px;letter-spacing:.2px}
-.fhdr-left .co-sub{font-size:7pt;color:#555;margin-top:2px}
-.fhdr-mid{text-align:center;flex:1;padding:0 12px}
-.fhdr-mid .form-title{font-size:15pt;font-weight:900;color:#1565c0;letter-spacing:1.5px;text-transform:uppercase}
-.fhdr-mid .form-sub{font-size:7.5pt;color:#555;margin-top:3px;letter-spacing:.3px}
-.fhdr-right{text-align:center;border:2.5px solid #1565c0;border-radius:6px;padding:6px 14px;min-width:92px}
-.fnum-label{font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1565c0}
-.fnum-val{font-size:22pt;font-weight:900;color:#1565c0;line-height:1.1;letter-spacing:1px}
-.fnum-date{font-size:7pt;color:#777;margin-top:3px}
-/* ── Section ── */
-.sec{margin-bottom:8px}
-.sec-title{
-  background:#1565c0;color:#fff;
-  font-size:8pt;font-weight:700;
-  padding:3px 8px;letter-spacing:.6px;text-transform:uppercase;
-  margin-bottom:5px;border-radius:2px 2px 0 0
-}
-/* ── Field grid ── */
-.frow{display:grid;gap:4px 10px;margin-bottom:4px}
-.frow-1{grid-template-columns:1fr}
-.frow-2{grid-template-columns:1fr 1fr}
-.frow-3{grid-template-columns:1fr 1fr 1fr}
-.frow-4{grid-template-columns:1fr 1fr 1fr 1fr}
-.frow-5{grid-template-columns:1fr 1fr 1fr 1fr 1fr}
-.frow-c13{grid-template-columns:2fr 1fr 1fr}
-.frow-c121{grid-template-columns:1fr 2fr 1fr}
-.frow-c211{grid-template-columns:2fr 1fr 1fr}
-.fld{}
-.fld-lbl{font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#555;margin-bottom:1px}
-.fld-val{
-  border-bottom:1px solid #aaa;
-  min-height:16px;padding-bottom:1px;
-  font-size:9.5pt;font-weight:600;color:#000;
-  white-space:pre-wrap;word-break:break-word
-}
-.fld-val.tall{min-height:28px}
-.fld-val.em{color:#c62828;font-weight:900}
-/* ── Priority badge ── */
-.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:8pt;font-weight:700}
-.badge-rush{background:#c62828;color:#fff}
-.badge-regular{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
-/* ── Signature row ── */
-.sig-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 20px;margin-top:10px;padding-top:8px;border-top:1px solid #bbb}
-.sig-box{}
-.sig-box .sig-line{border-top:1px solid #000;margin-top:22px;padding-top:3px;font-size:7pt;color:#555;text-align:center}
-.sig-box .sig-pre{font-size:8pt;font-weight:700;color:#333}
-.sig-box .sig-val{font-size:10pt;margin-bottom:2px}
+@media screen{.pg{margin:56px auto 28px;box-shadow:0 4px 24px rgba(0,0,0,.3)}}
+.pg{width:215.9mm;background:#fff;padding:7mm 8mm 5mm}
+
+/* ── Outer wrapper ── */
+.fw{border:1.5px solid #000;width:100%}
+
+/* ── Rows ── */
+.fr{display:flex;border-bottom:1px solid #000}
+.fr:last-child{border-bottom:none}
+
+/* ── Section headers ── */
+.sh{background:#c0c0c0;font-weight:700;font-size:8.5pt;padding:2px 6px;border-bottom:1px solid #000;text-transform:uppercase;letter-spacing:.2px}
+
+/* ── Cells ── */
+.fc{border-right:1px solid #000;padding:2px 5px;flex:none;display:flex;flex-direction:column;justify-content:flex-start}
+.fc:last-child{border-right:none}
+.fl{font-weight:700;font-size:8pt;display:block;line-height:1.5;white-space:nowrap}
+.fv{font-size:9pt;display:block;min-height:13px;font-weight:400}
+
+/* ── Checkboxes ── */
+.cb{display:inline-flex;align-items:center;justify-content:center;width:9px;height:9px;border:1.2px solid #000;vertical-align:middle;margin-right:2px;font-size:6pt;line-height:1;flex-shrink:0}
+.cb.on{background:#000;color:#fff}
+
+/* ── Header specifics ── */
+.hdr-l{flex:0 0 40%;border-right:1px solid #000;padding:4px 6px;display:flex;flex-direction:column;gap:4px;justify-content:center}
+.hdr-r{flex:1;display:flex;flex-direction:column}
+.eps-ttl{padding:3px 8px 2px;font-size:17pt;font-weight:700;letter-spacing:.3px;border-bottom:1px solid #000}
+.inc-row{display:flex;align-items:stretch;border-bottom:1px solid #000}
+.inc-lbl{padding:2px 6px;font-weight:700;font-size:8.5pt;border-right:1px solid #000;display:flex;align-items:center;white-space:nowrap}
+.inc-val{padding:1px 8px;font-size:17pt;font-weight:700;color:#c0392b;letter-spacing:1.5px;flex:1;display:flex;align-items:center}
+.wo-row{display:flex;align-items:stretch}
+.wo-lbl{padding:2px 6px;font-weight:700;font-size:8.5pt;border-right:1px solid #000;display:flex;align-items:center;white-space:nowrap}
+.wo-val{padding:2px 6px;flex:1;font-size:9pt;display:flex;align-items:center}
+
+/* ── DEPARTMENT row ── */
+.dept-row{padding:3px 6px;font-size:9pt;display:flex;align-items:center;gap:12px;border-bottom:1px solid #000;flex-wrap:wrap}
+
 /* ── Footer ── */
-.form-footer{
-  margin-top:10px;padding-top:6px;
-  border-top:1px solid #ccc;
-  display:flex;justify-content:space-between;align-items:center
-}
-.form-footer .ff-left{font-size:7pt;color:#888}
-.form-footer .ff-right{font-size:7pt;color:#888}
+.ftr{margin-top:3px;font-size:6.5pt;color:#333;line-height:1.4}
+.ftr-top{display:flex;justify-content:space-between;margin-bottom:1px}
+.ftr-btm{font-style:italic}
+
 /* ── Print ── */
 @media print{
   body{background:#fff}
-  .print-bar{display:none}
-  .form-page{margin:0;box-shadow:none;padding:10mm 12mm 12mm;width:100%}
-  .fnum-val{color:#000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .sec-title{background:#1565c0 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pbar{display:none}
+  .pg{margin:0;box-shadow:none;padding:5mm 7mm 4mm;width:100%}
+  .sh{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#c0c0c0 !important}
+  .cb.on{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#000 !important;color:#fff !important}
+  @page{size:Letter portrait;margin:0}
 }
 </style>
 </head>
 <body>
 
-<!-- Print bar -->
-<div class="print-bar">
-  <strong>EPS Incoming Form &nbsp;#<span id="pb-num"></span><span id="pb-customer" style="font-weight:400;opacity:.8"></span></strong>
-  <button class="pb-btn pb-print" onclick="window.print()">🖨 Print / Save PDF</button>
-  <button class="pb-btn" onclick="window.close()">✕ Close</button>
+<div class="pbar">
+  <b>EPS Incoming Form &nbsp;#<span id="pb-num">—</span><span id="pb-cust" style="font-weight:400;opacity:.8"></span></b>
+  <button class="pbtn pbtn-p" onclick="window.print()">🖨 Print / Save PDF</button>
+  <button class="pbtn" onclick="window.close()">✕ Close</button>
 </div>
 
-<!-- Form page -->
-<div class="form-page">
+<div class="pg">
+<div class="fw">
 
   <!-- ═══ HEADER ═══ -->
-  <div class="fhdr">
-    <div class="fhdr-left">
-      <img src="logo.png" alt="Source Atlantic">
-      <div class="co-name">SOURCE ATLANTIC</div>
-      <div class="co-sub">Industrial Services · Saint John, NB</div>
-    </div>
-    <div class="fhdr-mid">
-      <div class="form-title">EPS Incoming Form</div>
-      <div class="form-sub">Equipment Processing Sheet — Shipping &amp; Receiving</div>
-    </div>
-    <div class="fhdr-right">
-      <div class="fnum-label">Form No.</div>
-      <div class="fnum-val" id="f-num">—</div>
-      <div class="fnum-date" id="f-date"></div>
-    </div>
-  </div>
-
-  <!-- ═══ SECTION 1 — CUSTOMER INFORMATION ═══ -->
-  <div class="sec">
-    <div class="sec-title">Customer Information</div>
-    <div class="frow frow-c13">
-      <div class="fld">
-        <div class="fld-lbl">Customer</div>
-        <div class="fld-val" id="f-customer"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">Customer PO #</div>
-        <div class="fld-val" id="f-customerpo"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">Date</div>
-        <div class="fld-val" id="f-date2"></div>
+  <div class="fr">
+    <div class="hdr-l">
+      <img src="logo.png" alt="Source Atlantic" style="height:40px;width:auto;max-width:100%;display:block">
+      <div style="font-size:7.5pt;line-height:1.6;color:#222">
+        11 McIlveen Drive<br>
+        Saint John, NB &nbsp;E2L 4Y6<br>
+        Ph: (506) 634-2309 &nbsp;·&nbsp; Fax: (506) 644-2567
       </div>
     </div>
-    <div class="frow frow-4">
-      <div class="fld">
-        <div class="fld-lbl">Work Order #</div>
-        <div class="fld-val" id="f-wo"></div>
+    <div class="hdr-r">
+      <div class="eps-ttl">EPS Incoming Form</div>
+      <div class="inc-row">
+        <span class="inc-lbl">Incoming No.:</span>
+        <span class="inc-val" id="f-num">—</span>
       </div>
-      <div class="fld">
-        <div class="fld-lbl">Previous WO #</div>
-        <div class="fld-val" id="f-prevwo"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">Area</div>
-        <div class="fld-val" id="f-area"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">Priority</div>
-        <div class="fld-val" id="f-priority"></div>
+      <div class="wo-row">
+        <span class="wo-lbl">Work Order No.:</span>
+        <span class="wo-val" id="f-wo"></span>
       </div>
     </div>
   </div>
 
-  <!-- ═══ SECTION 2 — UNIT DESCRIPTION & IDENTIFICATION ═══ -->
-  <div class="sec">
-    <div class="sec-title">Unit Description &amp; Identification</div>
-    <div class="frow frow-1">
-      <div class="fld">
-        <div class="fld-lbl">Equipment Description</div>
-        <div class="fld-val" id="f-equipment"></div>
+  <!-- ═══ 1. CUSTOMER INFORMATION ═══ -->
+  <div class="sh">1. CUSTOMER INFORMATION</div>
+
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Customer:</span><span class="fv" id="f-customer"></span></div>
+    <div class="fc" style="flex:1"><span class="fl">Customer Contact:</span><span class="fv"></span></div>
+    <div class="fc" style="flex:1"><span class="fl">Previous Work Order No.:</span><span class="fv" id="f-prevwo"></span></div>
+  </div>
+
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Address:</span><span class="fv"></span></div>
+    <div class="fc" style="flex:1"><span class="fl">Customer Work Order No.:</span><span class="fv"></span></div>
+    <div class="fc" style="flex:1"><span class="fl">Purchase Order No.:</span><span class="fv" id="f-customerpo"></span></div>
+  </div>
+
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Telephone Number:</span><span class="fv"></span></div>
+    <div class="fc" style="flex:1">
+      <span class="fl">Job Priority:</span>
+      <div style="padding:1px 0;font-size:9pt;line-height:1.6">
+        <span class="cb" id="cb-reg"></span>&nbsp;REGULAR &nbsp;&nbsp;&nbsp;
+        <span class="cb" id="cb-rush"></span>&nbsp;RUSH
       </div>
     </div>
-    <div class="frow frow-4">
-      <div class="fld">
-        <div class="fld-lbl">Manufacturer</div>
-        <div class="fld-val" id="f-manufacturer"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">Model Number</div>
-        <div class="fld-val" id="f-model"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">Serial Number</div>
-        <div class="fld-val" id="f-serial"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">Type / Size</div>
-        <div class="fld-val" id="f-typesize"></div>
-      </div>
-    </div>
-    <div class="frow frow-5">
-      <div class="fld">
-        <div class="fld-lbl">HP</div>
-        <div class="fld-val" id="f-hp"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">RPM</div>
-        <div class="fld-val" id="f-rpm"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">Frame</div>
-        <div class="fld-val" id="f-frame"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">KW</div>
-        <div class="fld-val" id="f-kw"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">Customer Stock #</div>
-        <div class="fld-val" id="f-custstock"></div>
-      </div>
-    </div>
-    <div class="frow frow-1">
-      <div class="fld">
-        <div class="fld-lbl">Other Data</div>
-        <div class="fld-val" id="f-otherdata"></div>
+    <div class="fc" style="flex:1"><span class="fl">Date:</span><span class="fv" id="f-date"></span></div>
+  </div>
+
+  <div class="fr">
+    <div class="fc" style="flex:0 0 34%"><span class="fl">Date Pictures Taken:</span><span class="fv" id="f-datepics"></span></div>
+    <div class="fc" style="flex:1">
+      <span class="fl">Pictures Taken:</span>
+      <div style="font-size:9pt;padding:1px 0">
+        <span class="cb" id="cb-pics-yes"></span>&nbsp;YES &nbsp;&nbsp;
+        <span class="cb" id="cb-pics-no"></span>&nbsp;NO &nbsp;&nbsp;&nbsp;
+        <span id="f-picstime-disp"></span>&nbsp;&nbsp;Num.:&nbsp;<span id="f-picsqty-disp"></span>
       </div>
     </div>
   </div>
 
-  <!-- ═══ SECTION 3 — WORK INSTRUCTIONS & DELIVERY ═══ -->
-  <div class="sec">
-    <div class="sec-title">Work Instructions &amp; Delivery</div>
-    <div class="frow frow-4">
-      <div class="fld">
-        <div class="fld-lbl">What to Do</div>
-        <div class="fld-val" id="f-whattodo"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">Delivered By</div>
-        <div class="fld-val" id="f-delivery"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">Pictures — Qty</div>
-        <div class="fld-val" id="f-picsqty"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">Pictures — Time</div>
-        <div class="fld-val" id="f-picstime"></div>
-      </div>
+  <div class="fr">
+    <div class="fc" style="flex:0 0 34%;padding-top:3px">
+      <div style="margin-bottom:4px;font-size:8.5pt"><span class="cb" id="cb-dis"></span>&nbsp;Dismantle, Inspect and Estimate</div>
+      <div style="margin-bottom:4px;font-size:8.5pt"><span class="cb" id="cb-rep-ret"></span>&nbsp;Repair Unit and Return</div>
+      <div style="font-size:8.5pt"><span class="cb" id="cb-rep-store"></span>&nbsp;Repair Unit and Store at EPS</div>
     </div>
-    <div class="frow frow-1">
-      <div class="fld">
-        <div class="fld-lbl">Notes</div>
-        <div class="fld-val tall" id="f-notes"></div>
-      </div>
+    <div class="fc" style="flex:1">
+      <span class="fl">Other Instructions:</span>
+      <span class="fv" id="f-notes" style="min-height:36px;white-space:pre-wrap"></span>
     </div>
   </div>
 
-  <!-- ═══ SECTION 4 — DESIGNATED LOCATION ═══ -->
-  <div class="sec">
-    <div class="sec-title">Designated Location</div>
-    <div class="frow frow-3">
-      <div class="fld">
-        <div class="fld-lbl">Location</div>
-        <div class="fld-val" id="f-location"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">Bench / Person</div>
-        <div class="fld-val" id="f-benchname"></div>
-      </div>
-      <div class="fld">
-        <div class="fld-lbl">Incoming Form # (App)</div>
-        <div class="fld-val" id="f-appformnum"></div>
-      </div>
+  <!-- ═══ 2. UNIT DESCRIPTION & IDENTIFICATION ═══ -->
+  <div class="sh">2. UNIT DESCRIPTION &amp; IDENTIFICATION</div>
+
+  <div class="dept-row">
+    <strong>DEPARTMENT:</strong>
+    <span><span class="cb" id="cb-elec"></span>&nbsp;Electrical</span>
+    <span><span class="cb" id="cb-mech"></span>&nbsp;Mechanical</span>
+    <span><span class="cb" id="cb-air"></span>&nbsp;Air</span>
+    <span><span class="cb" id="cb-gen"></span>&nbsp;Generator</span>
+    <span><span class="cb" id="cb-weld"></span>&nbsp;Welding</span>
+  </div>
+
+  <div class="fr">
+    <div class="fc" style="flex:0 0 44%"><span class="fl">Basic Description:</span><span class="fv" id="f-desc"></span></div>
+    <div class="fc" style="flex:1"><span class="fl">Type/Size:</span><span class="fv" id="f-typesize"></span></div>
+    <div class="fc" style="flex:0 0 16%;text-align:right"><span class="fl" style="text-align:right">KW</span><span class="fv" id="f-kw"></span></div>
+  </div>
+
+  <div class="fr">
+    <div class="fc" style="flex:0 0 44%"><span class="fl">Manufacturer:</span><span class="fv" id="f-manufacturer"></span></div>
+    <div class="fc" style="flex:0 0 12%;text-align:right"><span class="fl" style="text-align:right">HP</span><span class="fv" id="f-hp"></span></div>
+    <div class="fc" style="flex:1;text-align:right"><span class="fl" style="text-align:right">RPM</span><span class="fv" id="f-rpm"></span></div>
+    <div class="fc" style="flex:0 0 16%;text-align:right"><span class="fl" style="text-align:right">Frame</span><span class="fv" id="f-frame"></span></div>
+  </div>
+
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Model Number:</span><span class="fv" id="f-model"></span></div>
+    <div class="fc" style="flex:1"><span class="fl">Customer Stock Number:</span><span class="fv" id="f-custstock"></span></div>
+  </div>
+
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Serial Number:</span><span class="fv" id="f-serial"></span></div>
+    <div class="fc" style="flex:1"><span class="fl">Customer Asset/Component Number:</span><span class="fv"></span></div>
+  </div>
+
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Other Data:</span><span class="fv" id="f-otherdata"></span></div>
+  </div>
+
+  <!-- ═══ 3. ATTACHMENTS FOR UNIT LISTED ABOVE ═══ -->
+  <div class="sh">3. ATTACHMENTS FOR UNIT LISTED ABOVE</div>
+
+  <div class="fr">
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb"></span>&nbsp;Coupling</div>
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb"></span>&nbsp;Junction Box</div>
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb"></span>&nbsp;Impeller</div>
+  </div>
+  <div class="fr">
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb"></span>&nbsp;Pulley</div>
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb"></span>&nbsp;Mounting Foot</div>
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb"></span>&nbsp;Volute</div>
+  </div>
+  <div class="fr">
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt"><span class="cb"></span>&nbsp;<strong>OTHER INCOMING ATTACHMENTS:</strong></div>
+  </div>
+
+  <!-- ═══ 4. DESIGNATED LOCATION ═══ -->
+  <div class="sh">4. DESIGNATED LOCATION</div>
+  <div class="fr">
+    <div class="fc" style="flex:1;min-height:44px;padding:3px 6px">
+      <span style="font-size:9.5pt;font-weight:600" id="f-location"></span>
+      <span style="font-size:9pt;margin-left:6px" id="f-benchname"></span>
     </div>
   </div>
 
   <!-- ═══ SIGNATURE ROW ═══ -->
-  <div class="sig-row">
-    <div class="sig-box">
-      <div class="sig-pre">Received By</div>
-      <div class="sig-val" id="f-received"></div>
-      <div class="sig-line">Signature</div>
+  <div class="fr">
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt;font-weight:700">
+      Delivered By:&nbsp;<span style="display:inline-block;border-bottom:1px solid #000;min-width:145px;font-weight:400;vertical-align:bottom;padding-bottom:1px" id="f-delivery"></span>
     </div>
-    <div class="sig-box">
-      <div class="sig-pre">Date</div>
-      <div class="sig-val" id="f-date3"></div>
-      <div class="sig-line">Date</div>
-    </div>
-    <div class="sig-box">
-      <div class="sig-pre">Verified By</div>
-      <div class="sig-val">&nbsp;</div>
-      <div class="sig-line">Supervisor Signature</div>
+    <div class="fc" style="flex:1;padding:3px 6px;font-size:9pt;font-weight:700">
+      Received By:&nbsp;<span style="display:inline-block;border-bottom:1px solid #000;min-width:145px;font-weight:400;vertical-align:bottom;padding-bottom:1px" id="f-received"></span>
     </div>
   </div>
 
-  <!-- ═══ FOOTER ═══ -->
-  <div class="form-footer">
-    <div class="ff-left">SOURCE ATLANTIC · EPS Shipping &amp; Receiving · Saint John, NB</div>
-    <div class="ff-right">Form #<span id="ff-num"></span> · Printed <span id="ff-printed"></span></div>
-  </div>
+</div><!-- /fw -->
 
-</div><!-- /form-page -->
+<!-- FOOTER -->
+<div class="ftr">
+  <div class="ftr-top">
+    <span>EPS-RF-029 (Issue 01, Rev. 03, September 15, 2023)</span>
+    <span>Page 1 of 1</span>
+  </div>
+  <div class="ftr-btm">This document is an uncontrolled copy when printed. It is the document holder's responsibility to ensure that they have the most current version of this document specific to Source Atlantic's 9001 program</div>
+</div>
+
+</div><!-- /pg -->
 
 <script>
 (function(){
   var p = new URLSearchParams(window.location.search);
-
-  function fill(id, key, fallback){
-    var el = document.getElementById(id);
-    if(el) el.textContent = p.get(key) || fallback || '';
-  }
+  function g(k){ return p.get(k)||''; }
+  function set(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
+  function chk(id){ var e=document.getElementById(id); if(e){e.classList.add('on');e.textContent='✓';} }
   function fmtDate(raw){
     if(!raw) return '';
-    var d = new Date(raw + 'T12:00:00');
+    var d=new Date(raw+'T12:00:00');
     return d.toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'});
   }
 
-  var num  = p.get('epsNum') || '—';
-  var date = fmtDate(p.get('date') || '');
+  var num   = g('epsNum')||'—';
+  var date  = fmtDate(g('date'));
+  var prio  = g('priority');
+  var wtd   = g('whattodo').toLowerCase();
+  var area  = g('area').toLowerCase();
+  var pqty  = g('picsqty');
+  var ptime = g('picstime');
+  var cust  = g('customer');
 
   // Print bar
   document.getElementById('pb-num').textContent = num;
-  var cust = p.get('customer');
-  if(cust) document.getElementById('pb-customer').textContent = ' — ' + cust;
+  if(cust) document.getElementById('pb-cust').textContent = ' — '+cust;
 
   // Header
-  document.getElementById('f-num').textContent  = num;
-  document.getElementById('f-date').textContent  = date;
+  set('f-num', num);
+  set('f-wo', g('wo'));
 
-  // Customer Info
-  fill('f-customer',   'customer');
-  fill('f-customerpo', 'customerPO');
-  document.getElementById('f-date2').textContent = date;
-  fill('f-wo',     'wo');
-  fill('f-prevwo', 'prevWo');
-  fill('f-area',   'area');
+  // Section 1
+  set('f-customer', cust);
+  set('f-prevwo', g('prevWo'));
+  set('f-customerpo', g('customerPO'));
+  set('f-date', date);
+  set('f-datepics', date);
 
-  // Priority badge
-  var prio = p.get('priority') || '';
-  var prioEl = document.getElementById('f-priority');
-  if(prio === 'Rush'){
-    prioEl.innerHTML = '<span class="badge badge-rush">RUSH</span>';
-  } else if(prio){
-    prioEl.innerHTML = '<span class="badge badge-regular">' + prio + '</span>';
-  }
+  // Priority
+  if(prio==='Rush') chk('cb-rush'); else chk('cb-reg');
 
-  // Unit description
-  fill('f-equipment',   'equipment');
-  fill('f-manufacturer','manufacturer');
-  fill('f-model',       'model');
-  fill('f-serial',      'serial');
-  fill('f-typesize',    'typesize');
-  fill('f-hp',          'hp');
-  fill('f-rpm',         'rpm');
-  fill('f-frame',       'frame');
-  fill('f-kw',          'kw');
-  fill('f-custstock',   'custstock');
-  fill('f-otherdata',   'otherdata');
+  // Pictures
+  var hasPics = pqty && parseInt(pqty)>0;
+  chk(hasPics ? 'cb-pics-yes' : 'cb-pics-no');
+  document.getElementById('f-picstime-disp').textContent = ptime || '';
+  document.getElementById('f-picsqty-disp').textContent  = pqty  || '';
 
-  // Work instructions
-  fill('f-whattodo', 'whattodo');
-  fill('f-delivery', 'delivery');
-  fill('f-picsqty',  'picsqty');
-  fill('f-picstime', 'picstime');
-  fill('f-notes',    'notes');
+  // What to do checkboxes
+  if(wtd.includes('dismantle')||wtd.includes('inspect')) chk('cb-dis');
+  if(wtd.includes('repair')&&wtd.includes('return'))     chk('cb-rep-ret');
+  if(wtd.includes('store')||wtd.includes('partner'))     chk('cb-rep-store');
+
+  set('f-notes', g('notes'));
+
+  // Department
+  if(area.includes('electric'))                          chk('cb-elec');
+  else if(area.includes('mechanic'))                     chk('cb-mech');
+  else if(area.includes('air')||area.includes('compressor')) chk('cb-air');
+  else if(area.includes('generator'))                    chk('cb-gen');
+
+  // Nameplate
+  set('f-desc',         g('equipment'));
+  set('f-typesize',     g('typesize'));
+  set('f-kw',           g('kw'));
+  set('f-manufacturer', g('manufacturer'));
+  set('f-hp',           g('hp'));
+  set('f-rpm',          g('rpm'));
+  set('f-frame',        g('frame'));
+  set('f-model',        g('model'));
+  set('f-custstock',    g('custstock'));
+  set('f-serial',       g('serial'));
+  set('f-otherdata',    g('otherdata'));
 
   // Designated location
-  fill('f-location',   'location');
-  fill('f-benchname',  'benchname');
-  fill('f-appformnum', 'formNum');
+  var loc   = g('location');
+  var bench = g('benchname');
+  set('f-location',  loc);
+  set('f-benchname', bench ? '— '+bench : '');
 
   // Signatures
-  fill('f-received', 'received');
-  document.getElementById('f-date3').textContent = date;
+  set('f-delivery', g('delivery'));
+  set('f-received', g('received'));
 
-  // Footer
-  document.getElementById('ff-num').textContent = num;
-  document.getElementById('ff-printed').textContent = new Date().toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'});
-
-  // Page title
-  document.title = 'EPS Form #' + num + (cust ? ' — ' + cust : '');
+  document.title = 'EPS Form #'+num+(cust?' — '+cust:'');
 })();
 </script>
 </body>
