@@ -296,8 +296,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
   /* Modal full-screen on mobile */
   .modal{max-width:100%!important;max-height:92dvh;border-radius:12px 12px 0 0;margin-top:auto}
   .modal-overlay{align-items:flex-end;padding:0}
-  /* Buttons full width in form actions — clear iOS home bar */
-  .form-actions{flex-wrap:wrap;padding:10px 16px calc(14px + env(safe-area-inset-bottom))}
+  /* Buttons — Save full-width at bottom, clears iOS bars */
+  .form-actions{flex-wrap:wrap;padding:10px 16px calc(env(safe-area-inset-bottom) + 80px);gap:8px}
+  .form-actions .btn-primary{order:99;flex:0 0 100%;padding:14px;font-size:1rem}
+  .form-actions .btn-secondary,.form-actions .btn-danger{flex:1;min-width:0}
   /* Stats grid single column */
   .stats-grid{grid-template-columns:1fr 1fr}
 }
