@@ -256,73 +256,81 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
   }
 
   var num   = g('epsNum')||'—';
-  var date  = fmtDate(g('date'));
-  var prio  = g('priority');
-  var wtd   = g('whattodo').toLowerCase();
-  var area  = g('area').toLowerCase();
-  var pqty  = g('picsqty');
-  var ptime = g('picstime');
+  var wo    = g('wo');
   var cust  = g('customer');
 
   // Print bar
   document.getElementById('pb-num').textContent = num;
   if(cust) document.getElementById('pb-cust').textContent = ' — '+cust;
 
-  // Header
+  // Always show form number and WO
   set('f-num', num);
-  set('f-wo', g('wo'));
+  set('f-wo', wo);
 
-  // Section 1
-  set('f-customer', cust);
-  set('f-prevwo', g('prevWo'));
-  set('f-customerpo', g('customerPO'));
-  set('f-date', date);
-  set('f-datepics', date);
+  // Only pre-fill remaining fields when a Work Order is present
+  if(wo){
+    var date  = fmtDate(g('date'));
+    var prio  = g('priority');
+    var wtd   = g('whattodo').toLowerCase();
+    var area  = g('area').toLowerCase();
+    var pqty  = g('picsqty');
+    var ptime = g('picstime');
 
-  // Priority
-  if(prio==='Rush') chk('cb-rush'); else chk('cb-reg');
+    // Section 1
+    set('f-customer',   cust);
+    set('f-prevwo',     g('prevWo'));
+    set('f-customerpo', g('customerPO'));
+    set('f-date',       date);
+    set('f-datepics',   date);
 
-  // Pictures
-  var hasPics = pqty && parseInt(pqty)>0;
-  chk(hasPics ? 'cb-pics-yes' : 'cb-pics-no');
-  document.getElementById('f-picstime-disp').textContent = ptime || '';
-  document.getElementById('f-picsqty-disp').textContent  = pqty  || '';
+    // Priority — only check if explicitly set
+    if(prio==='Rush')    chk('cb-rush');
+    else if(prio==='Regular') chk('cb-reg');
 
-  // What to do checkboxes
-  if(wtd.includes('dismantle')||wtd.includes('inspect')) chk('cb-dis');
-  if(wtd.includes('repair')&&wtd.includes('return'))     chk('cb-rep-ret');
-  if(wtd.includes('store')||wtd.includes('partner'))     chk('cb-rep-store');
+    // Pictures
+    if(pqty || ptime){
+      var hasPics = pqty && parseInt(pqty)>0;
+      chk(hasPics ? 'cb-pics-yes' : 'cb-pics-no');
+      document.getElementById('f-picstime-disp').textContent = ptime || '';
+      document.getElementById('f-picsqty-disp').textContent  = pqty  || '';
+    }
 
-  set('f-notes', g('notes'));
+    // What to do checkboxes
+    if(wtd.includes('dismantle')||wtd.includes('inspect')) chk('cb-dis');
+    if(wtd.includes('repair')&&wtd.includes('return'))     chk('cb-rep-ret');
+    if(wtd.includes('store')||wtd.includes('partner'))     chk('cb-rep-store');
 
-  // Department
-  if(area.includes('electric'))                          chk('cb-elec');
-  else if(area.includes('mechanic'))                     chk('cb-mech');
-  else if(area.includes('air')||area.includes('compressor')) chk('cb-air');
-  else if(area.includes('generator'))                    chk('cb-gen');
+    set('f-notes', g('notes'));
 
-  // Nameplate
-  set('f-desc',         g('equipment'));
-  set('f-typesize',     g('typesize'));
-  set('f-kw',           g('kw'));
-  set('f-manufacturer', g('manufacturer'));
-  set('f-hp',           g('hp'));
-  set('f-rpm',          g('rpm'));
-  set('f-frame',        g('frame'));
-  set('f-model',        g('model'));
-  set('f-custstock',    g('custstock'));
-  set('f-serial',       g('serial'));
-  set('f-otherdata',    g('otherdata'));
+    // Department
+    if(area.includes('electric'))                              chk('cb-elec');
+    else if(area.includes('mechanic'))                         chk('cb-mech');
+    else if(area.includes('air')||area.includes('compressor')) chk('cb-air');
+    else if(area.includes('generator'))                        chk('cb-gen');
 
-  // Designated location
-  var loc   = g('location');
-  var bench = g('benchname');
-  set('f-location',  loc);
-  set('f-benchname', bench ? '— '+bench : '');
+    // Nameplate
+    set('f-desc',         g('equipment'));
+    set('f-typesize',     g('typesize'));
+    set('f-kw',           g('kw'));
+    set('f-manufacturer', g('manufacturer'));
+    set('f-hp',           g('hp'));
+    set('f-rpm',          g('rpm'));
+    set('f-frame',        g('frame'));
+    set('f-model',        g('model'));
+    set('f-custstock',    g('custstock'));
+    set('f-serial',       g('serial'));
+    set('f-otherdata',    g('otherdata'));
 
-  // Signatures
-  set('f-delivery', g('delivery'));
-  set('f-received', g('received'));
+    // Designated location
+    var loc   = g('location');
+    var bench = g('benchname');
+    set('f-location',  loc);
+    set('f-benchname', bench ? '— '+bench : '');
+
+    // Signatures
+    set('f-delivery', g('delivery'));
+    set('f-received', g('received'));
+  }
 
   document.title = 'EPS Form #'+num+(cust?' — '+cust:'');
 })();
