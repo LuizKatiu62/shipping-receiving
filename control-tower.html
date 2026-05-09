@@ -269,6 +269,14 @@ body>*{position:relative;z-index:1}
 .auth-link{background:none;border:none;color:#2563eb;cursor:pointer;font-size:.8rem;font-weight:700;font-family:inherit;text-decoration:underline;padding:0}
 .auth-error{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:8px;padding:10px 13px;font-size:.79rem;font-weight:600;margin-bottom:14px;display:none}
 .auth-footer{display:flex;justify-content:center;gap:6px;align-items:center;margin-top:18px;font-size:.78rem;color:#94a3b8}
+/* ── INCOMING FORM VIEW MODAL ── */
+#inc-view-modal{position:fixed;inset:0;z-index:2000;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto}
+.inc-view-inner{background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.25);width:100%;max-width:880px;overflow:hidden;margin:auto}
+.inc-view-hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #e2e8f0;background:#f8faff;gap:12px}
+.inc-view-sec{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#1d4ed8;padding-bottom:8px;margin-top:20px;margin-bottom:10px;border-bottom:2px solid #dbeafe}
+.inc-view-sec:first-child{margin-top:0}
+.inc-view-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 20px}
+@media(max-width:560px){.inc-view-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -532,6 +540,20 @@ body>*{position:relative;z-index:1}
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ══ INCOMING FORM VIEW MODAL ══ -->
+<div id="inc-view-modal" style="display:none" onclick="if(event.target===this)closeIncView()">
+  <div class="inc-view-inner">
+    <div class="inc-view-hdr">
+      <div>
+        <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#64748b;margin-bottom:3px">Incoming Form — Somente Visualização</div>
+        <div id="inc-view-title" style="font-size:1.05rem;font-weight:800;color:#0f172a"></div>
+      </div>
+      <button onclick="closeIncView()" style="background:#f1f5f9;border:1.5px solid #e2e8f0;color:#475569;font-size:1rem;width:36px;height:36px;border-radius:50%;cursor:pointer;font-family:inherit;line-height:1;flex-shrink:0">✕</button>
+    </div>
+    <div id="inc-view-body" style="padding:20px 24px 28px;overflow-y:auto;max-height:calc(85vh - 80px)"></div>
   </div>
 </div>
 
@@ -942,8 +964,10 @@ var STATUS_CFG = {
 };
 
 // RENDER OVERVIEW
+var _viewIncList = [];
 function renderResults(result, raw){
   document.body.classList.add('has-results');
+  _viewIncList = result.incoming;
   var status = getStatus(result);
   var sc = STATUS_CFG[status];
   var inc  = result.incoming[0] || {};
@@ -998,7 +1022,9 @@ function renderResults(result, raw){
     h += inc.photosLink ? '<a class="ct-btn ct-btn-gray" href="'+escHtml(inc.photosLink)+'" target="_blank">📷 View Incoming Photos</a>' : noPh;
     h += '</div><div style="flex:1;min-width:180px"><div style="font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Shipping</div>';
     h += shpPhotosLink ? '<a class="ct-btn ct-btn-gray" href="'+escHtml(shpPhotosLink)+'" target="_blank">📷 View Shipping Photos</a>' : noPh;
-    h += '</div></div></div>';
+    h += '</div></div>';
+    h += '<div style="border-top:1px solid var(--border);margin-top:14px;padding-top:14px"><button class="ct-btn ct-btn-gray" onclick="viewIncForm(0)">📋 View Full Incoming Form</button></div>';
+    h += '</div>';
   }
 
   if(result.components.length){
@@ -1080,11 +1106,102 @@ function renderResults(result, raw){
 
   if(result.incoming.length > 1){
     h += '<div class="ct-card"><div class="ct-card-title">📋 Additional Incoming Records ('+result.incoming.length+')</div>';
-    h += '<table class="ct-table"><thead><tr><th>Incoming #</th><th>Date</th><th>Equipment</th><th>Job Type</th></tr></thead><tbody>';
-    result.incoming.forEach(function(r){ h += '<tr><td>'+escHtml(r.formNum||'—')+'</td><td>'+fmtDate(r.date)+'</td><td>'+escHtml(r.equipment||'—')+'</td><td>'+escHtml(r.whatToDo||'—')+'</td></tr>'; });
+    h += '<table class="ct-table"><thead><tr><th>Incoming #</th><th>Date</th><th>Equipment</th><th>Job Type</th><th></th></tr></thead><tbody>';
+    result.incoming.forEach(function(r, i){ h += '<tr><td>'+escHtml(r.formNum||'—')+'</td><td>'+fmtDate(r.date)+'</td><td>'+escHtml(r.equipment||'—')+'</td><td>'+escHtml(r.whatToDo||'—')+'</td><td><button class="ct-btn ct-btn-gray" style="padding:4px 10px;font-size:.7rem" onclick="viewIncForm('+i+')">📋 Ver</button></td></tr>'; });
     h += '</tbody></table></div>';
   }
   document.getElementById('results').innerHTML = h;
+}
+
+// ── INCOMING FORM VIEW ──
+function viewIncForm(idx){
+  var r = _viewIncList[idx||0];
+  if(!r) return;
+  var titleParts = [];
+  if(r.formNum) titleParts.push('Form # '+r.formNum);
+  if(r.wo)      titleParts.push('WO '+r.wo);
+  if(r.customer) titleParts.push(r.customer);
+  document.getElementById('inc-view-title').textContent = titleParts.join('  ·  ') || 'Incoming Form';
+
+  function row(lbl, val){
+    if(!val) return '';
+    return '<div class="info-row"><span class="info-lbl">'+escHtml(lbl)+'</span><span class="info-val">'+escHtml(String(val))+'</span></div>';
+  }
+  function sec(title){
+    return '<div class="inc-view-sec">'+escHtml(title)+'</div>';
+  }
+  function grid(content){ return '<div class="inc-view-grid">'+content+'</div>'; }
+
+  var h = '';
+
+  h += sec('Identificação');
+  h += grid(
+    row('Incoming Form #', r.formNum) +
+    row('Work Order #', r.wo) +
+    row('Previous WO #', r.prevWo) +
+    row('Date Received', fmtDate(r.date)) +
+    row('Job Priority', r.priority) +
+    row('Purchase Order #', r.customerPO)
+  );
+
+  h += sec('Informações do Cliente');
+  h += grid(
+    row('Customer', r.customer) +
+    row('Customer Contact', r.customerContact) +
+    row('Telephone', r.telephone) +
+    row('Address', r.address) +
+    row('Customer Work Order', r.customerWorkOrder)
+  );
+
+  h += sec('Descrição do Equipamento');
+  var att = [r.attachments, r.attachOther ? 'Others: '+r.attachOther : ''].filter(Boolean).join('; ');
+  h += grid(
+    row('Department', r.area) +
+    row('Equipment', r.equipment) +
+    row('Manufacturer', r.manufacturer) +
+    row('Model #', r.modelNumber) +
+    row('Serial #', r.serialNumber) +
+    row('HP', r.hp) +
+    row('KW', r.kw) +
+    row('RPM', r.rpm) +
+    row('Frame', r.frame) +
+    row('Type / Size', r.typeSize) +
+    row('Other Data', r.otherData) +
+    row('Customer Asset #', r.customerAsset) +
+    row('EPS Stock #', r.customerStockNumber) +
+    row('Attachments', att)
+  );
+
+  h += sec('Trabalho e Recebimento');
+  var pics = r.picsTaken || '';
+  if(r.picsTime) pics += (pics ? ' — ' : '') + r.picsTime;
+  if(r.picsQty)  pics += ' (' + r.picsQty + ' foto' + (r.picsQty!='1'?'s':'') + ')';
+  var loc = (r.designatedLocation==='Others' && r.locationOther) ? r.locationOther : r.designatedLocation;
+  h += grid(
+    row('What to Do', r.whatToDo) +
+    row('Delivered By', r.deliveryBy) +
+    row('Received By', r.receivedBy) +
+    row('Pictures Taken', pics || null) +
+    row('Date Pictures Taken', fmtDate(r.datePicsTaken)) +
+    row('Designated Location', loc)
+  );
+
+  if(r.photosLink || r.notes){
+    h += sec('Fotos e Observações');
+    if(r.photosLink){
+      h += '<div style="margin-bottom:12px"><a class="ct-btn ct-btn-gray" href="'+escHtml(r.photosLink)+'" target="_blank">📷 View Incoming Photos</a></div>';
+    }
+    if(r.notes){
+      h += '<div class="info-row" style="margin-top:4px"><span class="info-lbl">Notes</span><span class="info-val" style="white-space:pre-wrap">'+escHtml(r.notes)+'</span></div>';
+    }
+  }
+
+  document.getElementById('inc-view-body').innerHTML = h;
+  document.getElementById('inc-view-modal').style.display = 'flex';
+}
+
+function closeIncView(){
+  document.getElementById('inc-view-modal').style.display = 'none';
 }
 
 // ══════════════════════════
