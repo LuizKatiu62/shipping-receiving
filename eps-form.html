@@ -286,7 +286,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
     set('f-customerpo',      g('customerPO'));
     set('f-telephone',       g('telephone'));
     set('f-date',            date);
-    set('f-datepics',        date);
+    set('f-datepics',        fmtDate(g('datepicstaken'))||date);
 
     // Priority — only check if explicitly set
     if(prio==='Rush')    chk('cb-rush');

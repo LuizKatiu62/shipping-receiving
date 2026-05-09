@@ -2924,8 +2924,8 @@ function openIncomingModal(key){
     setIncLocation(r.designatedLocation||'');
     document.getElementById('inc-location-other').value = r.locationOther||'';
     // Pictures
-    document.getElementById('inc-pics-qty').value  = r.picsQty||'';
-    document.getElementById('inc-pics-time').value = r.picsTime||'';
+    document.getElementById('inc-pics-qty').value  = r.picsQty||r.picsqty||'';
+    document.getElementById('inc-pics-time').value = r.picsTime||r.picstime||'';
     incActivateToggle('btn-pics-yes','btn-pics-no', r.picsQty && parseInt(r.picsQty)>0 ? 'YES' : (r.picsQty===''||r.picsQty===undefined ? '' : 'NO'));
     // What to Do
     var wtd = (r.whatToDo||'').toLowerCase();
@@ -3282,6 +3282,7 @@ function openEpsForm(){
     locationOther:   document.getElementById('inc-location-other').value.trim(),
     attachments:     (function(){ var ids=['coupling','pulley','junctionbox','mountingfoot','impeller','volute'],names=['Coupling','Pulley','Junction Box','Mounting Foot','Impeller','Volute'],out=[]; ids.forEach(function(id,i){ if(document.getElementById('inc-attach-'+id).checked) out.push(names[i]); }); return out.join(', '); })(),
     attachOther:     document.getElementById('inc-attach-other').value.trim(),
+    datepicstaken:   document.getElementById('inc-datepics').value,
     picsqty:         document.getElementById('inc-pics-qty').value,
     picstime:        document.getElementById('inc-pics-time').value,
     whattodo:        (function(){
