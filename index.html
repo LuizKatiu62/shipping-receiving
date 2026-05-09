@@ -1747,9 +1747,17 @@ document.addEventListener('keydown', function(ev){
           <label>Shipment Date</label>
           <input type="date" id="shp-date">
         </div>
-        <div class="form-group">
+        <div class="form-group" id="shp-customer-group" style="display:none">
           <label>Customer</label>
           <input type="text" id="shp-customer" placeholder="Customer name" list="customer-suggestions" autocomplete="off" oninput="setTimeout(lookupPostalFromCustomer,0)" onchange="setTimeout(lookupPostalFromCustomer,0)">
+        </div>
+        <div id="shp-customer-filled" class="full" style="display:none;background:#f0f7ff;border:1.5px solid #93c5fd;border-radius:8px;padding:10px 14px;align-items:center;gap:10px;flex-wrap:wrap">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.63rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#1565c0;margin-bottom:2px">Customer</div>
+            <div id="shp-customer-filled-name" style="font-weight:800;font-size:.95rem;color:#0f172a"></div>
+          </div>
+          <span id="shp-customer-filled-source" style="font-size:.68rem;color:#1565c0;background:#dbeafe;padding:3px 10px;border-radius:20px;font-weight:700;white-space:nowrap"></span>
+          <button type="button" onclick="shpClearCustomerLookup()" style="border:1.5px solid #93c5fd;background:#fff;cursor:pointer;color:#1565c0;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:6px;font-family:inherit">✎ Edit</button>
         </div>
         <div class="form-group">
           <label>Customer PO #</label>
@@ -1779,7 +1787,7 @@ document.addEventListener('keydown', function(ev){
         <div class="form-group full" id="shp-wo-group">
           <label>Work Order Number(s)</label>
           <div class="tag-input-row">
-            <input type="text" id="shp-wo-input" placeholder="Add Work Order #" maxlength="7" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('wo')}" oninput="checkShpOutgoing();updateShpOrderFields();checkInputOrderType('shp-wo-input','shp-wo-hint','wo')" onchange="updateShpOrderFields()">
+            <input type="text" id="shp-wo-input" placeholder="Add Work Order #" maxlength="12" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('wo')}" oninput="checkShpOutgoing();updateShpOrderFields();checkInputOrderType('shp-wo-input','shp-wo-hint','wo');shpWoRealTimeLookup()" onchange="updateShpOrderFields()">
             <button class="btn btn-secondary btn-sm" onclick="addShpTag('wo')">+ Add</button>
           </div>
           <div class="tags-list" id="shp-wo-tags"></div>
@@ -1850,14 +1858,14 @@ document.addEventListener('keydown', function(ev){
         </div>
 
         <!-- ── Destination ── -->
-        <div class="form-section-header">Destination</div>
+        <div class="form-section-header" id="shp-dest-header" style="display:none">Destination</div>
 
-        <div class="form-group">
+        <div class="form-group" id="shp-city-group" style="display:none">
           <label>City</label>
           <input type="text" id="shp-city" placeholder="City" oninput="setTimeout(lookupCityProvince,0);setTimeout(lookupPostalFromCustomer,0)" onchange="setTimeout(lookupCityProvince,0);setTimeout(lookupPostalFromCustomer,0)" list="city-list" autocomplete="off">
           <datalist id="city-list"></datalist>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="shp-province-group" style="display:none">
           <label>Province / State</label>
           <input type="text" id="shp-province" placeholder="e.g. NB" list="province-list">
           <datalist id="province-list">
@@ -1867,11 +1875,11 @@ document.addEventListener('keydown', function(ev){
           </datalist>
           <div id="shp-province-picker" style="display:none;flex-wrap:wrap;gap:6px;margin-top:6px"></div>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="shp-postal-group" style="display:none">
           <label>Postal Code</label>
           <input type="text" id="shp-postal" placeholder="e.g. E2L 4L1" oninput="detectCountryFromPostal()">
         </div>
-        <div class="form-group">
+        <div class="form-group" id="shp-country-group" style="display:none">
           <label>Country</label>
           <input type="text" id="shp-country" placeholder="Canada" value="Canada">
         </div>
@@ -4043,6 +4051,95 @@ function showToast(msg){
   t._timer = setTimeout(function(){ t.style.opacity='0'; }, 3000);
 }
 
+function shpLookupWo(wo){
+  var result = {customer:'', city:'', province:'', postal:'', country:'', source:''};
+  // 1. Shipping history — full address available
+  Object.values(shpData).some(function(r){
+    if(!(r.workOrders||[]).some(function(w){ return (w||'').trim().toUpperCase()===wo; })) return false;
+    result.customer = result.customer || (r.customer||'');
+    result.city     = result.city     || (r.city||'');
+    result.province = result.province || (r.province||'');
+    result.postal   = result.postal   || (r.postalCode||'');
+    result.country  = result.country  || (r.country||'Canada');
+    result.source   = result.source   || 'Shipping History';
+    return !!(result.customer && result.city);
+  });
+  // 2. Incoming Forms
+  if(!result.customer){
+    Object.values(incomingData).some(function(r){
+      if((r.wo||'').trim().toUpperCase()!==wo) return false;
+      result.customer = result.customer || (r.customer||'');
+      result.source   = result.source   || ('Incoming Form '+(r.formNum||wo));
+      return !!result.customer;
+    });
+  }
+  // 3. Shipping On Hold
+  if(!result.customer){
+    Object.values(procData).some(function(r){
+      if((r.wo||'').trim().toUpperCase()!==wo) return false;
+      result.customer = result.customer || (r.customer||'');
+      result.source   = result.source   || 'Shipping On Hold';
+      return !!result.customer;
+    });
+  }
+  return result;
+}
+
+function shpWoRealTimeLookup(){
+  if(document.getElementById('shp-edit-id').value) return; // editing — don't override
+  var woInput = (document.getElementById('shp-wo-input').value||'').trim().toUpperCase();
+  var wos = shpTags.wo.map(function(v){ return v.trim().toUpperCase(); });
+  var wo = woInput || wos[0] || '';
+  if(!wo){
+    shpSetNewMode('blank');
+    return;
+  }
+  var r = shpLookupWo(wo);
+  if(r.customer){
+    document.getElementById('shp-customer').value = r.customer;
+    document.getElementById('shp-city').value     = r.city;
+    document.getElementById('shp-province').value = r.province;
+    document.getElementById('shp-postal').value   = r.postal;
+    document.getElementById('shp-country').value  = r.country||'Canada';
+    document.getElementById('shp-customer-filled-name').textContent   = r.customer;
+    document.getElementById('shp-customer-filled-source').textContent = '✔ '+r.source;
+    shpSetNewMode('found');
+  } else {
+    shpSetNewMode('notfound');
+  }
+}
+
+function shpSetNewMode(mode){
+  var destIds = ['shp-dest-header','shp-city-group','shp-province-group','shp-postal-group','shp-country-group'];
+  var custGroup  = document.getElementById('shp-customer-group');
+  var custFilled = document.getElementById('shp-customer-filled');
+  if(mode === 'edit'){
+    destIds.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display=''; });
+    if(custGroup)  custGroup.style.display='';
+    if(custFilled) custFilled.style.display='none';
+  } else if(mode === 'found'){
+    destIds.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display=''; });
+    if(custGroup)  custGroup.style.display='none';
+    if(custFilled) custFilled.style.display='flex';
+  } else if(mode === 'notfound'){
+    destIds.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display=''; });
+    if(custGroup)  custGroup.style.display='';
+    if(custFilled) custFilled.style.display='none';
+  } else { // blank
+    destIds.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
+    if(custGroup)  custGroup.style.display='none';
+    if(custFilled) custFilled.style.display='none';
+  }
+}
+
+function shpClearCustomerLookup(){
+  document.getElementById('shp-customer').value = '';
+  ['shp-city','shp-province','shp-postal'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('shp-country').value='Canada';
+  shpSetNewMode('notfound');
+  setTimeout(function(){ document.getElementById('shp-customer').focus(); }, 50);
+}
+
 function updateShpOrderFields(){
   var hasSO = shpTags.so.length > 0 || document.getElementById('shp-so-input').value.trim().length > 0;
   var hasTR = shpTags.tr.length > 0 || document.getElementById('shp-tr-input').value.trim().length > 0;
@@ -4078,7 +4175,7 @@ function addShpTag(field){
   document.getElementById(inputId).value = '';
   if(hintId){ var h=document.getElementById(hintId); if(h){ h.textContent=''; h.classList.remove('visible'); } }
   renderShpTags(field);
-  if(field === 'wo') prefillFromIncoming(val);
+  if(field === 'wo'){ prefillFromIncoming(val); shpWoRealTimeLookup(); }
   if(field === 'so') prefillFromSO(val);
   if(field === 'wo' || field === 'so') lookupProcPhotos();
   updateShpOrderFields();
@@ -4110,6 +4207,7 @@ function removeShpTag(field, i){
   shpTags[field].splice(i, 1);
   renderShpTags(field);
   if(field === 'so') updateShpOrderFields();
+  if(field === 'wo') shpWoRealTimeLookup();
 }
 
 // ── PAGINATION HELPERS ──
@@ -4241,6 +4339,7 @@ function openShipModal(key){
   document.getElementById('shp-country').value = 'Canada';
 
   if(key && shpData[key]){
+    shpSetNewMode('edit');
     var r = shpData[key];
     document.getElementById('shp-modal-title').textContent = 'Edit Shipment';
     document.getElementById('shp-date').value      = r.date||today();
@@ -4275,6 +4374,7 @@ function openShipModal(key){
     document.getElementById('shp-photos-link').value = r.photosLink||'';
     document.getElementById('shp-del-btn').style.display = 'inline-flex';
   } else {
+    shpSetNewMode('blank');
     document.getElementById('shp-modal-title').textContent = 'New Shipment';
     ['shp-customer','shp-customer-po','shp-outgoing','shp-city','shp-province','shp-postal','shp-material-other','shp-carrier-other','shp-tracking','shp-photos-link'].forEach(function(id){ document.getElementById(id).value=''; });
     document.getElementById('shp-material-type').value = '';
@@ -4290,7 +4390,10 @@ function openShipModal(key){
   updateShpOrderFields();
   if(!key) lookupProcPhotos();
   document.getElementById('shp-modal').style.display = 'flex';
-  setTimeout(function(){ var el = document.getElementById('shp-customer'); if(el) el.focus(); }, 100);
+  setTimeout(function(){
+    var focusId = key ? 'shp-customer' : 'shp-wo-input';
+    var el = document.getElementById(focusId); if(el) el.focus();
+  }, 100);
 }
 
 function closeShipModal(){
