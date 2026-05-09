@@ -1038,7 +1038,7 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="form-group">
           <label>Work Order #</label>
-          <input type="text" id="inc-wo" placeholder="e.g. WO-2024-100" maxlength="7">
+          <input type="text" id="inc-wo" placeholder="e.g. WO-2024-100" maxlength="12">
         </div>
 
         <!-- ══ 1. CUSTOMER INFORMATION ══ -->
@@ -1070,7 +1070,7 @@ document.addEventListener('keydown', function(ev){
         </div>
         <div class="form-group">
           <label>Previous Work Order #</label>
-          <input type="text" id="inc-prev-wo" placeholder="e.g. WO-2023-050" maxlength="7">
+          <input type="text" id="inc-prev-wo" placeholder="e.g. WO-2023-050" maxlength="12">
         </div>
         <div class="form-group">
           <label>Job Priority</label>
@@ -4723,13 +4723,14 @@ function autoFillFromWo(woVal){
     customer = customer || (r.customer||'');
   });
 
-  // 2. Existing Incoming Items line items
+  // 2. Existing Incoming Items — check if any WIP line matches this WO
   Object.values(itemsData).forEach(function(doc){
-    (doc.lineItems||[]).forEach(function(li){
-      if((li.workOrderNum||'').trim().toUpperCase() !== wo) return;
-      area     = area     || (li.area||'');
-      customer = customer || (li.customer||'');
+    var hasWo = (doc.lineItems||[]).some(function(li){
+      return (li.wipWo||'').trim().toUpperCase() === wo;
     });
+    if(!hasWo) return;
+    area     = area     || (doc.area||'');
+    customer = customer || (doc.customer||'');
   });
 
   // 3. Shipping On Hold (proc)
