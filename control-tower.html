@@ -973,7 +973,10 @@ function renderResults(result, raw){
   h += '<div class="sb-status" style="color:'+sc.color+'">'+sc.label+'</div>';
   h += '<div class="sb-title">'+typeLbl+' '+escHtml(result.q)+(inc.customer?' &nbsp;·&nbsp; '+escHtml(inc.customer):'')+'</div>';
   h += '</div></div>';
+  h += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">';
   if(daysAtSA!==null) h += '<div class="days-badge" style="background:'+sc.color+'"><div class="db-num">'+daysAtSA+'</div><div class="db-lbl">Days at SA</div></div>';
+  if(result.type==='wo' && result.incoming.length) h += '<button class="ct-btn ct-btn-gray" style="background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;font-size:.75rem;padding:7px 13px" onclick="viewEpsForm(0)">📄 EPS Form</button>';
+  h += '</div>';
   h += '</div>';
 
   if(result.incoming.length){
@@ -1002,7 +1005,6 @@ function renderResults(result, raw){
     h += '</div><div style="flex:1;min-width:180px"><div style="font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Shipping</div>';
     h += shpPhotosLink ? '<a class="ct-btn ct-btn-gray" href="'+escHtml(shpPhotosLink)+'" target="_blank">📷 View Shipping Photos</a>' : noPh;
     h += '</div></div>';
-    h += '<div style="border-top:1px solid var(--border);margin-top:14px;padding-top:14px"><button class="ct-btn ct-btn-gray" style="background:#e3f2fd;color:#1565c0;border:1px solid #90caf9" onclick="viewEpsForm(0)">📄 EPS Form</button></div>';
     h += '</div>';
   }
 
@@ -1086,7 +1088,7 @@ function renderResults(result, raw){
   if(result.incoming.length > 1){
     h += '<div class="ct-card"><div class="ct-card-title">📋 Additional Incoming Records ('+result.incoming.length+')</div>';
     h += '<table class="ct-table"><thead><tr><th>Incoming #</th><th>Date</th><th>Equipment</th><th>Job Type</th><th></th></tr></thead><tbody>';
-    result.incoming.forEach(function(r, i){ h += '<tr><td>'+escHtml(r.formNum||'—')+'</td><td>'+fmtDate(r.date)+'</td><td>'+escHtml(r.equipment||'—')+'</td><td>'+escHtml(r.whatToDo||'—')+'</td><td><button class="ct-btn ct-btn-gray" style="padding:4px 10px;font-size:.7rem;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9" onclick="viewEpsForm('+i+')">📄 EPS Form</button></td></tr>'; });
+    result.incoming.forEach(function(r, i){ h += '<tr><td>'+escHtml(r.formNum||'—')+'</td><td>'+fmtDate(r.date)+'</td><td>'+escHtml(r.equipment||'—')+'</td><td>'+escHtml(r.whatToDo||'—')+'</td><td><button class="ct-btn ct-btn-gray" style="padding:4px 10px;font-size:.7rem;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9" onclick="viewEpsForm('+i+')">📄</button></td></tr>'; });
     h += '</tbody></table></div>';
   }
   document.getElementById('results').innerHTML = h;
