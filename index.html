@@ -1569,7 +1569,7 @@ document.addEventListener('keydown', function(ev){
 
         <div class="form-group" id="proc-wo-group">
           <label>Work Order #</label>
-          <input type="text" id="proc-wo" placeholder="Work Order #" maxlength="7" oninput="procLookupOrder();updateProcOrderFields();checkInputOrderType('proc-wo','proc-wo-hint','wo')">
+          <input type="text" id="proc-wo" placeholder="Work Order #" maxlength="12" oninput="procLookupOrder();updateProcOrderFields();checkInputOrderType('proc-wo','proc-wo-hint','wo');procWoAutoFill()">
           <div class="order-type-warn" id="proc-wo-hint"></div>
         </div>
         <div class="form-group" id="proc-so-group">
@@ -1581,18 +1581,40 @@ document.addEventListener('keydown', function(ev){
           <label>Outgoing #</label>
           <input type="text" id="proc-outgoing" placeholder="Outgoing form #">
         </div>
-        <div class="form-group">
+        <div class="form-group" id="proc-customer-group" style="display:none">
           <label>Customer</label>
           <input type="text" id="proc-customer" list="customer-suggestions" placeholder="Customer name" oninput="checkProcEquipex()" onchange="checkProcEquipex()">
         </div>
-        <div class="form-group">
+        <div class="form-group" id="proc-po-group" style="display:none">
           <label>Purchase Order</label>
           <input type="text" id="proc-po" placeholder="PO #">
         </div>
-        <div class="form-group">
+        <div class="form-group" id="proc-material-group" style="display:none">
           <label>Material</label>
           <input type="text" id="proc-material" list="material-suggestions" placeholder="Material description">
         </div>
+
+        <div id="proc-wo-filled" class="full" style="display:none;background:#f0f7ff;border:1.5px solid #93c5fd;border-radius:8px;padding:10px 14px;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:0;display:flex;gap:16px;flex-wrap:wrap">
+            <div>
+              <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#1565c0;margin-bottom:1px">Customer</div>
+              <div id="proc-filled-customer" style="font-weight:800;font-size:.88rem;color:#0f172a"></div>
+            </div>
+            <div id="proc-filled-po-row" style="display:none">
+              <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#1565c0;margin-bottom:1px">Purchase Order</div>
+              <div id="proc-filled-po" style="font-weight:700;font-size:.85rem;color:#374151"></div>
+            </div>
+            <div id="proc-filled-mat-row" style="display:none">
+              <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#1565c0;margin-bottom:1px">Material</div>
+              <div id="proc-filled-material" style="font-weight:700;font-size:.85rem;color:#374151"></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+            <span id="proc-filled-source" style="font-size:.68rem;color:#1565c0;background:#dbeafe;padding:3px 10px;border-radius:20px;font-weight:700;white-space:nowrap"></span>
+            <button type="button" onclick="procClearWoLookup()" style="border:1.5px solid #93c5fd;background:#fff;cursor:pointer;color:#1565c0;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:6px;font-family:inherit">✎ Edit</button>
+          </div>
+        </div>
+
         <div class="form-group">
           <label>Shipping Area Received Date *</label>
           <input type="date" id="proc-received-date" oninput="updateProcDays();checkProcEquipex()" onchange="updateProcDays();checkProcEquipex()">
@@ -4994,21 +5016,88 @@ function findProcShipDate(r){
   return found;
 }
 
+function procLookupWo(wo){
+  var result = {customer:'', po:'', material:'', source:''};
+  // 1. Incoming Forms — customer, customerPO, equipment
+  Object.values(incomingData).some(function(r){
+    if((r.wo||'').trim().toUpperCase()!==wo) return false;
+    result.customer = result.customer || (r.customer||'');
+    result.po       = result.po       || (r.customerPO||'');
+    result.material = result.material || (r.equipment||'');
+    result.source   = result.source   || ('Incoming Form '+(r.formNum||wo));
+    return !!(result.customer && result.material);
+  });
+  // 2. Shipping On Hold records with same WO
+  if(!result.customer || !result.material){
+    Object.values(procData).some(function(r){
+      if((r.wo||'').trim().toUpperCase()!==wo) return false;
+      result.customer = result.customer || (r.customer||'');
+      result.po       = result.po       || (r.po||'');
+      result.material = result.material || (r.material||'');
+      result.source   = result.source   || 'On Hold History';
+      return !!(result.customer && result.material);
+    });
+  }
+  // 3. Shipping history — customer only
+  if(!result.customer){
+    Object.values(shpData).some(function(r){
+      if(!(r.workOrders||[]).some(function(w){ return (w||'').trim().toUpperCase()===wo; })) return false;
+      result.customer = result.customer || (r.customer||'');
+      result.source   = result.source   || 'Shipping History';
+      return !!result.customer;
+    });
+  }
+  return result;
+}
+
+function procWoAutoFill(){
+  if(document.getElementById('proc-edit-id').value) return; // editing — skip
+  var wo = (document.getElementById('proc-wo').value||'').trim().toUpperCase();
+  if(!wo){ procSetNewMode('blank'); return; }
+  var r = procLookupWo(wo);
+  if(r.customer){
+    document.getElementById('proc-customer').value = r.customer;
+    document.getElementById('proc-po').value       = r.po;
+    document.getElementById('proc-material').value = r.material;
+    document.getElementById('proc-filled-customer').textContent  = r.customer;
+    document.getElementById('proc-filled-po').textContent        = r.po;
+    document.getElementById('proc-filled-material').textContent  = r.material;
+    document.getElementById('proc-filled-source').textContent    = '✔ '+r.source;
+    document.getElementById('proc-filled-po-row').style.display  = r.po ? '' : 'none';
+    document.getElementById('proc-filled-mat-row').style.display = r.material ? '' : 'none';
+    procSetNewMode('found');
+    checkProcEquipex();
+  } else {
+    procSetNewMode('notfound');
+  }
+}
+
+function procSetNewMode(mode){
+  var custGrp = document.getElementById('proc-customer-group');
+  var poGrp   = document.getElementById('proc-po-group');
+  var matGrp  = document.getElementById('proc-material-group');
+  var filled  = document.getElementById('proc-wo-filled');
+  var show = mode==='notfound' || mode==='edit';
+  if(custGrp) custGrp.style.display = show ? '' : 'none';
+  if(poGrp)   poGrp.style.display   = show ? '' : 'none';
+  if(matGrp)  matGrp.style.display  = show ? '' : 'none';
+  if(filled)  filled.style.display  = mode==='found' ? 'flex' : 'none';
+}
+
+function procClearWoLookup(){
+  document.getElementById('proc-customer').value = '';
+  document.getElementById('proc-po').value       = '';
+  document.getElementById('proc-material').value = '';
+  procSetNewMode('notfound');
+  setTimeout(function(){ document.getElementById('proc-customer').focus(); }, 50);
+}
+
 function procLookupOrder(){
   var wo  = document.getElementById('proc-wo').value.trim().toUpperCase();
   var so  = document.getElementById('proc-so').value.trim().toUpperCase();
   var custEl = document.getElementById('proc-customer');
   var matEl  = document.getElementById('proc-material');
   var outEl  = document.getElementById('proc-outgoing');
-  // WO lookup → Incoming Form for customer + material
-  if(wo){
-    Object.values(incomingData).forEach(function(r){
-      if((r.wo||'').trim().toUpperCase()===wo){
-        if(!custEl.value && r.customer)  custEl.value = r.customer;
-        if(!matEl.value  && r.equipment) matEl.value  = r.equipment;
-      }
-    });
-  }
   // SO lookup → Incoming Items lineItems for customer + material
   if(so){
     Object.values(itemsData).forEach(function(r){
@@ -5029,7 +5118,6 @@ function procLookupOrder(){
       if(hit && !outEl.value) outEl.value = r.outgoing||'';
     });
   }
-  // Re-check Equipex whenever customer may have been auto-filled
   checkProcEquipex();
 }
 
@@ -5326,6 +5414,7 @@ function openProcModal(key){
     document.getElementById('proc-del-btn').style.display='';
     setHoldsToModal(r.holds || (r.holdReason ? _migrateHoldReason(r) : {}), r.receivedDate||'');
     updateProcDays();
+    procSetNewMode('edit');
   } else {
     document.getElementById('proc-modal-title').textContent = 'New Shipping On Hold';
     document.getElementById('proc-pics-qty').value = '';
@@ -5334,10 +5423,12 @@ function openProcModal(key){
     });
     setHoldsToModal({}, '');
     document.getElementById('proc-del-btn').style.display='none';
+    procSetNewMode('blank');
   }
   updateProcOrderFields();
   checkProcEquipex();
   document.getElementById('proc-modal').style.display='flex';
+  if(!key) setTimeout(function(){ document.getElementById('proc-wo').focus(); }, 100);
 }
 
 function closeProcModal(){ document.getElementById('proc-modal').style.display='none'; }
