@@ -359,7 +359,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
 })();
 
 function closePage(){
-  var from = g('from');
+  var from = new URLSearchParams(window.location.search).get('from') || '';
   window.close();
   setTimeout(function(){
     window.location.replace(from === 'ct' ? 'control-tower.html#overview' : 'index.html');
