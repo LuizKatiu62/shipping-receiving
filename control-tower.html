@@ -1134,7 +1134,7 @@ function viewEpsForm(idx){
     received:        r.receivedBy||'',
     notes:           r.notes||''
   };
-  data.epsNum = r.epsNum || r.formNum || '';
+  data.epsNum = r.formNum || r.epsNum || '';
   window.open('eps-form.html?' + new URLSearchParams(data).toString(), '_blank');
 }
 
