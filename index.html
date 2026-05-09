@@ -3299,9 +3299,12 @@ function openEpsForm(){
     notes:           document.getElementById('inc-notes').value.trim()
   };
 
+  var formNum    = document.getElementById('inc-form-num').value.trim();
   var existingEps = document.getElementById('inc-eps-num').value.trim();
-  if(existingEps){
-    data.epsNum = existingEps;
+
+  // formNum (Incoming #) always takes priority — avoids showing wrong auto-generated number
+  if(formNum || existingEps){
+    data.epsNum = formNum || existingEps;
     var qs = new URLSearchParams(data).toString();
     window.open('eps-form.html?' + qs, '_blank');
     return;
