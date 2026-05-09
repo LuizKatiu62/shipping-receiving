@@ -75,7 +75,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
 <div class="pbar">
   <b>EPS Incoming Form &nbsp;#<span id="pb-num">—</span><span id="pb-cust" style="font-weight:400;opacity:.8"></span></b>
   <button class="pbtn pbtn-p" onclick="epsPrint()">🖨 Print / Save PDF</button>
-  <button class="pbtn" onclick="window.location.replace('index.html')">✕ Close</button>
+  <button class="pbtn" onclick="closePage()">✕ Close</button>
 </div>
 
 <div class="pg">
@@ -358,14 +358,20 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
   document.title = 'EPS Form #'+num+(cust?' — '+cust:'');
 })();
 
+function closePage(){
+  var from = g('from');
+  window.close();
+  setTimeout(function(){
+    window.location.replace(from === 'ct' ? 'control-tower.html#overview' : 'index.html');
+  }, 300);
+}
+
 function epsPrint(){
   var done = false;
   function closeMe(){
     if(done) return;
     done = true;
-    setTimeout(function(){
-      window.location.replace('index.html');
-    }, 400);
+    setTimeout(function(){ closePage(); }, 400);
   }
   window.addEventListener('afterprint', closeMe);
   var mq = window.matchMedia && window.matchMedia('print');
