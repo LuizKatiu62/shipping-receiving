@@ -99,6 +99,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
   .pbar{display:none}
   .pg{margin:0;box-shadow:none;padding:3mm 7mm 2mm;width:215.9mm;height:279.4mm}
   .sh{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#c8c8c8 !important}
+  [data-gray]{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#c8c8c8 !important}
   .cb.on{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#000 !important;color:#fff !important}
   @page{size:8.5in 11in portrait;margin:0}
 }
@@ -135,7 +136,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
       </div>
     </div>
 
-    <!-- Right: title / Work Order No / Incoming No -->
+    <!-- Right: title / Incoming No / Work Order No -->
     <div style="flex:1;display:flex;flex-direction:column">
 
       <!-- "EPS Incoming Form" title -->
@@ -144,24 +145,24 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
                      letter-spacing:-.5px;line-height:1">EPS Incoming Form</span>
       </div>
 
-      <!-- Work Order No row -->
+      <!-- Incoming No row — above Work Order -->
       <div style="display:flex;align-items:stretch;border-top:1px solid #000;flex-shrink:0">
-        <div style="padding:2px 8px;font-size:8.5pt;font-weight:700;border-right:1px solid #000;
-                    display:flex;align-items:center;white-space:nowrap">
-          Work Order No:
-        </div>
-        <div style="flex:1;padding:2px 10px;font-size:18pt;font-weight:700;
-                    letter-spacing:1px;display:flex;align-items:center" id="f-wo"></div>
-      </div>
-
-      <!-- Incoming No row -->
-      <div style="display:flex;align-items:stretch;border-top:1px solid #000;flex-shrink:0">
-        <div style="padding:2px 8px;font-size:8.5pt;font-weight:700;border-right:1px solid #000;
-                    display:flex;align-items:center;white-space:nowrap">
+        <div data-gray style="padding:2px 8px;font-size:8.5pt;font-weight:700;border-right:1px solid #000;
+                    background:#c8c8c8;display:flex;align-items:center;white-space:nowrap">
           Incoming No:
         </div>
         <div style="flex:1;padding:2px 10px;font-size:18pt;font-weight:700;color:#c0392b;
                     letter-spacing:1px;display:flex;align-items:center" id="f-num">—</div>
+      </div>
+
+      <!-- Work Order No row — below Incoming No -->
+      <div style="display:flex;align-items:stretch;border-top:1px solid #000;flex-shrink:0">
+        <div data-gray style="padding:2px 8px;font-size:8.5pt;font-weight:700;border-right:1px solid #000;
+                    background:#c8c8c8;display:flex;align-items:center;white-space:nowrap">
+          Work Order No:
+        </div>
+        <div style="flex:1;padding:2px 10px;font-size:18pt;font-weight:700;
+                    letter-spacing:1px;display:flex;align-items:center" id="f-wo"></div>
       </div>
 
     </div>
