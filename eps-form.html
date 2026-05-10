@@ -44,6 +44,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
   min-height:0;
   display:flex;
   flex-direction:column;
+  overflow:hidden;
 }
 
 /* ── Generic row ── */
@@ -66,8 +67,8 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
 /* ── Field value ── */
 .fv{font-size:9pt;display:block;font-weight:400;min-height:10px}
 
-/* ── Section wrapper — flex column with fixed height ── */
-.sec{display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+/* ── Section wrapper — fills available height proportionally ── */
+.sec{display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .sec>.fr{flex:1;min-height:0}
 .sec>.sh{flex:0 0 auto}
 
@@ -172,7 +173,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
   <!-- ═══════════════════════════════════════════
        1. CUSTOMER INFORMATION  —  3.5" = 88.9 mm
        ═══════════════════════════════════════════ -->
-  <div class="sec" style="height:88.9mm">
+  <div class="sec" style="flex:35">
     <div class="sh">1. CUSTOMER INFORMATION</div>
 
     <!-- Row A: Customer | Customer Contact | Previous WO -->
@@ -268,7 +269,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
   <!-- ═══════════════════════════════════════════
        2. UNIT DESCRIPTION & IDENTIFICATION  — 2.5" = 63.5 mm
        ═══════════════════════════════════════════ -->
-  <div class="sec" style="height:63.5mm">
+  <div class="sec" style="flex:25">
     <div class="sh">2. UNIT DESCRIPTION &amp; IDENTIFICATION</div>
 
     <!-- Department row — bordered cells -->
@@ -365,7 +366,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
   <!-- ═══════════════════════════════════════════
        3. ATTACHMENTS FOR UNIT LISTED ABOVE  —  2.0" = 50.8 mm
        ═══════════════════════════════════════════ -->
-  <div class="sec" style="height:50.8mm">
+  <div class="sec" style="flex:20">
     <div class="sh">3. ATTACHMENTS FOR UNIT LISTED ABOVE</div>
 
     <div class="fr">
@@ -413,7 +414,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#000;background:
   <!-- ═══════════════════════════════════════════
        4. DESIGNATED LOCATION  —  1.5" = 38.1 mm
        ═══════════════════════════════════════════ -->
-  <div class="sec" style="height:38.1mm">
+  <div class="sec" style="flex:15">
     <div class="sh">4. DESIGNATED LOCATION</div>
 
     <!-- Large open area for location text -->
