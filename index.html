@@ -5140,7 +5140,19 @@ function procLookupWo(wo){
     result.source     = result.source     || ('Incoming Form '+(r.formNum||wo));
     return !!(result.customer && result.material);
   });
-  // 2. Shipping On Hold history
+  // 2. Incoming Items line items
+  if(!result.customer || !result.material){
+    Object.values(itemsData).some(function(doc){
+      return (doc.lineItems||[]).some(function(li){
+        if((li.workOrderNum||'').trim().toUpperCase()!==wo) return false;
+        result.customer = result.customer || (li.customer||'');
+        result.material = result.material || (li.material||'');
+        result.source   = result.source   || ('Items Receipt '+(doc.docNum||''));
+        return !!(result.customer && result.material);
+      });
+    });
+  }
+  // 3. Shipping On Hold history
   if(!result.customer || !result.material){
     Object.values(procData).some(function(r){
       if((r.wo||'').trim().toUpperCase()!==wo) return false;
@@ -5153,7 +5165,7 @@ function procLookupWo(wo){
       return !!(result.customer && result.material);
     });
   }
-  // 3. Shipping history — customer + outgoing
+  // 4. Shipping history — customer + outgoing
   Object.values(shpData).some(function(r){
     if(!(r.workOrders||[]).some(function(w){ return (w||'').trim().toUpperCase()===wo; })) return false;
     result.customer = result.customer || (r.customer||'');
@@ -5164,11 +5176,19 @@ function procLookupWo(wo){
   return result;
 }
 
+var _procWoRetry = null;
 function procWoAutoFill(){
   if(document.getElementById('proc-edit-id').value) return; // editing — skip
+  clearTimeout(_procWoRetry);
   var wo = (document.getElementById('proc-wo').value||'').trim().toUpperCase();
   if(!wo){ procSetNewMode('blank'); return; }
   var r = procLookupWo(wo);
+  // If not found yet, retry once after 800ms (Firebase may still be loading)
+  if(!r.customer && wo.length >= 4){
+    _procWoRetry = setTimeout(function(){
+      if((document.getElementById('proc-wo').value||'').trim().toUpperCase()===wo) procWoAutoFill();
+    }, 800);
+  }
   if(r.customer){
     document.getElementById('proc-customer').value    = r.customer;
     document.getElementById('proc-po').value          = r.po;
