@@ -1370,7 +1370,8 @@ function omsRenderSalesOrders(){
 
   if(hasDateFilter) soList = soList.filter(function(s){ return s.dateMatch; });
   if(custQ) soList = soList.filter(function(s){
-    return s.soNum.includes(custQ) || s.customer.toUpperCase().includes(custQ);
+    var statusLbl = (STATUS_CFG[s.status]||{}).label||'';
+    return s.soNum.includes(custQ) || s.customer.toUpperCase().includes(custQ) || statusLbl.toUpperCase().includes(custQ);
   });
   soList.sort(function(a,b){ return (b.lastDate||'').localeCompare(a.lastDate||''); });
 
@@ -1448,7 +1449,8 @@ function omsRenderIncoming(){
         || (r.area||'').toUpperCase().includes(q)
         || (r.whatToDo||'').toUpperCase().includes(q)
         || (r.manufacturer||'').toUpperCase().includes(q)
-        || (r.serialNumber||'').toUpperCase().includes(q);
+        || (r.serialNumber||'').toUpperCase().includes(q)
+        || ((STATUS_CFG[omsWoStatus(r.wo)]||{}).label||'').toUpperCase().includes(q);
   });
   var tbody = document.getElementById('oms-incoming-body');
   if(!rows.length){ tbody.innerHTML = '<tr><td colspan="8" class="oms-empty">No records found for this filter</td></tr>'; return; }
