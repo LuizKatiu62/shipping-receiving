@@ -5082,7 +5082,7 @@ function procSetNewMode(mode){
   var poGrp   = document.getElementById('proc-po-group');
   var matGrp  = document.getElementById('proc-material-group');
   var filled  = document.getElementById('proc-wo-filled');
-  var show = mode==='notfound' || mode==='edit';
+  var show = mode==='notfound' || mode==='edit' || mode==='blank';
   if(custGrp) custGrp.style.display = show ? '' : 'none';
   if(poGrp)   poGrp.style.display   = show ? '' : 'none';
   if(matGrp)  matGrp.style.display  = show ? '' : 'none';
