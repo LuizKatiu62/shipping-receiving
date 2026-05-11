@@ -1361,9 +1361,10 @@ function omsRenderSalesOrders(){
     var lastDate  = allDates[allDates.length-1] || '';
     var customer  = info.customers[0] || '';
     var dateMatch = allDates.some(function(d){ return omsDateMatch(d); });
-    var onHold  = Object.values(allData.process).some(function(r){ return norm(r.so)===soNum && !r.shippedDate; });
+    var onHold  = Object.values(allData.process).some(function(r){ return norm(r.so)===soNum; });
     var inPack  = Object.values(allData.packing).some(function(r){ return norm(r.orderNum)===soNum; });
-    var status = onHold ? 'on-hold' : info.shpDates.length > 0 ? 'shipped' : inPack ? 'packing' : info.itemCount > 0 ? 'active' : 'notfound';
+    // Shipped always wins — even if previously on hold
+    var status = info.shpDates.length > 0 ? 'shipped' : onHold ? 'on-hold' : inPack ? 'packing' : info.itemCount > 0 ? 'active' : 'notfound';
     return {soNum:soNum, customer:customer, itemCount:info.itemCount, lastDate:lastDate, status:status, dateMatch:dateMatch};
   });
 
@@ -1418,10 +1419,11 @@ function normArea(a){
 function omsWoStatus(wo){
   if(!wo) return null;
   var w = norm(wo);
-  var onHold = Object.values(allData.process).some(function(r){ return norm(r.wo)===w && !r.shippedDate; });
-  if(onHold) return 'on-hold';
+  // Shipped always wins — even if previously on hold
   var shipped = Object.values(allData.shipping).some(function(r){ return (r.workOrders||[]).some(function(x){ return norm(x)===w; }); });
   if(shipped) return 'shipped';
+  var onHold = Object.values(allData.process).some(function(r){ return norm(r.wo)===w; });
+  if(onHold) return 'on-hold';
   var inPack = Object.values(allData.packing).some(function(r){ return norm(r.orderNum)===w; });
   if(inPack) return 'packing';
   return 'active';
