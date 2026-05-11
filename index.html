@@ -1152,7 +1152,7 @@ document.addEventListener('keydown', function(ev){
               <button type="button" class="inc-toggle-btn" id="btn-pics-yes" onclick="setIncPicsTaken('YES')">YES</button>
               <button type="button" class="inc-toggle-btn" id="btn-pics-no" onclick="setIncPicsTaken('NO')">NO</button>
             </div>
-            <input type="time" id="inc-pics-time" style="flex:1;min-width:90px">
+            <input type="text" id="inc-pics-time" placeholder="HH:MM" maxlength="5" data-nocase inputmode="numeric" style="flex:1;min-width:90px" oninput="fmtTimeInput(this)">
             <input type="number" id="inc-pics-qty" placeholder="Num." min="0" style="width:68px">
           </div>
         </div>
@@ -7093,6 +7093,11 @@ function exportShipErrorsCSV(){
   </div>
 </div>
 <script>
+function fmtTimeInput(el){
+  var v = el.value.replace(/[^0-9]/g,'');
+  if(v.length >= 3) v = v.slice(0,2) + ':' + v.slice(2,4);
+  el.value = v;
+}
 // Convert all text/search/textarea inputs to uppercase (value, not just display)
 document.addEventListener('input', function(e){
   var t = e.target;
