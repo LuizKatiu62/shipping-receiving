@@ -256,6 +256,37 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .chart-card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:22px;border:1px solid var(--border)}
 .chart-title{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--text-secondary);margin-bottom:16px}
 
+/* ── DAILY CASH SALES FORM ── */
+#dcf-panel{margin-top:24px;border:1.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface);box-shadow:var(--shadow-md)}
+.dcf-controls{display:flex;align-items:center;gap:12px;padding:12px 18px;background:#f8fafc;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.dcf-controls-title{font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#374151}
+.dcf-date-nav{display:flex;align-items:center;gap:6px}
+.dcf-date-nav button{padding:4px 10px;border:1.5px solid var(--border);background:#fff;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:700;color:#374151;font-family:inherit;transition:all .15s}
+.dcf-date-nav button:hover{border-color:var(--blue-400);color:var(--blue-600);background:var(--blue-50)}
+#dcf-date-input{padding:4px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.83rem;font-family:inherit;outline:none;transition:border-color .15s}
+#dcf-date-input:focus{border-color:var(--blue-500)}
+.dcf-count-pill{font-size:.68rem;font-weight:700;padding:2px 10px;border-radius:20px;background:#dbeafe;color:#1565c0;white-space:nowrap}
+.dcf-body{padding:20px;overflow-x:auto}
+.dcf-form{width:100%;max-width:740px;margin:0 auto;font-family:'Inter',sans-serif}
+.dcf-form-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:16px}
+.dcf-logo-block{display:flex;align-items:flex-start;gap:9px}
+.dcf-logo-mark{width:34px;height:34px;background:linear-gradient(135deg,#b91c1c,#7f1d1d);border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;font-weight:900;letter-spacing:-1px;flex-shrink:0}
+.dcf-brand-name{font-size:.88rem;font-weight:900;color:#1a1a2e;letter-spacing:.5px;line-height:1.2}
+.dcf-brand-sub{font-size:.62rem;color:#6b7280;font-style:italic;margin-top:2px}
+.dcf-meta{font-size:.68rem;color:#374151;line-height:2;text-align:right}
+.dcf-meta span{display:inline-block;min-width:120px;border-bottom:1px solid #94a3b8;padding-bottom:1px;margin-left:6px;color:#0f172a;font-weight:600}
+.dcf-form-title{text-align:center;font-size:.95rem;font-weight:900;letter-spacing:1px;color:#1a1a2e;text-transform:uppercase;margin-bottom:10px;border-top:2px solid #1a1a2e;border-bottom:2px solid #1a1a2e;padding:5px 0}
+.dcf-table{width:100%;border-collapse:collapse;border:1.5px solid #374151}
+.dcf-table th,.dcf-table td{border:1px solid #374151;padding:4px 5px;text-align:center;font-size:.67rem}
+.dcf-table th{background:#1a1a2e;color:#fff;font-weight:800;font-size:.6rem;text-transform:uppercase;letter-spacing:.3px;line-height:1.2;padding:5px 4px}
+.dcf-table td{height:22px;vertical-align:middle;background:#fff;color:#1a1a2e}
+.dcf-table td.dcf-date{font-size:.64rem}
+.dcf-table td.dcf-amt{font-weight:700;color:#166534}
+.dcf-table tr.dcf-total-row td{background:#eff6ff;font-weight:800}
+.dcf-table tr.dcf-total-row td.dcf-amt{color:#1d4ed8}
+.dcf-table tr.dcf-total-row td.dcf-lbl{text-align:right;font-size:.6rem;letter-spacing:.4px;color:#374151;padding-right:8px}
+.dcf-empty-row td{background:#fcfcfc}
+
 /* ── COMING SOON ── */
 .coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;color:var(--text-muted);gap:14px}
 .coming-soon-icon{font-size:3rem;opacity:.5}
@@ -940,6 +971,7 @@ document.addEventListener('keydown', function(ev){
         <select class="year-select" id="pay-month" onchange="filterPayments()"><option value="">All Months</option></select>
         <select class="year-select" id="pay-day" onchange="filterPayments()" style="min-width:80px"><option value="">All Days</option></select>
         <input class="search-input" type="text" id="pay-search" placeholder="Search order #, customer, method..." oninput="filterPayments()">
+        <button class="btn btn-secondary admin-only" id="dcf-toggle-btn" onclick="toggleDcfPanel()">📋 Daily Form</button>
         <button class="btn btn-secondary" onclick="exportPaymentsCSV()">⬇️ Export Excel</button>
         <button class="btn btn-primary admin-only" onclick="openPayModal()">+ New Payment</button>
       </div>
@@ -975,6 +1007,28 @@ document.addEventListener('keydown', function(ev){
         <tbody id="pay-tbody"></tbody>
       </table>
     </div>
+
+    <!-- ══ DAILY CASH SALES FORM PANEL ══ -->
+    <div id="dcf-panel" style="display:none">
+      <div class="dcf-controls">
+        <span class="dcf-controls-title">📋 Daily Cash Sales Form</span>
+        <div class="dcf-date-nav">
+          <button onclick="dcfPrevDay()">‹</button>
+          <input type="date" id="dcf-date-input" onchange="renderDcf()">
+          <button onclick="dcfNextDay()">›</button>
+          <button onclick="dcfGoToday()" style="background:#1565c0;color:#fff;border-color:#1565c0;padding:4px 12px">Today</button>
+        </div>
+        <span id="dcf-count-pill" class="dcf-count-pill">0 entries</span>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="printDcf()">🖨 Print</button>
+          <button class="btn btn-secondary" onclick="closeDcfPanel()">✕ Close</button>
+        </div>
+      </div>
+      <div class="dcf-body">
+        <div id="dcf-printable"></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ══ SHIPPING ERROR MANAGEMENT ══ -->
@@ -6170,6 +6224,7 @@ function renderPayments(){
   }).join('');
   renderPayStats(rows);
   renderPayCharts(rows);
+  if(dcfOpen) renderDcf();
 }
 
 function renderPayStats(rows){
@@ -6492,6 +6547,187 @@ function sendWipEmail(){
   a.click();
   document.body.removeChild(a);
   if(wipEmailQueue.length) setTimeout(function(){ showNextWipEmail(rec); }, 400);
+}
+
+// ── DAILY CASH SALES FORM ──
+var dcfOpen = false;
+
+function toggleDcfPanel(){
+  dcfOpen = !dcfOpen;
+  var panel = document.getElementById('dcf-panel');
+  var btn   = document.getElementById('dcf-toggle-btn');
+  if(dcfOpen){
+    panel.style.display = '';
+    document.getElementById('dcf-date-input').value = today();
+    renderDcf();
+    setTimeout(function(){ panel.scrollIntoView({behavior:'smooth',block:'nearest'}); }, 50);
+    if(btn) btn.style.background = '#1565c0', btn.style.color = '#fff', btn.style.borderColor = '#1565c0';
+  } else {
+    panel.style.display = 'none';
+    if(btn) btn.style.background = '', btn.style.color = '', btn.style.borderColor = '';
+  }
+}
+
+function closeDcfPanel(){
+  dcfOpen = false;
+  document.getElementById('dcf-panel').style.display = 'none';
+  var btn = document.getElementById('dcf-toggle-btn');
+  if(btn) btn.style.background = '', btn.style.color = '', btn.style.borderColor = '';
+}
+
+function dcfPrevDay(){
+  var d = new Date((document.getElementById('dcf-date-input').value||today())+'T00:00:00');
+  d.setDate(d.getDate()-1);
+  document.getElementById('dcf-date-input').value = d.toISOString().slice(0,10);
+  renderDcf();
+}
+
+function dcfNextDay(){
+  var d = new Date((document.getElementById('dcf-date-input').value||today())+'T00:00:00');
+  d.setDate(d.getDate()+1);
+  document.getElementById('dcf-date-input').value = d.toISOString().slice(0,10);
+  renderDcf();
+}
+
+function dcfGoToday(){
+  document.getElementById('dcf-date-input').value = today();
+  renderDcf();
+}
+
+function dcfFmtDate(iso){
+  if(!iso) return '';
+  var p = iso.split('-');
+  return p.length===3 ? p[1]+'/'+p[2]+'/'+p[0].slice(2) : iso;
+}
+
+function fmtMoneyDcf(v){
+  var n = parseFloat(v)||0;
+  return n ? '$'+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',') : '';
+}
+
+function renderDcf(){
+  var selDate = document.getElementById('dcf-date-input').value || today();
+  var rows = Object.values(payData).filter(function(r){ return r.date===selDate; });
+  rows.sort(function(a,b){ return (a.createdAt||'').localeCompare(b.createdAt||''); });
+  document.getElementById('dcf-count-pill').textContent = rows.length + (rows.length===1?' entry':' entries');
+
+  var totals = {cash:0,visa:0,mc:0,cheque:0};
+  rows.forEach(function(r){
+    var a = parseFloat(r.amount)||0;
+    if(r.method==='Cash')       totals.cash   += a;
+    if(r.method==='Visa')       totals.visa   += a;
+    if(r.method==='Mastercard') totals.mc     += a;
+    if(r.method==='Cheque')     totals.cheque += a;
+  });
+
+  var prepBy = '';
+  if(currentUser){
+    var namePart = currentUser.email.split('@')[0];
+    prepBy = namePart.replace(/[._]/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
+  }
+
+  var MIN_ROWS = 13;
+  var bodyRows = '';
+  for(var i=0; i<Math.max(rows.length,MIN_ROWS); i++){
+    var r = rows[i];
+    if(r){
+      var wo  = r.orderType==='Work Order'  ? escHtml(r.orderNum||'') : '';
+      var so  = r.orderType==='Sales Order' ? escHtml(r.orderNum||'') : '';
+      var ord = escHtml(r.orderNum||'');
+      bodyRows += '<tr>'+
+        '<td class="dcf-date">'+dcfFmtDate(r.date)+'</td>'+
+        '<td>'+ord+'</td>'+
+        '<td>'+wo+'</td>'+
+        '<td>'+so+'</td>'+
+        '<td class="dcf-amt">'+(r.method==='Cash'        ? fmtMoneyDcf(r.amount):'')+'</td>'+
+        '<td class="dcf-amt">'+(r.method==='Visa'        ? fmtMoneyDcf(r.amount):'')+'</td>'+
+        '<td class="dcf-amt">'+(r.method==='Mastercard'  ? fmtMoneyDcf(r.amount):'')+'</td>'+
+        '<td class="dcf-amt">'+(r.method==='Cheque'      ? fmtMoneyDcf(r.amount):'')+'</td>'+
+        '<td>'+escHtml(r.chequeNum||'')+'</td>'+
+      '</tr>';
+    } else {
+      bodyRows += '<tr class="dcf-empty-row"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+    }
+  }
+
+  var totRow = (totals.cash+totals.visa+totals.mc+totals.cheque)>0
+    ? '<tr class="dcf-total-row">'+
+        '<td colspan="4" class="dcf-lbl">TOTAL</td>'+
+        '<td class="dcf-amt">'+(totals.cash  ?fmtMoneyDcf(totals.cash)  :'')+'</td>'+
+        '<td class="dcf-amt">'+(totals.visa  ?fmtMoneyDcf(totals.visa)  :'')+'</td>'+
+        '<td class="dcf-amt">'+(totals.mc    ?fmtMoneyDcf(totals.mc)    :'')+'</td>'+
+        '<td class="dcf-amt">'+(totals.cheque?fmtMoneyDcf(totals.cheque):'')+'</td>'+
+        '<td></td>'+
+      '</tr>'
+    : '';
+
+  document.getElementById('dcf-printable').innerHTML =
+    '<div class="dcf-form">'+
+      '<div class="dcf-form-header">'+
+        '<div class="dcf-logo-block">'+
+          '<div class="dcf-logo-mark">SA</div>'+
+          '<div>'+
+            '<div class="dcf-brand-name">SOURCE ATLANTIC</div>'+
+            '<div class="dcf-brand-sub">Engineered Products &amp; Services</div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="dcf-meta">'+
+          'Prepared By<span>'+escHtml(prepBy)+'</span><br>'+
+          'Prepared Date<span>'+dcfFmtDate(selDate)+'</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="dcf-form-title">Daily Cash Sales Form</div>'+
+      '<table class="dcf-table">'+
+        '<thead><tr>'+
+          '<th style="width:12%">SALES DATE<br>MM/DD/YY</th>'+
+          '<th style="width:17%">ORDER NUMBER</th>'+
+          '<th style="width:7%">WO</th>'+
+          '<th style="width:7%">SO</th>'+
+          '<th style="width:11%">CASH</th>'+
+          '<th style="width:10%">VISA</th>'+
+          '<th style="width:13%">MASTERCARD</th>'+
+          '<th style="width:11%">CHEQUE</th>'+
+          '<th style="width:12%">CHEQUE NUMBER</th>'+
+        '</tr></thead>'+
+        '<tbody>'+bodyRows+totRow+'</tbody>'+
+      '</table>'+
+    '</div>';
+}
+
+function printDcf(){
+  var selDate = document.getElementById('dcf-date-input').value || today();
+  var content = document.getElementById('dcf-printable').innerHTML;
+  var win = window.open('','_blank','width=860,height=1100');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8">'+
+    '<title>Daily Cash Sales Form — '+selDate+'</title>'+
+    '<style>'+
+    '*{box-sizing:border-box;margin:0;padding:0}'+
+    'body{font-family:Arial,sans-serif;font-size:.75rem;padding:16mm 14mm;background:#fff;color:#1a1a2e}'+
+    '.dcf-form{width:100%}'+
+    '.dcf-form-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:16px}'+
+    '.dcf-logo-block{display:flex;align-items:flex-start;gap:9px}'+
+    '.dcf-logo-mark{width:34px;height:34px;background:#9b1c1c;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;font-weight:900;letter-spacing:-1px;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+    '.dcf-brand-name{font-size:.88rem;font-weight:900;color:#1a1a2e;letter-spacing:.5px;line-height:1.2}'+
+    '.dcf-brand-sub{font-size:.62rem;color:#555;font-style:italic;margin-top:2px}'+
+    '.dcf-meta{font-size:.68rem;color:#374151;line-height:2;text-align:right}'+
+    '.dcf-meta span{display:inline-block;min-width:130px;border-bottom:1px solid #94a3b8;padding-bottom:1px;margin-left:6px;color:#0f172a;font-weight:600}'+
+    '.dcf-form-title{text-align:center;font-size:.95rem;font-weight:900;letter-spacing:1px;color:#1a1a2e;text-transform:uppercase;margin-bottom:10px;border-top:2px solid #1a1a2e;border-bottom:2px solid #1a1a2e;padding:5px 0}'+
+    '.dcf-table{width:100%;border-collapse:collapse;border:1.5px solid #374151}'+
+    '.dcf-table th,.dcf-table td{border:1px solid #374151;padding:4px 5px;text-align:center;font-size:.67rem}'+
+    '.dcf-table th{background:#1a1a2e!important;color:#fff!important;font-weight:800;font-size:.6rem;text-transform:uppercase;letter-spacing:.3px;line-height:1.3;padding:5px 4px;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+    '.dcf-table td{height:22px;vertical-align:middle;background:#fff;color:#1a1a2e}'+
+    '.dcf-date{font-size:.64rem}'+
+    '.dcf-amt{font-weight:700;color:#166534}'+
+    '.dcf-total-row td{background:#eff6ff!important;font-weight:800;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+    '.dcf-total-row .dcf-amt{color:#1d4ed8}'+
+    '.dcf-lbl{text-align:right!important;font-size:.6rem;letter-spacing:.4px;padding-right:8px}'+
+    '.dcf-empty-row td{background:#fafafa!important}'+
+    '@page{size:letter portrait;margin:16mm 14mm}'+
+    '@media print{body{padding:0}}'+
+    '</style></head><body>'+content+'</body></html>');
+  win.document.close();
+  win.focus();
+  setTimeout(function(){ win.print(); }, 350);
 }
 
 function deletePayment(){
