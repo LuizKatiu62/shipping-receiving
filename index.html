@@ -4078,35 +4078,44 @@ function showToast(msg){
 }
 
 function shpLookupWo(wo){
-  var result = {customer:'', city:'', province:'', postal:'', country:'', source:''};
+  var knownMats = ['Electric Motor','Pump','Submersible Pump','Air Compressor','DC Motor','Generator'];
+  var result = {customer:'', city:'', province:'', postal:'', country:'', source:'', material:'', materialType:''};
   // 1. Shipping history — full address available
   Object.values(shpData).some(function(r){
     if(!(r.workOrders||[]).some(function(w){ return (w||'').trim().toUpperCase()===wo; })) return false;
-    result.customer = result.customer || (r.customer||'');
-    result.city     = result.city     || (r.city||'');
-    result.province = result.province || (r.province||'');
-    result.postal   = result.postal   || (r.postalCode||'');
-    result.country  = result.country  || (r.country||'Canada');
-    result.source   = result.source   || 'Shipping History';
+    result.customer     = result.customer     || (r.customer||'');
+    result.city         = result.city         || (r.city||'');
+    result.province     = result.province     || (r.province||'');
+    result.postal       = result.postal       || (r.postalCode||'');
+    result.country      = result.country      || (r.country||'Canada');
+    result.source       = result.source       || 'Shipping History';
+    result.material     = result.material     || (r.material||'');
+    result.materialType = result.materialType || (r.materialType||'');
     return !!(result.customer && result.city);
   });
   // 2. Incoming Forms
-  if(!result.customer){
+  if(!result.customer || !result.material){
     Object.values(incomingData).some(function(r){
       if((r.wo||'').trim().toUpperCase()!==wo) return false;
-      result.customer = result.customer || (r.customer||'');
-      result.source   = result.source   || ('Incoming Form '+(r.formNum||wo));
-      return !!result.customer;
+      result.customer     = result.customer     || (r.customer||'');
+      result.source       = result.source       || ('Incoming Form '+(r.formNum||wo));
+      result.material     = result.material     || (r.equipment||'');
+      result.materialType = result.materialType || (r.equipmentType||'');
+      return !!(result.customer && result.material);
     });
   }
   // 3. Shipping On Hold
-  if(!result.customer){
+  if(!result.customer || !result.material){
     Object.values(procData).some(function(r){
       if((r.wo||'').trim().toUpperCase()!==wo) return false;
-      result.customer = result.customer || (r.customer||'');
-      result.source   = result.source   || 'Shipping On Hold';
-      return !!result.customer;
+      result.customer     = result.customer     || (r.customer||'');
+      result.source       = result.source       || 'Shipping On Hold';
+      result.material     = result.material     || (r.material||'');
+      return !!(result.customer && result.material);
     });
+  }
+  if(result.material && !result.materialType){
+    result.materialType = knownMats.includes(result.material) ? result.material : 'Other';
   }
   return result;
 }
@@ -4129,6 +4138,15 @@ function shpWoRealTimeLookup(){
     document.getElementById('shp-country').value  = r.country||'Canada';
     document.getElementById('shp-customer-filled-name').textContent   = r.customer;
     document.getElementById('shp-customer-filled-source').textContent = '✔ '+r.source;
+    if(r.material && !document.getElementById('shp-material-type').value){
+      document.getElementById('shp-material-type').value = r.materialType;
+      if(r.materialType === 'Other'){
+        document.getElementById('shp-material-other').value = r.material.toUpperCase();
+        document.getElementById('shp-material-other-group').style.display = 'flex';
+      } else {
+        document.getElementById('shp-material-other-group').style.display = 'none';
+      }
+    }
     shpSetNewMode('found');
   } else {
     shpSetNewMode('notfound');
