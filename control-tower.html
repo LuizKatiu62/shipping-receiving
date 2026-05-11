@@ -480,7 +480,7 @@ body>*{position:relative;z-index:1}
         <div class="oms-table-scroll">
           <table class="ct-table">
             <thead><tr>
-              <th>Date</th><th>Incoming #</th><th>Work Order #</th><th>Customer</th><th>Equipment</th><th>Category</th><th>Job Type</th>
+              <th>Date</th><th>Incoming #</th><th>Work Order #</th><th>Customer</th><th>Equipment</th><th>Category</th><th>Job Type</th><th>Status</th>
             </tr></thead>
             <tbody id="oms-incoming-body"></tbody>
           </table>
@@ -915,7 +915,7 @@ function searchBySO(q){
   soItems.sort(function(a,b){ return a.date.localeCompare(b.date); });
   return {type:'so', q:q, incoming:[],
     components: soItems,
-    process:  Object.values(allData.process).filter(function(r){ return norm(r.wo)===q; }),
+    process:  Object.values(allData.process).filter(function(r){ return norm(r.so)===q; }),
     shipping: Object.values(allData.shipping).filter(function(r){ return (r.salesOrders||[]).some(function(s){ return norm(s)===q; }); }),
     packing:  Object.values(allData.packing).filter(function(r){ return norm(r.orderNum)===q || norm(r.orderNum).includes(q); })
   };
@@ -1340,7 +1340,9 @@ function omsRenderSalesOrders(){
     var lastDate  = allDates[allDates.length-1] || '';
     var customer  = info.customers[0] || '';
     var dateMatch = allDates.some(function(d){ return omsDateMatch(d); });
-    var status = info.shpDates.length > 0 ? 'shipped' : info.itemCount > 0 ? 'active' : 'notfound';
+    var onHold  = Object.values(allData.process).some(function(r){ return norm(r.so)===soNum && !r.shippedDate; });
+    var inPack  = Object.values(allData.packing).some(function(r){ return norm(r.orderNum)===soNum; });
+    var status = onHold ? 'on-hold' : info.shpDates.length > 0 ? 'shipped' : inPack ? 'packing' : info.itemCount > 0 ? 'active' : 'notfound';
     return {soNum:soNum, customer:customer, itemCount:info.itemCount, lastDate:lastDate, status:status, dateMatch:dateMatch};
   });
 
@@ -1351,8 +1353,7 @@ function omsRenderSalesOrders(){
   var tbody = document.getElementById('oms-salesorders-body');
   if(!soList.length){ tbody.innerHTML = '<tr><td colspan="5" class="oms-empty">No Sales Orders found for this filter</td></tr>'; return; }
   tbody.innerHTML = soList.map(function(r){
-    var sc = STATUS_CFG[r.status] || STATUS_CFG.notfound;
-    var badge = '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.67rem;font-weight:700;background:'+sc.bg+';color:'+sc.color+';border:1px solid '+sc.border+'">'+sc.icon+' '+sc.label+'</span>';
+    var badge = omsStatusBadge(r.status);
     return '<tr style="cursor:pointer" onclick="goToOverview(\'so\',\''+escHtml(r.soNum)+'\')">' +
       '<td><button class="order-link" onclick="event.stopPropagation();goToOverview(\'so\',\''+escHtml(r.soNum)+'\')">'+escHtml(r.soNum)+'</button></td>'+
       '<td>'+escHtml(r.customer||'—')+'</td>'+
@@ -1391,6 +1392,23 @@ function normArea(a){
   return 'other';
 }
 
+function omsWoStatus(wo){
+  if(!wo) return null;
+  var w = norm(wo);
+  var onHold = Object.values(allData.process).some(function(r){ return norm(r.wo)===w && !r.shippedDate; });
+  if(onHold) return 'on-hold';
+  var shipped = Object.values(allData.shipping).some(function(r){ return (r.workOrders||[]).some(function(x){ return norm(x)===w; }); });
+  if(shipped) return 'shipped';
+  var inPack = Object.values(allData.packing).some(function(r){ return norm(r.orderNum)===w; });
+  if(inPack) return 'packing';
+  return 'active';
+}
+
+function omsStatusBadge(status){
+  var sc = STATUS_CFG[status] || STATUS_CFG.active;
+  return '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.67rem;font-weight:700;white-space:nowrap;background:'+sc.bg+';color:'+sc.color+';border:1px solid '+sc.border+'">'+sc.icon+' '+sc.label+'</span>';
+}
+
 function omsRenderIncoming(){
   var custQ = omsCustSearch.toUpperCase();
   var rows = Object.values(allData.incoming)
@@ -1399,13 +1417,15 @@ function omsRenderIncoming(){
   if(omsArea !== 'all') rows = rows.filter(function(r){ return normArea(r.area) === omsArea; });
   if(custQ) rows = rows.filter(function(r){ return (r.customer||'').toUpperCase().includes(custQ); });
   var tbody = document.getElementById('oms-incoming-body');
-  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="7" class="oms-empty">No records found for this filter</td></tr>'; return; }
+  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="8" class="oms-empty">No records found for this filter</td></tr>'; return; }
   tbody.innerHTML = rows.map(function(r){
     var woLink = r.wo ? '<button class="order-link" onclick="goToOverview(\'wo\',\''+escHtml(r.wo)+'\')">'+escHtml(r.wo)+'</button>' : '—';
+    var status = r.wo ? omsWoStatus(r.wo) : null;
     return '<tr><td>'+fmtDate(r.date)+'</td><td>'+escHtml(r.formNum||'—')+'</td><td>'+woLink+'</td>'+
       '<td>'+escHtml(r.customer||'—')+'</td><td>'+escHtml(r.equipment||'—')+'</td>'+
       '<td><span class="area-badge">'+escHtml(r.area||'—')+'</span></td>'+
-      '<td>'+escHtml(r.whatToDo||'—')+'</td></tr>';
+      '<td>'+escHtml(r.whatToDo||'—')+'</td>'+
+      '<td>'+(status ? omsStatusBadge(status) : '—')+'</td></tr>';
   }).join('');
 }
 
