@@ -2898,7 +2898,7 @@ function renderIncoming(){
       '<td title="'+escAttr((r.equipment||'').toUpperCase())+'">'+escHtml((r.equipment||'—').toUpperCase())+'</td>'+
       '<td>'+areaBadge(r.area)+'</td>'+
       '<td>'+(r.priority==='Rush'?'<span style="background:#fee2e2;color:#dc2626;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap">🔴 Rush</span>':(r.priority||'Regular'))+'</td>'+
-      '<td>'+locationBadge(r.designatedLocation, r.benchName, r.locationOther)+'</td>'+
+      '<td>'+locationBadge(r.designatedLocation||(r.wo?'Laydown Area':''), r.benchName, r.locationOther)+'</td>'+
       '<td>'+escHtml((r.deliveryBy||'—').toUpperCase())+'</td>'+
       '<td>'+escHtml(r.receivedBy||'—')+'</td>'+
       '<td onclick="event.stopPropagation()">'+
@@ -2985,7 +2985,7 @@ function openIncomingModal(key){
     document.getElementById('inc-attach-volute').checked       = aStr.includes('volute');
     document.getElementById('inc-attach-other').value          = r.attachOther||'';
     // Location
-    setIncLocation(r.designatedLocation||'');
+    setIncLocation(r.designatedLocation||(r.wo?'Laydown Area':''));
     document.getElementById('inc-location-other').value = r.locationOther||'';
     // Pictures
     document.getElementById('inc-pics-qty').value  = r.picsQty||r.picsqty||'';
