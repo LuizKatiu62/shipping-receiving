@@ -1313,11 +1313,13 @@ function omsRenderSalesOrders(){
 
   // Collect unique SO numbers with metadata
   var soMap = {};
+  function ensureSo(so){ if(!soMap[so]) soMap[so] = {customers:[], itemDates:[], shpDates:[], procDates:[], itemCount:0}; }
+
   Object.values(allData.items).forEach(function(doc){
     (doc.lineItems||[]).forEach(function(li){
       if(li.applicationType !== 'Sales Order' || !li.salesOrderNum) return;
       var so = li.salesOrderNum.trim().toUpperCase();
-      if(!soMap[so]) soMap[so] = {customers:[], itemDates:[], shpDates:[], itemCount:0};
+      ensureSo(so);
       if(li.customer && soMap[so].customers.indexOf(li.customer)<0) soMap[so].customers.push(li.customer);
       if(doc.date) soMap[so].itemDates.push(doc.date);
       soMap[so].itemCount++;
@@ -1327,15 +1329,30 @@ function omsRenderSalesOrders(){
     (r.salesOrders||[]).forEach(function(s){
       if(!s) return;
       var so = s.trim().toUpperCase();
-      if(!soMap[so]) soMap[so] = {customers:[], itemDates:[], shpDates:[], itemCount:0};
+      ensureSo(so);
       if(r.customer && soMap[so].customers.indexOf(r.customer)<0) soMap[so].customers.push(r.customer);
       if(r.date) soMap[so].shpDates.push(r.date);
     });
   });
+  // Also collect SOs that exist only in Process on Hold or Packing
+  Object.values(allData.process).forEach(function(r){
+    if(!r.so) return;
+    var so = r.so.trim().toUpperCase();
+    ensureSo(so);
+    if(r.customer && soMap[so].customers.indexOf(r.customer)<0) soMap[so].customers.push(r.customer);
+    if(r.receivedDate) soMap[so].procDates.push(r.receivedDate);
+  });
+  Object.values(allData.packing).forEach(function(r){
+    if(!r.orderNum) return;
+    var so = r.orderNum.trim().toUpperCase();
+    // Only add if looks like a SO (not a WO) — skip if already in map as WO
+    ensureSo(so);
+    if(r.customer && soMap[so].customers.indexOf(r.customer)<0) soMap[so].customers.push(r.customer);
+  });
 
   var soList = Object.keys(soMap).map(function(soNum){
     var info = soMap[soNum];
-    var allDates = info.itemDates.concat(info.shpDates);
+    var allDates = info.itemDates.concat(info.shpDates).concat(info.procDates);
     allDates.sort();
     var lastDate  = allDates[allDates.length-1] || '';
     var customer  = info.customers[0] || '';
