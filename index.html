@@ -270,7 +270,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--surface-alt);colo
 .dcf-form{width:100%;max-width:740px;margin:0 auto;font-family:'Inter',sans-serif}
 .dcf-form-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:16px}
 .dcf-logo-block{display:flex;align-items:flex-start;gap:9px}
-.dcf-logo-mark{width:34px;height:34px;background:linear-gradient(135deg,#b91c1c,#7f1d1d);border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;font-weight:900;letter-spacing:-1px;flex-shrink:0}
+.dcf-logo-mark{height:36px;width:auto;display:block;flex-shrink:0}
 .dcf-brand-name{font-size:.88rem;font-weight:900;color:#1a1a2e;letter-spacing:.5px;line-height:1.2}
 .dcf-brand-sub{font-size:.62rem;color:#6b7280;font-style:italic;margin-top:2px}
 .dcf-meta{font-size:.68rem;color:#374151;line-height:2;text-align:right}
@@ -6665,7 +6665,7 @@ function renderDcf(){
     '<div class="dcf-form">'+
       '<div class="dcf-form-header">'+
         '<div class="dcf-logo-block">'+
-          '<div class="dcf-logo-mark">SA</div>'+
+          '<img class="dcf-logo-mark" src="logo.png" alt="Source Atlantic">'+
           '<div>'+
             '<div class="dcf-brand-name">SOURCE ATLANTIC</div>'+
             '<div class="dcf-brand-sub">Engineered Products &amp; Services</div>'+
@@ -6707,7 +6707,7 @@ function printDcf(){
     '.dcf-form{width:100%}'+
     '.dcf-form-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:12px}'+
     '.dcf-logo-block{display:flex;align-items:flex-start;gap:8px;flex-shrink:0}'+
-    '.dcf-logo-mark{width:30px;height:30px;background:#9b1c1c;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem;font-weight:900;letter-spacing:-1px;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+    '.dcf-logo-mark{height:34px;width:auto;display:block;flex-shrink:0}'+
     '.dcf-brand-name{font-size:.82rem;font-weight:900;color:#1a1a2e;letter-spacing:.4px;line-height:1.2}'+
     '.dcf-brand-sub{font-size:.58rem;color:#555;font-style:italic;margin-top:2px}'+
     '.dcf-meta{font-size:.64rem;color:#374151;line-height:1.9;text-align:right;white-space:nowrap}'+
