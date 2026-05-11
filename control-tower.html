@@ -461,6 +461,7 @@ body>*{position:relative;z-index:1}
       <div class="oms-stab-left">
         <button class="oms-stab active" id="oms-stab-incoming" onclick="omsSetSection('incoming')">📋 Incoming Forms</button>
         <button class="oms-stab" id="oms-stab-items" onclick="omsSetSection('items')">📦 Incoming Items</button>
+        <button class="oms-stab" id="oms-stab-salesorders" onclick="omsSetSection('salesorders')">📊 Sales Orders</button>
         <button class="oms-stab" id="oms-stab-shipping" onclick="omsSetSection('shipping')">🚚 Shipping</button>
       </div>
       <button class="btn-excel" onclick="downloadOmsExcel()">⬇ Download Excel</button>
@@ -509,6 +510,20 @@ body>*{position:relative;z-index:1}
               <th>Date</th><th>Receipt #</th><th>Material / Description</th><th>Qty</th><th>Work Order #</th><th>Sales Order #</th><th>Area</th><th>Customer</th><th>Bin</th>
             </tr></thead>
             <tbody id="oms-items-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SALES ORDERS -->
+    <div id="oms-sec-salesorders" style="display:none">
+      <div class="oms-table-wrap">
+        <div class="oms-table-scroll">
+          <table class="ct-table">
+            <thead><tr>
+              <th>Sales Order #</th><th>Customer</th><th>Status</th><th style="text-align:center">Items</th><th>Last Activity</th>
+            </tr></thead>
+            <tbody id="oms-salesorders-body"></tbody>
           </table>
         </div>
       </div>
@@ -1219,7 +1234,7 @@ function omsPopulateDays(){
 
 function omsSetSection(s){
   omsSection = s;
-  ['incoming','items','shipping'].forEach(function(k){
+  ['incoming','items','salesorders','shipping'].forEach(function(k){
     document.getElementById('oms-stab-'+k).classList.toggle('active', k===s);
     document.getElementById('oms-sec-'+k).style.display = k===s ? '' : 'none';
   });
@@ -1282,9 +1297,70 @@ function omsRender(){
 }
 
 function omsRenderSection(){
-  if(omsSection==='incoming')  omsRenderIncoming();
-  else if(omsSection==='items') omsRenderItems();
+  if(omsSection==='incoming')      omsRenderIncoming();
+  else if(omsSection==='items')    omsRenderItems();
+  else if(omsSection==='salesorders') omsRenderSalesOrders();
   else omsRenderShipping();
+}
+
+function omsRenderSalesOrders(){
+  var custQ = omsCustSearch.toUpperCase();
+  var yr = document.getElementById('oms-year').value;
+  var mo = document.getElementById('oms-month').value;
+  var df = document.getElementById('oms-day-from').value;
+  var dt = document.getElementById('oms-day-to').value;
+  var hasDateFilter = yr || mo || df || dt;
+
+  // Collect unique SO numbers with metadata
+  var soMap = {};
+  Object.values(allData.items).forEach(function(doc){
+    (doc.lineItems||[]).forEach(function(li){
+      if(li.applicationType !== 'Sales Order' || !li.salesOrderNum) return;
+      var so = li.salesOrderNum.trim().toUpperCase();
+      if(!soMap[so]) soMap[so] = {customers:[], itemDates:[], shpDates:[], itemCount:0};
+      if(li.customer && soMap[so].customers.indexOf(li.customer)<0) soMap[so].customers.push(li.customer);
+      if(doc.date) soMap[so].itemDates.push(doc.date);
+      soMap[so].itemCount++;
+    });
+  });
+  Object.values(allData.shipping).forEach(function(r){
+    (r.salesOrders||[]).forEach(function(s){
+      if(!s) return;
+      var so = s.trim().toUpperCase();
+      if(!soMap[so]) soMap[so] = {customers:[], itemDates:[], shpDates:[], itemCount:0};
+      if(r.customer && soMap[so].customers.indexOf(r.customer)<0) soMap[so].customers.push(r.customer);
+      if(r.date) soMap[so].shpDates.push(r.date);
+    });
+  });
+
+  var soList = Object.keys(soMap).map(function(soNum){
+    var info = soMap[soNum];
+    var allDates = info.itemDates.concat(info.shpDates);
+    allDates.sort();
+    var lastDate  = allDates[allDates.length-1] || '';
+    var customer  = info.customers[0] || '';
+    var dateMatch = allDates.some(function(d){ return omsDateMatch(d); });
+    var status = info.shpDates.length > 0 ? 'shipped' : info.itemCount > 0 ? 'active' : 'notfound';
+    return {soNum:soNum, customer:customer, itemCount:info.itemCount, lastDate:lastDate, status:status, dateMatch:dateMatch};
+  });
+
+  if(hasDateFilter) soList = soList.filter(function(s){ return s.dateMatch; });
+  if(custQ) soList = soList.filter(function(s){ return s.customer.toUpperCase().includes(custQ); });
+  soList.sort(function(a,b){ return (b.lastDate||'').localeCompare(a.lastDate||''); });
+
+  var tbody = document.getElementById('oms-salesorders-body');
+  if(!soList.length){ tbody.innerHTML = '<tr><td colspan="5" class="oms-empty">No Sales Orders found for this filter</td></tr>'; return; }
+  tbody.innerHTML = soList.map(function(r){
+    var sc = STATUS_CFG[r.status] || STATUS_CFG.notfound;
+    var badge = '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.67rem;font-weight:700;background:'+sc.bg+';color:'+sc.color+';border:1px solid '+sc.border+'">'+sc.icon+' '+sc.label+'</span>';
+    return '<tr style="cursor:pointer" onclick="goToOverview(\'so\',\''+escHtml(r.soNum)+'\')">' +
+      '<td><button class="order-link" onclick="event.stopPropagation();goToOverview(\'so\',\''+escHtml(r.soNum)+'\')">'+escHtml(r.soNum)+'</button></td>'+
+      '<td>'+escHtml(r.customer||'—')+'</td>'+
+      '<td>'+badge+'</td>'+
+      '<td style="text-align:center;font-weight:700">'+r.itemCount+'</td>'+
+      '<td>'+fmtDate(r.lastDate)+'</td>'+
+      '</tr>';
+  }).join('');
 }
 
 function omsRenderKPIs(){
