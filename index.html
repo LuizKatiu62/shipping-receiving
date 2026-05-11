@@ -543,7 +543,7 @@ document.addEventListener('keydown', function(ev){
         <div class="auth-field">
           <label>Password</label>
           <div class="pw-wrap">
-            <input type="password" id="auth-login-pass" placeholder="••••••••" autocomplete="current-password" autocapitalize="none" autocorrect="off" onkeydown="if(event.key==='Enter')doLogin()">
+            <input type="password" id="auth-login-pass" placeholder="••••••••" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" data-nocase onkeydown="if(event.key==='Enter')doLogin()">
             <button type="button" class="pw-toggle" onclick="togglePw('auth-login-pass',this)" title="Show/hide password">👁</button>
           </div>
         </div>
@@ -566,7 +566,7 @@ document.addEventListener('keydown', function(ev){
         <div class="auth-field">
           <label>Password</label>
           <div class="pw-wrap">
-            <input type="password" id="auth-reg-pass" placeholder="••••••••" autocomplete="new-password" autocapitalize="none" autocorrect="off" onkeydown="if(event.key==='Enter')doRegister()" oninput="checkPwRules(this.value)">
+            <input type="password" id="auth-reg-pass" placeholder="••••••••" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" data-nocase onkeydown="if(event.key==='Enter')doRegister()" oninput="checkPwRules(this.value)">
             <button type="button" class="pw-toggle" onclick="togglePw('auth-reg-pass',this)" title="Show/hide password">👁</button>
           </div>
           <div class="pw-rules">
@@ -578,7 +578,7 @@ document.addEventListener('keydown', function(ev){
         <div class="auth-field">
           <label>Confirm Password</label>
           <div class="pw-wrap">
-            <input type="password" id="auth-reg-pass2" placeholder="••••••••" autocomplete="new-password" autocapitalize="none" autocorrect="off" onkeydown="if(event.key==='Enter')doRegister()">
+            <input type="password" id="auth-reg-pass2" placeholder="••••••••" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" data-nocase onkeydown="if(event.key==='Enter')doRegister()">
             <button type="button" class="pw-toggle" onclick="togglePw('auth-reg-pass2',this)" title="Show/hide password">👁</button>
           </div>
         </div>
@@ -2496,6 +2496,9 @@ function togglePw(id, btn){
   var inp = document.getElementById(id);
   if(!inp) return;
   inp.type = inp.type === 'password' ? 'text' : 'password';
+  inp.setAttribute('autocapitalize', 'none');
+  inp.setAttribute('autocorrect', 'off');
+  inp.setAttribute('spellcheck', 'false');
   btn.textContent = inp.type === 'password' ? '👁' : '🙈';
 }
 
