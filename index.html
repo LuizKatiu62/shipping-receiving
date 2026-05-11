@@ -6697,34 +6697,33 @@ function renderDcf(){
 function printDcf(){
   var selDate = document.getElementById('dcf-date-input').value || today();
   var content = document.getElementById('dcf-printable').innerHTML;
-  var win = window.open('','_blank','width=860,height=1100');
+  var win = window.open('','_blank','width=1100,height=800');
   win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8">'+
     '<title>Daily Cash Sales Form — '+selDate+'</title>'+
     '<style>'+
     '*{box-sizing:border-box;margin:0;padding:0}'+
-    'html,body{width:100%;overflow:hidden}'+
-    'body{font-family:Arial,sans-serif;font-size:.72rem;background:#fff;color:#1a1a2e}'+
-    '.dcf-form{width:100%}'+
-    '.dcf-form-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:12px}'+
-    '.dcf-logo-block{display:flex;align-items:flex-start;gap:8px;flex-shrink:0}'+
-    '.dcf-logo-mark{height:34px;width:auto;display:block;flex-shrink:0}'+
-    '.dcf-brand-name{font-size:.82rem;font-weight:900;color:#1a1a2e;letter-spacing:.4px;line-height:1.2}'+
-    '.dcf-brand-sub{font-size:.58rem;color:#555;font-style:italic;margin-top:2px}'+
-    '.dcf-meta{font-size:.64rem;color:#374151;line-height:1.9;text-align:right;white-space:nowrap}'+
-    '.dcf-meta span{display:inline-block;min-width:100px;border-bottom:1px solid #94a3b8;padding-bottom:1px;margin-left:4px;color:#0f172a;font-weight:600}'+
-    '.dcf-form-title{text-align:center;font-size:.9rem;font-weight:900;letter-spacing:1px;color:#1a1a2e;text-transform:uppercase;margin-bottom:8px;border-top:2px solid #1a1a2e;border-bottom:2px solid #1a1a2e;padding:4px 0}'+
+    'body{font-family:Arial,sans-serif;font-size:.7rem;background:#fff;color:#1a1a2e;width:100%}'+
+    '.dcf-form{width:100%;max-width:100%}'+
+    '.dcf-form-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px}'+
+    '.dcf-logo-block{display:flex;align-items:flex-start;gap:7px;flex-shrink:0;max-width:45%}'+
+    '.dcf-logo-mark{height:30px;width:auto;display:block;flex-shrink:0;max-width:120px}'+
+    '.dcf-brand-name{font-size:.78rem;font-weight:900;color:#1a1a2e;letter-spacing:.3px;line-height:1.2}'+
+    '.dcf-brand-sub{font-size:.56rem;color:#555;font-style:italic;margin-top:2px}'+
+    '.dcf-meta{font-size:.62rem;color:#374151;line-height:1.8;text-align:right;max-width:50%}'+
+    '.dcf-meta span{display:inline-block;min-width:80px;border-bottom:1px solid #94a3b8;padding-bottom:1px;margin-left:4px;color:#0f172a;font-weight:600}'+
+    '.dcf-form-title{text-align:center;font-size:.85rem;font-weight:900;letter-spacing:.8px;color:#1a1a2e;text-transform:uppercase;margin-bottom:7px;border-top:2px solid #1a1a2e;border-bottom:2px solid #1a1a2e;padding:3px 0}'+
     '.dcf-table{width:100%;border-collapse:collapse;border:1.5px solid #374151;table-layout:fixed}'+
-    '.dcf-table th,.dcf-table td{border:1px solid #374151;padding:3px 4px;text-align:center;font-size:.62rem;overflow:hidden;word-break:break-word}'+
-    '.dcf-table th{background:#1a1a2e!important;color:#fff!important;font-weight:800;font-size:.57rem;text-transform:uppercase;letter-spacing:.2px;line-height:1.2;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
-    '.dcf-table td{height:20px;vertical-align:middle;background:#fff;color:#1a1a2e}'+
-    '.dcf-date{font-size:.6rem}'+
+    '.dcf-table th,.dcf-table td{border:1px solid #374151;padding:2px 3px;text-align:center;font-size:.58rem;overflow:hidden;word-break:break-all}'+
+    '.dcf-table th{background:#1a1a2e!important;color:#fff!important;font-weight:800;font-size:.54rem;text-transform:uppercase;letter-spacing:.1px;line-height:1.2;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+    '.dcf-table td{height:18px;vertical-align:middle;background:#fff;color:#1a1a2e}'+
+    '.dcf-date{font-size:.56rem}'+
     '.dcf-amt{font-weight:700;color:#166534}'+
     '.dcf-total-row td{background:#eff6ff!important;font-weight:800;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
     '.dcf-total-row .dcf-amt{color:#1d4ed8}'+
-    '.dcf-lbl{text-align:right!important;font-size:.57rem;letter-spacing:.3px;padding-right:6px}'+
+    '.dcf-lbl{text-align:right!important;font-size:.54rem;letter-spacing:.2px;padding-right:5px}'+
     '.dcf-empty-row td{background:#fafafa!important}'+
-    '@page{size:letter landscape;margin:10mm 8mm}'+
-    '@media print{html,body{overflow:visible}}'+
+    '@page{size:letter landscape;margin:8mm 6mm}'+
+    '@media print{body{width:100%;margin:0;padding:0}}'+
     '</style></head><body>'+content+'</body></html>');
   win.document.close();
   win.focus();
