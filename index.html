@@ -4517,6 +4517,30 @@ function saveShipment(){
     if(v){ shpTags[t.field].push(v); el.value=''; renderShpTags(t.field); if(t.field==='wo') prefillFromIncoming(v); }
   });
   lookupProcPhotos();
+
+  // Check for active holds on any WO being shipped
+  if(shpTags.wo.length && typeof procData !== 'undefined'){
+    var holdWarnings = [];
+    shpTags.wo.forEach(function(wo){
+      var woUp = (wo||'').trim().toUpperCase();
+      Object.values(procData).forEach(function(r){
+        if((r.wo||'').trim().toUpperCase() !== woUp) return;
+        var activeHolds = [];
+        if(_holdActive(r,'qa'))     activeHolds.push('Waiting QA');
+        if(_holdActive(r,'po'))     activeHolds.push('Missing PO');
+        if(_holdActive(r,'others')){
+          var desc = (r.holds&&r.holds.others&&r.holds.others.description) ? r.holds.others.description : (r.holdReasonOther||'Other');
+          activeHolds.push('Other: '+desc);
+        }
+        if(activeHolds.length) holdWarnings.push('WO '+woUp+' — '+activeHolds.join(', '));
+      });
+    });
+    if(holdWarnings.length){
+      var msg = '⚠️ The following Work Orders have PENDING holds:\n\n'+holdWarnings.join('\n')+'\n\nShip anyway?';
+      if(!confirm(msg)) return;
+    }
+  }
+
   var materialType  = document.getElementById('shp-material-type').value;
   var materialOther = document.getElementById('shp-material-other').value.trim().toUpperCase();
   var material      = (materialType === 'Other' ? materialOther : materialType).toUpperCase();
