@@ -178,7 +178,8 @@ body>*{position:relative;z-index:1}
 .oms-stab-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:space-between}
 .oms-stab-left{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .oms-cust-search{position:relative;display:flex;align-items:center}
-.oms-cust-search input{height:36px;padding:0 30px 0 30px;border:1.5px solid var(--border);border-radius:8px;font-size:.8rem;font-family:inherit;color:var(--text);background:#fff;outline:none;width:100%;transition:border-color .15s}
+.oms-cust-search input{height:36px;padding:0 30px 0 30px;border:1.5px solid var(--border);border-radius:8px;font-size:.8rem;font-family:inherit;color:var(--text);background:#fff;outline:none;width:100%;transition:border-color .15s;text-transform:uppercase}
+.oms-cust-search input::placeholder{text-transform:none}
 .oms-cust-search input:focus{border-color:var(--blue)}
 .oms-cust-search input::placeholder{color:var(--muted);font-weight:400}
 .oms-cust-search .cust-icon{position:absolute;left:9px;font-size:.8rem;pointer-events:none;color:var(--muted)}
@@ -1375,7 +1376,7 @@ function omsRenderSalesOrders(){
     var badge = omsStatusBadge(r.status);
     return '<tr style="cursor:pointer" onclick="goToOverview(\'so\',\''+escHtml(r.soNum)+'\')">' +
       '<td><button class="order-link" onclick="event.stopPropagation();goToOverview(\'so\',\''+escHtml(r.soNum)+'\')">'+escHtml(r.soNum)+'</button></td>'+
-      '<td>'+escHtml(r.customer||'—')+'</td>'+
+      '<td style="text-transform:uppercase">'+escHtml(r.customer||'—')+'</td>'+
       '<td>'+badge+'</td>'+
       '<td style="text-align:center;font-weight:700">'+r.itemCount+'</td>'+
       '<td>'+fmtDate(r.lastDate)+'</td>'+
@@ -1450,9 +1451,10 @@ function omsRenderIncoming(){
     var woLink = r.wo ? '<button class="order-link" onclick="goToOverview(\'wo\',\''+escHtml(r.wo)+'\')">'+escHtml(r.wo)+'</button>' : '—';
     var status = r.wo ? omsWoStatus(r.wo) : null;
     return '<tr><td>'+fmtDate(r.date)+'</td><td>'+escHtml(r.formNum||'—')+'</td><td>'+woLink+'</td>'+
-      '<td>'+escHtml(r.customer||'—')+'</td><td>'+escHtml(r.equipment||'—')+'</td>'+
-      '<td><span class="area-badge">'+escHtml(r.area||'—')+'</span></td>'+
-      '<td>'+escHtml(r.whatToDo||'—')+'</td>'+
+      '<td>'+escHtml(r.customer||'—')+'</td>'+
+      '<td style="text-transform:uppercase">'+escHtml(r.equipment||'—')+'</td>'+
+      '<td><span class="area-badge" style="text-transform:uppercase">'+escHtml(r.area||'—')+'</span></td>'+
+      '<td style="text-transform:uppercase">'+escHtml(r.whatToDo||'—')+'</td>'+
       '<td>'+(status ? omsStatusBadge(status) : '—')+'</td></tr>';
   }).join('');
 }
@@ -1495,9 +1497,9 @@ function omsRenderItems(){
     var woLink = r.wo ? '<button class="order-link" onclick="goToOverview(\'wo\',\''+escHtml(r.wo)+'\')">'+escHtml(r.wo)+'</button>' : '—';
     var soLink = r.so ? '<button class="order-link" onclick="goToOverview(\'so\',\''+escHtml(r.so)+'\')">'+escHtml(r.so)+'</button>' : '—';
     return '<tr><td>'+fmtDate(r.date)+'</td><td>'+escHtml(r.docNum||'—')+'</td>'+
-      '<td>'+escHtml(r.material||'—')+'</td><td style="text-align:center">'+escHtml(r.qty||'—')+'</td>'+
+      '<td style="text-transform:uppercase">'+escHtml(r.material||'—')+'</td><td style="text-align:center">'+escHtml(r.qty||'—')+'</td>'+
       '<td>'+woLink+'</td><td>'+soLink+'</td>'+
-      '<td>'+escHtml(r.area||'—')+'</td><td>'+escHtml(r.customer||'—')+'</td><td>'+binHtml+'</td></tr>';
+      '<td style="text-transform:uppercase">'+escHtml(r.area||'—')+'</td><td style="text-transform:uppercase">'+escHtml(r.customer||'—')+'</td><td>'+binHtml+'</td></tr>';
   }).join('');
 }
 
@@ -1536,9 +1538,9 @@ function omsRenderShipping(){
     var sos = (r.salesOrders||[]).filter(Boolean);
     var woHtml = wos.length ? wos.map(function(w){ return '<button class="order-link" onclick="goToOverview(\'wo\',\''+escHtml(w)+'\')">'+escHtml(w)+'</button>'; }).join('<br>') : '—';
     var soHtml = sos.length ? sos.map(function(s){ return '<button class="order-link" onclick="goToOverview(\'so\',\''+escHtml(s)+'\')">'+escHtml(s)+'</button>'; }).join('<br>') : '—';
-    return '<tr><td>'+fmtDate(r.date)+'</td><td>'+escHtml(r.customer||'—')+'</td><td>'+escHtml(dest)+'</td>'+
+    return '<tr><td>'+fmtDate(r.date)+'</td><td style="text-transform:uppercase">'+escHtml(r.customer||'—')+'</td><td style="text-transform:uppercase">'+escHtml(dest)+'</td>'+
       '<td>'+woHtml+'</td><td>'+soHtml+'</td>'+
-      '<td>'+escHtml(carrierName)+'</td><td style="font-size:.72rem">'+escHtml(trackNum||'—')+'</td>'+
+      '<td style="text-transform:uppercase">'+escHtml(carrierName)+'</td><td style="font-size:.72rem">'+escHtml(trackNum||'—')+'</td>'+
       '<td style="text-align:center">'+escHtml(r.pc||'—')+'</td>'+
       '<td style="text-align:center">'+escHtml(r.lb||'—')+'</td></tr>';
   }).join('');
