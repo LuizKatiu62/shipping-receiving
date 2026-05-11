@@ -441,13 +441,13 @@ body>*{position:relative;z-index:1}
           </div>
         </div>
         <button class="oms-reset-btn" onclick="omsReset()">✕ Reset</button>
-        <div class="oms-filter-group" style="flex:1;min-width:180px;max-width:280px">
-          <div class="oms-filter-label">Customer</div>
+        <div class="oms-filter-group" style="flex:2;min-width:220px">
+          <div class="oms-filter-label">Search — Incoming #, WO #, Customer, Equipment, Category, Material, SO #, Tracking</div>
           <div class="oms-cust-search">
-            <span class="cust-icon">👤</span>
-            <input type="text" id="oms-cust-input" placeholder="Search customer…"
-              oninput="omsCustSearch=this.value.trim();document.getElementById('oms-cust-clr').style.display=this.value?'block':'none';omsRenderSection()">
-            <button class="cust-clear" id="oms-cust-clr" onclick="document.getElementById('oms-cust-input').value='';omsCustSearch='';this.style.display='none';omsRenderSection()">✕</button>
+            <span class="cust-icon">🔍</span>
+            <input type="text" id="oms-cust-input" placeholder="Search across all fields…"
+              oninput="omsSearch=this.value.trim();document.getElementById('oms-cust-clr').style.display=this.value?'block':'none';omsRenderSection()">
+            <button class="cust-clear" id="oms-cust-clr" onclick="document.getElementById('oms-cust-input').value='';omsSearch='';this.style.display='none';omsRenderSection()">✕</button>
           </div>
         </div>
       </div>
@@ -1163,7 +1163,7 @@ var omsArea      = 'all';
 var omsItemCat   = 'all';
 var omsItemArea  = 'all';
 var omsProvince  = null;
-var omsCustSearch = '';
+var omsSearch = '';
 var urlParamsApplied = false;
 
 var PROV_ABBR = {
@@ -1272,7 +1272,7 @@ function omsReset(){
   document.getElementById('oms-day-to').value   = '';
   omsProvince = null;
   var b = document.getElementById('oms-prov-banner'); if(b) b.style.display = 'none';
-  omsCustSearch = '';
+  omsSearch = '';
   var ci = document.getElementById('oms-cust-input'); if(ci) ci.value = '';
   var cc = document.getElementById('oms-cust-clr'); if(cc) cc.style.display = 'none';
   omsItemCat = 'all';
@@ -1304,7 +1304,7 @@ function omsRenderSection(){
 }
 
 function omsRenderSalesOrders(){
-  var custQ = omsCustSearch.toUpperCase();
+  var custQ = omsSearch.toUpperCase();
   var yr = document.getElementById('oms-year').value;
   var mo = document.getElementById('oms-month').value;
   var df = document.getElementById('oms-day-from').value;
@@ -1364,7 +1364,9 @@ function omsRenderSalesOrders(){
   });
 
   if(hasDateFilter) soList = soList.filter(function(s){ return s.dateMatch; });
-  if(custQ) soList = soList.filter(function(s){ return s.customer.toUpperCase().includes(custQ); });
+  if(custQ) soList = soList.filter(function(s){
+    return s.soNum.includes(custQ) || s.customer.toUpperCase().includes(custQ);
+  });
   soList.sort(function(a,b){ return (b.lastDate||'').localeCompare(a.lastDate||''); });
 
   var tbody = document.getElementById('oms-salesorders-body');
@@ -1427,12 +1429,21 @@ function omsStatusBadge(status){
 }
 
 function omsRenderIncoming(){
-  var custQ = omsCustSearch.toUpperCase();
+  var q = omsSearch.toUpperCase();
   var rows = Object.values(allData.incoming)
     .filter(function(r){ return omsDateMatch(r.date); })
     .sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
   if(omsArea !== 'all') rows = rows.filter(function(r){ return normArea(r.area) === omsArea; });
-  if(custQ) rows = rows.filter(function(r){ return (r.customer||'').toUpperCase().includes(custQ); });
+  if(q) rows = rows.filter(function(r){
+    return (r.formNum||'').toUpperCase().includes(q)
+        || (r.wo||'').toUpperCase().includes(q)
+        || (r.customer||'').toUpperCase().includes(q)
+        || (r.equipment||'').toUpperCase().includes(q)
+        || (r.area||'').toUpperCase().includes(q)
+        || (r.whatToDo||'').toUpperCase().includes(q)
+        || (r.manufacturer||'').toUpperCase().includes(q)
+        || (r.serialNumber||'').toUpperCase().includes(q);
+  });
   var tbody = document.getElementById('oms-incoming-body');
   if(!rows.length){ tbody.innerHTML = '<tr><td colspan="8" class="oms-empty">No records found for this filter</td></tr>'; return; }
   tbody.innerHTML = rows.map(function(r){
@@ -1465,7 +1476,15 @@ function omsRenderItems(){
   else if(omsItemCat==='other') rows = allRows.filter(function(r){ return r.binLocation!=='WIP' && r.appType!=='Sales Order'; });
   else                          rows = allRows;
   if(omsItemArea !== 'all') rows = rows.filter(function(r){ return normArea(r.area) === omsItemArea; });
-  if(omsCustSearch) rows = rows.filter(function(r){ return (r.customer||'').toUpperCase().includes(omsCustSearch.toUpperCase()); });
+  if(omsSearch){ var _q = omsSearch.toUpperCase(); rows = rows.filter(function(r){
+    return (r.docNum||'').toUpperCase().includes(_q)
+        || (r.material||'').toUpperCase().includes(_q)
+        || (r.wo||'').toUpperCase().includes(_q)
+        || (r.so||'').toUpperCase().includes(_q)
+        || (r.customer||'').toUpperCase().includes(_q)
+        || (r.area||'').toUpperCase().includes(_q)
+        || (r.binLocation||'').toUpperCase().includes(_q);
+  }); }
   rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
   var tbody = document.getElementById('oms-items-body');
   if(!rows.length){ tbody.innerHTML = '<tr><td colspan="9" class="oms-empty">No items found for this filter</td></tr>'; return; }
@@ -1490,11 +1509,22 @@ function omsRenderShipping(){
   } else {
     banner.style.display = 'none';
   }
-  var custQ = omsCustSearch.toUpperCase();
+  var _sq = omsSearch.toUpperCase();
   var rows = Object.values(allData.shipping)
     .filter(function(r){ return omsDateMatch(r.date); })
     .filter(function(r){ return !omsProvince || destKeyCT(r) === omsProvince; })
-    .filter(function(r){ return !custQ || (r.customer||'').toUpperCase().includes(custQ); })
+    .filter(function(r){
+      if(!_sq) return true;
+      var trackNum = formatTrackNum(r.trackingNum||'');
+      return (r.customer||'').toUpperCase().includes(_sq)
+          || (r.outgoing||'').toUpperCase().includes(_sq)
+          || (r.material||'').toUpperCase().includes(_sq)
+          || (r.city||'').toUpperCase().includes(_sq)
+          || (trackNum||'').toUpperCase().includes(_sq)
+          || (r.salesOrders||[]).some(function(s){ return (s||'').toUpperCase().includes(_sq); })
+          || (r.workOrders||[]).some(function(w){ return (w||'').toUpperCase().includes(_sq); })
+          || (r.transferNums||[]).some(function(t){ return (t||'').toUpperCase().includes(_sq); });
+    })
     .sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
   var tbody = document.getElementById('oms-shipping-body');
   if(!rows.length){ tbody.innerHTML = '<tr><td colspan="9" class="oms-empty">No shipments found for this filter</td></tr>'; return; }
