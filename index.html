@@ -2879,7 +2879,7 @@ function renderIncoming(){
       || (r.area||'').toLowerCase().includes(q)
       || (r.manufacturer||'').toLowerCase().includes(q)
       || (r.serialNumber||'').toLowerCase().includes(q)
-      || (r.designatedLocation||'').toLowerCase().includes(q);
+      || (r.designatedLocation||'Laydown Area').toLowerCase().includes(q);
   });
 
   var tbody = document.getElementById('inc-tbody');
@@ -4723,7 +4723,8 @@ function renderItmLines(){
       '<td style="padding:4px 6px;width:145px">'+
         '<select id="itm-l'+i+'-bin" onchange="toggleLineStock('+i+')" style="'+fi+'"><option value="">— BIN —</option>'+binSel+'</select>'+
         '<input type="text" id="itm-l'+i+'-binstock" placeholder="BIN Location" oninput="enforceUpper(this)" value="'+escAttr(item.binStock||'')+'" style="'+fi+';margin-top:3px;display:'+(isStock?'block':'none')+'">'+
-        '<input type="text" id="itm-l'+i+'-wipwo" placeholder="Work Order #" oninput="enforceUpper(this);autoFillFromWo(this.value)" value="'+escAttr(item.wipWo||'')+'" style="'+fi+';margin-top:3px;display:'+(isWIP?'block':'none')+'">'+
+        '<input type="text" id="itm-l'+i+'-wipwo" placeholder="Work Order #" oninput="enforceUpper(this);autoFillFromWo(this.value,'+i+')" value="'+escAttr(item.wipWo||'')+'" style="'+fi+';margin-top:3px;display:'+(isWIP?'block':'none')+'">'+
+        '<input type="text" id="itm-l'+i+'-wipcustomer" placeholder="Customer" oninput="enforceUpper(this)" value="'+escAttr(item.wipCustomer||'')+'" style="'+fi+';margin-top:3px;display:'+(isWIP?'block':'none')+'">'+
         '<input type="text" id="itm-l'+i+'-nobinso" placeholder="Sales Order #" oninput="enforceUpper(this)" value="'+escAttr(item.nobinSo||'')+'" style="'+fi+';margin-top:3px;display:'+(isNOBIN?'block':'none')+'">'+
         '<button type="button" id="itm-l'+i+'-wipbtn" class="btn btn-secondary btn-sm" onclick="printItemWipLabel('+i+')" style="margin-top:3px;font-size:.65rem;padding:2px 6px;display:'+(isWIP?'block':'none')+'">🏷️ WIP Label</button>'+
         '<button type="button" id="itm-l'+i+'-labelbtn" class="btn btn-secondary btn-sm" onclick="printItemGenericLabel('+i+')" style="margin-top:3px;font-size:.65rem;padding:2px 6px;display:'+(isOther?'block':'none')+'">🏷️ Print Label</button>'+
@@ -4786,8 +4787,10 @@ function toggleLineStock(i){
   var nobinEl  = document.getElementById('itm-l'+i+'-nobinso');
   var wipBtn   = document.getElementById('itm-l'+i+'-wipbtn');
   var labelBtn = document.getElementById('itm-l'+i+'-labelbtn');
+  var custEl   = document.getElementById('itm-l'+i+'-wipcustomer');
   if(stockEl)  { stockEl.style.display  = val==='Stock' ? 'block' : 'none'; if(val!=='Stock') stockEl.value=''; }
   if(wipWoEl)  { wipWoEl.style.display  = val==='WIP'   ? 'block' : 'none'; if(val!=='WIP')   wipWoEl.value=''; }
+  if(custEl)   { custEl.style.display   = val==='WIP'   ? 'block' : 'none'; if(val!=='WIP')   custEl.value=''; }
   if(nobinEl)  { nobinEl.style.display  = val==='NOBIN' ? 'block' : 'none'; if(val!=='NOBIN') nobinEl.value=''; }
   if(wipBtn)   wipBtn.style.display   = val==='WIP'   ? 'block' : 'none';
   var isOther = val!=='' && val!=='Stock' && val!=='WIP' && val!=='NOBIN';
@@ -4819,7 +4822,7 @@ function toggleItmSoWo(){
 
 function autoFillWoData(i){ /* WO# now lives in header field itm-wo — no per-row lookup needed */ }
 
-function autoFillFromWo(woVal){
+function autoFillFromWo(woVal, lineIdx){
   var wo = (woVal||'').trim().toUpperCase();
   if(wo.length < 3) return;
 
@@ -4861,6 +4864,13 @@ function autoFillFromWo(woVal){
     areaEl.value = area;
     filled.push('Area');
   }
+  if(customer && lineIdx !== undefined){
+    var custEl = document.getElementById('itm-l'+lineIdx+'-wipcustomer');
+    if(custEl && !custEl.value){
+      custEl.value = customer;
+      filled.push('Customer');
+    }
+  }
   if(filled.length) showToast('✔ Auto-filled from WO ' + wo + ' — ' + filled.join(', '));
 }
 
@@ -4887,6 +4897,7 @@ function readLineItems(){
       binLocation: g('itm-l'+i+'-bin'),
       binStock:    g('itm-l'+i+'-binstock').trim(),
       wipWo:       g('itm-l'+i+'-wipwo').trim(),
+      wipCustomer: g('itm-l'+i+'-wipcustomer').trim(),
       nobinSo:     g('itm-l'+i+'-nobinso').trim()
     };
   });
@@ -4918,7 +4929,8 @@ function openItemModal(key){
     var _savedArea = first.area||'';
     itmLines = (r.lineItems||[]).map(function(li){
       return Object.assign({}, li, {
-        wipWo:   li.wipWo   || (li.binLocation==='WIP'   ? li.workOrderNum  : ''),
+        wipWo:       li.wipWo       || (li.binLocation==='WIP' ? li.workOrderNum : ''),
+        wipCustomer: li.wipCustomer || (li.binLocation==='WIP' ? li.customer     : ''),
         nobinSo: li.nobinSo || (li.binLocation==='NOBIN' ? li.salesOrderNum : '')
       });
     });
@@ -4969,7 +4981,7 @@ function saveItem(){
       salesOrderNum:   lineSO,
       workOrderNum:    lineWO,
       area:            docArea,
-      customer:        ''
+      customer:        li.wipCustomer || ''
     });
   });
   if(!lineItems.length){ alert('Add at least one item.'); return; }
