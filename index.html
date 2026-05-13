@@ -6245,20 +6245,37 @@ function payLookupOrder(){
   if(!typeRadio) return;
   var num    = document.getElementById('pay-order-num').value.trim().toUpperCase();
   var custEl = document.getElementById('pay-customer');
-  if(!num || custEl.value) return;
+  if(!num){ custEl.value = ''; return; }
+  var found = '';
   if(typeRadio.value === 'Work Order'){
-    Object.values(incomingData).forEach(function(r){
-      if((r.wo||'').trim().toUpperCase()===num && !custEl.value)
-        custEl.value = r.customer||'';
+    Object.values(incomingData).some(function(r){
+      if((r.wo||'').trim().toUpperCase()===num && r.customer){ found=r.customer; return true; }
     });
-  } else {
-    Object.values(itemsData).forEach(function(r){
-      (r.lineItems||[r]).forEach(function(li){
-        if((li.salesOrderNum||'').trim().toUpperCase()===num && !custEl.value)
-          custEl.value = li.customer||'';
+    if(!found) Object.values(itemsData).some(function(doc){
+      return (doc.lineItems||[]).some(function(li){
+        if((li.workOrderNum||'').trim().toUpperCase()===num && li.customer){ found=li.customer; return true; }
       });
     });
+    if(!found) Object.values(shpData).some(function(r){
+      if((r.workOrders||[]).some(function(w){ return (w||'').trim().toUpperCase()===num; }) && r.customer){ found=r.customer; return true; }
+    });
+    if(!found) Object.values(procData).some(function(r){
+      if((r.wo||'').trim().toUpperCase()===num && r.customer){ found=r.customer; return true; }
+    });
+  } else {
+    Object.values(itemsData).some(function(doc){
+      return (doc.lineItems||[]).some(function(li){
+        if((li.salesOrderNum||'').trim().toUpperCase()===num && li.customer){ found=li.customer; return true; }
+      });
+    });
+    if(!found) Object.values(shpData).some(function(r){
+      if((r.salesOrders||[]).some(function(s){ return (s||'').trim().toUpperCase()===num; }) && r.customer){ found=r.customer; return true; }
+    });
+    if(!found) Object.values(procData).some(function(r){
+      if((r.so||'').trim().toUpperCase()===num && r.customer){ found=r.customer; return true; }
+    });
   }
+  if(found) custEl.value = found;
 }
 
 function renderPayments(){
