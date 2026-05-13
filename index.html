@@ -6802,7 +6802,7 @@ function printDcf(){
     '<style>'+
     '*{box-sizing:border-box;margin:0;padding:0}'+
     'body{font-family:Arial,sans-serif;background:#fff;color:#1a1a2e}'+
-    '#dcf-scale-wrap{width:257mm;transform-origin:top left}'+
+    '#dcf-scale-wrap{width:25.8cm;margin:0 auto}'+
     '.dcf-form{width:100%}'+
     '.dcf-form-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px}'+
     '.dcf-logo-block{display:flex;align-items:flex-start;gap:7px;flex-shrink:0}'+
@@ -6821,27 +6821,12 @@ function printDcf(){
     '.dcf-total-row .dcf-amt{color:#1d4ed8}'+
     '.dcf-lbl{text-align:right!important;padding-right:5px}'+
     '.dcf-empty-row td{background:#fafafa!important}'+
-    '@page{size:letter landscape;margin:8mm}'+
+    '@page{size:28cm 21cm;margin:10mm 11mm}'+
     '@media print{body{margin:0}}'+
     '</style></head><body><div id="dcf-scale-wrap">'+content+'</div></body></html>');
   win.document.close();
   win.focus();
-  setTimeout(function(){
-    var wrap = win.document.getElementById('dcf-scale-wrap');
-    if(wrap){
-      var pageW = 257; // usable mm: 279.4 (letter landscape) - 2×8mm margin = ~263, conservative 257
-      var formW = wrap.scrollWidth;
-      var px_per_mm = 96/25.4;
-      var available = pageW * px_per_mm;
-      if(formW > available){
-        var scale = available / formW;
-        wrap.style.transform = 'scale('+scale.toFixed(4)+')';
-        wrap.style.transformOrigin = 'top left';
-        wrap.style.width = (100/scale).toFixed(2)+'%';
-      }
-    }
-    win.print();
-  }, 400);
+  win.print();
 }
 
 function deletePayment(){
