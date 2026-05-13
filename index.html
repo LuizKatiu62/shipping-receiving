@@ -1152,7 +1152,26 @@ document.addEventListener('keydown', function(ev){
               <button type="button" class="inc-toggle-btn" id="btn-pics-yes" onclick="setIncPicsTaken('YES')">YES</button>
               <button type="button" class="inc-toggle-btn" id="btn-pics-no" onclick="setIncPicsTaken('NO')">NO</button>
             </div>
-            <input type="text" id="inc-pics-time" placeholder="HH:MM" maxlength="5" data-nocase inputmode="numeric" style="flex:1;min-width:90px" oninput="fmtTimeInput(this)">
+            <div style="display:flex;align-items:center;gap:3px" id="inc-pics-time-picker">
+              <select id="inc-pics-hour" data-nocase onchange="syncPicsTime()" style="padding:5px 4px;border:1px solid #d1d5db;border-radius:6px;font-size:.88rem;font-weight:600;color:#1e293b;background:#fff;cursor:pointer;-webkit-appearance:auto">
+                <option value="">--</option>
+                <option>1</option><option>2</option><option>3</option><option>4</option>
+                <option>5</option><option>6</option><option>7</option><option>8</option>
+                <option>9</option><option>10</option><option>11</option><option>12</option>
+              </select>
+              <span style="font-weight:700;color:#475569">:</span>
+              <select id="inc-pics-min" data-nocase onchange="syncPicsTime()" style="padding:5px 4px;border:1px solid #d1d5db;border-radius:6px;font-size:.88rem;font-weight:600;color:#1e293b;background:#fff;cursor:pointer;-webkit-appearance:auto">
+                <option value="">--</option>
+                <option>00</option><option>05</option><option>10</option><option>15</option>
+                <option>20</option><option>25</option><option>30</option><option>35</option>
+                <option>40</option><option>45</option><option>50</option><option>55</option>
+              </select>
+              <div class="inc-toggle-group" style="margin:0">
+                <button type="button" class="inc-toggle-btn" id="btn-pics-am" onclick="setPicsAmPm('AM')">AM</button>
+                <button type="button" class="inc-toggle-btn" id="btn-pics-pm" onclick="setPicsAmPm('PM')">PM</button>
+              </div>
+            </div>
+            <input type="hidden" id="inc-pics-time">
             <input type="number" id="inc-pics-qty" placeholder="Num." min="0" style="width:68px">
           </div>
         </div>
@@ -2981,7 +3000,7 @@ function openIncomingModal(key){
     document.getElementById('inc-location-other').value = r.locationOther||'';
     // Pictures
     document.getElementById('inc-pics-qty').value  = r.picsQty||r.picsqty||'';
-    document.getElementById('inc-pics-time').value = r.picsTime||r.picstime||'';
+    setPicsTimeFromValue(r.picsTime||r.picstime||'');
     incActivateToggle('btn-pics-yes','btn-pics-no', r.picsQty && parseInt(r.picsQty)>0 ? 'YES' : (r.picsQty===''||r.picsQty===undefined ? '' : 'NO'));
     // What to Do
     var wtd = (r.whatToDo||'').toLowerCase();
@@ -3077,7 +3096,7 @@ function openIncomingModal(key){
     document.getElementById('inc-delivery-other-group').style.display = 'none';
     document.getElementById('inc-location-other-group').style.display = 'none';
     document.getElementById('inc-pics-qty').value  = '';
-    document.getElementById('inc-pics-time').value = '';
+    setPicsTimeFromValue('');
     delBtn.style.display = 'none';
   }
   modal.style.display = 'flex';
@@ -7114,6 +7133,38 @@ function fmtTimeInput(el){
   var v = el.value.replace(/[^0-9]/g,'');
   if(v.length >= 3) v = v.slice(0,2) + ':' + v.slice(2,4);
   el.value = v;
+}
+var _picsAmPm = 'AM';
+function setPicsAmPm(val){
+  _picsAmPm = val;
+  document.getElementById('btn-pics-am').classList.toggle('active', val==='AM');
+  document.getElementById('btn-pics-pm').classList.toggle('active', val==='PM');
+  syncPicsTime();
+}
+function syncPicsTime(){
+  var h = document.getElementById('inc-pics-hour').value;
+  var m = document.getElementById('inc-pics-min').value;
+  if(!h || !m){ document.getElementById('inc-pics-time').value = ''; return; }
+  var h24 = parseInt(h,10);
+  if(_picsAmPm==='AM'){ if(h24===12) h24=0; }
+  else { if(h24!==12) h24+=12; }
+  document.getElementById('inc-pics-time').value = String(h24).padStart(2,'0')+':'+m;
+}
+function setPicsTimeFromValue(val){
+  if(!val){
+    document.getElementById('inc-pics-hour').value='';
+    document.getElementById('inc-pics-min').value='';
+    setPicsAmPm('AM');
+    return;
+  }
+  var p = val.split(':');
+  var h24 = parseInt(p[0],10);
+  var m   = p[1]||'00';
+  var ampm = h24 < 12 ? 'AM' : 'PM';
+  var h12 = h24 % 12 || 12;
+  document.getElementById('inc-pics-hour').value = String(h12);
+  document.getElementById('inc-pics-min').value  = String(parseInt(m,10)).padStart(2,'0');
+  setPicsAmPm(ampm);
 }
 // Convert all text/search/textarea inputs to uppercase (value, not just display)
 document.addEventListener('input', function(e){
