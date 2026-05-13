@@ -1593,7 +1593,7 @@ document.addEventListener('keydown', function(ev){
 </div>
 
 <!-- ══ PAYMENT EMAIL CONFIRM MODAL ══ -->
-<div class="modal-overlay" id="pay-email-modal" style="display:none">
+<div class="modal-overlay" id="pay-email-modal" style="display:none" onclick="if(event.target===this)closePayEmailModal()">
   <div class="modal" style="max-width:480px">
     <div class="modal-header">
       <div class="modal-title">📧 Send Email Notification?</div>
@@ -1613,7 +1613,7 @@ document.addEventListener('keydown', function(ev){
 </div>
 
 <!-- ══ WIP EMAIL MODAL ══ -->
-<div class="modal-overlay" id="wip-email-modal" style="display:none">
+<div class="modal-overlay" id="wip-email-modal" style="display:none" onclick="if(event.target===this)closeWipEmailModal()">
   <div class="modal" style="max-width:520px">
     <div class="modal-header">
       <div class="modal-title" id="wip-email-title">📧 Send WIP Notification?</div>
@@ -6528,8 +6528,10 @@ function closePayEmailModal(){
 }
 
 function sendPayEmail(){
+  document.getElementById('pay-email-modal').style.display = 'none';
   if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var r = pendingPayEmailRec;
+  pendingPayEmailRec = null;
   if(!r) return;
 
   var subject = 'Payment Received — '+r.method+' — '+fmtMoney(r.amount);
@@ -6551,7 +6553,6 @@ function sendPayEmail(){
     + '?subject=' + encodeURIComponent(subject)
     + '&body='    + encodeURIComponent(body);
 
-  closePayEmailModal();
   var a = document.createElement('a');
   a.href = mailto;
   document.body.appendChild(a);
@@ -6600,6 +6601,7 @@ function closeWipEmailModal(){
 }
 
 function sendWipEmail(){
+  document.getElementById('wip-email-modal').style.display = 'none';
   if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   if(!pendingWipEmailRec) return;
   var record = pendingWipEmailRec.record;
@@ -6636,8 +6638,6 @@ function sendWipEmail(){
     + '&subject=' + encodeURIComponent(subject)
     + '&body='    + encodeURIComponent(body);
 
-  // Close modal first, then open email client
-  document.getElementById('wip-email-modal').style.display = 'none';
   var rec = pendingWipEmailRec.record;
   pendingWipEmailRec = null;
   var a = document.createElement('a');
