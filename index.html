@@ -2072,16 +2072,7 @@ document.addEventListener('keydown', function(ev){
           <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#1565c0">Materials Received</span>
         </div>
         <div id="itm-lines-container"></div>
-        <div id="itm-area-group" style="display:none;margin-top:14px">
-          <label style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px">Area</label>
-          <select id="itm-area" style="padding:7px 11px;border:1.5px solid #d1d5db;border-radius:6px;font-size:.86rem;font-family:inherit;outline:none;background:#fff;width:100%;margin-top:3px">
-            <option value="">— Area —</option>
-            <option>Electrical</option>
-            <option>Mechanical</option>
-            <option>Air Compressor</option>
-            <option>Generator</option>
-          </select>
-        </div>
+        <input type="hidden" id="itm-area">
       </div>
 
       <div class="form-actions">
@@ -3261,7 +3252,7 @@ function printIncomingLabel(){
 
 function printItemWipLabel(i){
   var wo       = document.getElementById('itm-l'+i+'-wipwo').value.trim().toUpperCase();
-  var area     = document.getElementById('itm-area').value;
+  var area     = document.getElementById('itm-l'+i+'-wiparea') ? document.getElementById('itm-l'+i+'-wiparea').value : '';
   var customer = (document.getElementById('inc-customer')||{value:''}).value.trim();
   var priority = (document.getElementById('inc-priority')||{value:''}).value;
   var date     = document.getElementById('itm-date').value;
@@ -4725,6 +4716,7 @@ function renderItmLines(){
         '<input type="text" id="itm-l'+i+'-binstock" placeholder="BIN Location" oninput="enforceUpper(this)" value="'+escAttr(item.binStock||'')+'" style="'+fi+';margin-top:3px;display:'+(isStock?'block':'none')+'">'+
         '<input type="text" id="itm-l'+i+'-wipwo" placeholder="Work Order #" oninput="enforceUpper(this);autoFillFromWo(this.value,'+i+')" value="'+escAttr(item.wipWo||'')+'" style="'+fi+';margin-top:3px;display:'+(isWIP?'block':'none')+'">'+
         '<input type="text" id="itm-l'+i+'-wipcustomer" placeholder="Customer" oninput="enforceUpper(this)" value="'+escAttr(item.wipCustomer||'')+'" style="'+fi+';margin-top:3px;display:'+(isWIP?'block':'none')+'">'+
+        '<select id="itm-l'+i+'-wiparea" style="'+fi+';margin-top:3px;display:'+(isWIP?'block':'none')+'">'+'<option value="">— Area —</option>'+['Electrical','Mechanical','Air Compressor','Generator'].map(function(o){return '<option'+(item.wipArea===o?' selected':'')+'>'+o+'</option>';}).join('')+'</select>'+
         '<input type="text" id="itm-l'+i+'-nobinso" placeholder="Sales Order #" oninput="enforceUpper(this)" value="'+escAttr(item.nobinSo||'')+'" style="'+fi+';margin-top:3px;display:'+(isNOBIN?'block':'none')+'">'+
         '<button type="button" id="itm-l'+i+'-wipbtn" class="btn btn-secondary btn-sm" onclick="printItemWipLabel('+i+')" style="margin-top:3px;font-size:.65rem;padding:2px 6px;display:'+(isWIP?'block':'none')+'">🏷️ WIP Label</button>'+
         '<button type="button" id="itm-l'+i+'-labelbtn" class="btn btn-secondary btn-sm" onclick="printItemGenericLabel('+i+')" style="margin-top:3px;font-size:.65rem;padding:2px 6px;display:'+(isOther?'block':'none')+'">🏷️ Print Label</button>'+
@@ -4764,6 +4756,7 @@ function addLineItem(){
     binLocation: prev ? prev.binLocation : '',
     binStock:    prev ? prev.binStock    : '',
     wipWo:       '',
+    wipCustomer: '',
     wipArea:     '',
     nobinSo:     ''
   });
@@ -4788,9 +4781,11 @@ function toggleLineStock(i){
   var wipBtn   = document.getElementById('itm-l'+i+'-wipbtn');
   var labelBtn = document.getElementById('itm-l'+i+'-labelbtn');
   var custEl   = document.getElementById('itm-l'+i+'-wipcustomer');
+  var areaEl2  = document.getElementById('itm-l'+i+'-wiparea');
   if(stockEl)  { stockEl.style.display  = val==='Stock' ? 'block' : 'none'; if(val!=='Stock') stockEl.value=''; }
   if(wipWoEl)  { wipWoEl.style.display  = val==='WIP'   ? 'block' : 'none'; if(val!=='WIP')   wipWoEl.value=''; }
   if(custEl)   { custEl.style.display   = val==='WIP'   ? 'block' : 'none'; if(val!=='WIP')   custEl.value=''; }
+  if(areaEl2)  { areaEl2.style.display  = val==='WIP'   ? 'block' : 'none'; if(val!=='WIP')   areaEl2.value=''; }
   if(nobinEl)  { nobinEl.style.display  = val==='NOBIN' ? 'block' : 'none'; if(val!=='NOBIN') nobinEl.value=''; }
   if(wipBtn)   wipBtn.style.display   = val==='WIP'   ? 'block' : 'none';
   var isOther = val!=='' && val!=='Stock' && val!=='WIP' && val!=='NOBIN';
@@ -4803,10 +4798,7 @@ function toggleLineStock(i){
 function toggleOrderDetails(){ }
 
 function syncAreaGroup(){
-  var anyWip = (itmLines||[]).some(function(l){ return l.binLocation==='WIP'; });
-  var ag = document.getElementById('itm-area-group');
-  if(ag) ag.style.display = anyWip ? '' : 'none';
-  if(!anyWip){ var el = document.getElementById('itm-area'); if(el) el.value = ''; }
+  // Area is now per-line — nothing to toggle at document level
 }
 
 function toggleItmPoTransfer(){
@@ -4859,14 +4851,14 @@ function autoFillFromWo(woVal, lineIdx){
   });
 
   var filled = [];
-  var areaEl = document.getElementById('itm-area');
-  if(area && areaEl && !areaEl.value){
-    areaEl.value = area;
-    filled.push('Area');
-  }
-  if(customer && lineIdx !== undefined){
+  if(lineIdx !== undefined){
+    var areaEl2 = document.getElementById('itm-l'+lineIdx+'-wiparea');
+    if(area && areaEl2 && !areaEl2.value){
+      areaEl2.value = area;
+      filled.push('Area');
+    }
     var custEl = document.getElementById('itm-l'+lineIdx+'-wipcustomer');
-    if(custEl && !custEl.value){
+    if(customer && custEl && !custEl.value){
       custEl.value = customer;
       filled.push('Customer');
     }
@@ -4898,6 +4890,7 @@ function readLineItems(){
       binStock:    g('itm-l'+i+'-binstock').trim(),
       wipWo:       g('itm-l'+i+'-wipwo').trim(),
       wipCustomer: g('itm-l'+i+'-wipcustomer').trim(),
+      wipArea:     g('itm-l'+i+'-wiparea'),
       nobinSo:     g('itm-l'+i+'-nobinso').trim()
     };
   });
@@ -4931,6 +4924,7 @@ function openItemModal(key){
       return Object.assign({}, li, {
         wipWo:       li.wipWo       || (li.binLocation==='WIP' ? li.workOrderNum : ''),
         wipCustomer: li.wipCustomer || (li.binLocation==='WIP' ? li.customer     : ''),
+        wipArea:     li.wipArea     || (li.binLocation==='WIP' ? li.area         : ''),
         nobinSo: li.nobinSo || (li.binLocation==='NOBIN' ? li.salesOrderNum : '')
       });
     });
@@ -4971,7 +4965,6 @@ function saveItem(){
   if(!isAdmin){ showToast('Access denied — read-only mode.'); return; }
   var docNum = document.getElementById('itm-doc').value.trim();
   if(!docNum){ alert('Document # is required.'); return; }
-  var docArea = document.getElementById('itm-area').value;
   var lineItems = readLineItems().map(function(li){
     var lineWO = li.wipWo   || '';
     var lineSO = li.nobinSo || '';
@@ -4980,10 +4973,11 @@ function saveItem(){
       applicationType: app,
       salesOrderNum:   lineSO,
       workOrderNum:    lineWO,
-      area:            docArea,
-      customer:        li.wipCustomer || ''
+      area:            li.wipArea || li.area || '',
+      customer:        li.wipCustomer || li.customer || ''
     });
   });
+  var docArea = lineItems.length ? (lineItems[0].area || '') : '';
   if(!lineItems.length){ alert('Add at least one item.'); return; }
   var emptyMat = lineItems.findIndex(function(li){ return !li.material; });
   if(emptyMat>=0){ alert('Item '+(emptyMat+1)+' needs a material description.'); return; }
@@ -5010,12 +5004,11 @@ function saveItem(){
   closeItemModal();
   wipEmailQueue = [];
   var hasWip = lineItems.some(function(li){ return li.binLocation==='WIP'; });
-  var area   = docArea;
   var wipEM  = lineItems.filter(function(li){
-    return li.binLocation==='WIP' && (area==='Electrical' || area==='Mechanical');
+    return li.binLocation==='WIP' && (li.area==='Electrical' || li.area==='Mechanical');
   });
   var wipAC  = lineItems.filter(function(li){
-    return li.binLocation==='WIP' && area==='Air Compressor';
+    return li.binLocation==='WIP' && li.area==='Air Compressor';
   });
   if(wipEM.length) wipEmailQueue.push({
     items: wipEM,
