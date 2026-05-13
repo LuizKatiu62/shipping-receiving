@@ -2243,22 +2243,23 @@ var PAYMENTS_EMAILS = ['gardner.christine@sourceatlantic.ca','renouf.holly@sourc
 var ALLOWED_EMAILS = ['dasilva.luiz.c@outlook.com'];
 var SR_PATH = 'shipping_receiving';
 var incomingData = {};
-var incomingFiltered = [];
+var incomingFiltered = null;
 var itemsData = {};
-var itemsFiltered = [];
+var itemsFiltered = null;
 var itmLines = [];
 var shpData = {};
-var shpFiltered = [];
+var shpFiltered = null;
 var shpTags = {so:[], tr:[], wo:[]};
 var subData = {};
-var subFiltered = [];
+var subFiltered = null;
 var pkgData = {};
-var pkgFiltered = [];
+var pkgFiltered = null;
 var procData = {};
-var procFiltered = [];
+var procFiltered = null;
 var payData = {};
 var sherrData = {};
-var payFiltered = [];
+var payFiltered = null;
+var sherrFiltered = null;
 var payMonthlyChart    = null;
 var payMethodChart     = null;
 var pendingPayEmailRec = null;
@@ -3692,7 +3693,7 @@ function deleteSubcontractor(){
 }
 
 function exportSubcontractorCSV(){
-  var rows = subFiltered.length ? subFiltered : Object.entries(subData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
+  var rows = subFiltered !== null ? subFiltered : Object.entries(subData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   if(!rows.length){ alert('No data to export.'); return; }
   var headers = ['Work Order #','Incoming #','Customer','Material','Subcontractor','Outgoing #','Shipping Date','Tracking #','Return Date','Working Days'];
   var data = rows.map(function(r){
@@ -4591,7 +4592,7 @@ function deleteShipment(){
 }
 
 function exportShippingCSV(){
-  var rows = shpFiltered.length ? shpFiltered : Object.entries(shpData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
+  var rows = shpFiltered !== null ? shpFiltered : Object.entries(shpData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   if(!rows.length){ alert('No data to export.'); return; }
   var headers = ['Outgoing #','Shipment Date','City','Province','Postal Code','Country','Material','Pc','Lb','Rl','Freight Type','Sales Orders','Transfer Numbers','Work Orders','Carrier','Carrier Other','Tracking #'];
   var data = rows.map(function(r){
@@ -5101,7 +5102,7 @@ function deleteItem(){
 }
 
 function exportItemsCSV(){
-  var allRows = itemsFiltered.length ? itemsFiltered
+  var allRows = itemsFiltered !== null ? itemsFiltered
     : Object.entries(itemsData).map(function(e){ return normalizeItemRecord(Object.assign({_key:e[0]},e[1])); });
   if(!allRows.length){ alert('No data to export.'); return; }
   var headers = ['Doc #','PO #','Transfer #','Date','Supplier','Item #','Material','Pc','Lb','Rl','Weight lb','Weight kg','BIN','Stock BIN','Application','SO #','WO #','Area','Customer','Requested By'];
@@ -5945,7 +5946,7 @@ function deleteProcRecord(){
 }
 
 function exportProcessCSV(){
-  var rows = procFiltered.length ? procFiltered : Object.entries(procData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
+  var rows = procFiltered !== null ? procFiltered : Object.entries(procData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   if(!rows.length){ alert('No data to export.'); return; }
   var headers = ['Outgoing #','Work Order #','Sales Order #','Customer','Purchase Order','Material','Shipping Area Received','Current Date','Days On Hold','Hold Reason','Status'];
   var data = rows.map(function(r){
@@ -6191,7 +6192,7 @@ function deletePackRecord(){
 }
 
 function exportPackingCSV(){
-  var rows = pkgFiltered.length ? pkgFiltered : Object.entries(pkgData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
+  var rows = pkgFiltered !== null ? pkgFiltered : Object.entries(pkgData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   if(!rows.length){ alert('No data to export.'); return; }
   var headers = ['Order #','Customer','Pick Date','Current Date','Days On Hold'];
   var cur = today();
@@ -6834,7 +6835,7 @@ function deletePayment(){
 }
 
 function exportPaymentsCSV(){
-  var rows = payFiltered.length ? payFiltered : Object.entries(payData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
+  var rows = payFiltered !== null ? payFiltered : Object.entries(payData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   if(!rows.length){ alert('No data to export.'); return; }
   var headers = ['Date','Order Type','Order #','Customer','Method','Cheque #','Amount','Notes'];
   var data = rows.map(function(r){
@@ -6868,7 +6869,7 @@ function toXLS(filename, headers, dataRows){
 }
 
 function exportIncomingCSV(){
-  var rows = incomingFiltered.length ? incomingFiltered : Object.entries(incomingData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
+  var rows = incomingFiltered !== null ? incomingFiltered : Object.entries(incomingData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
   if(!rows.length){ alert('No data to export.'); return; }
   var headers = ['Form #','Work Order','Date','Equipment Description','Area','Manufacturer','Model #','Serial #','Type/Size','HP','RPM','Frame','Customer Stock #','KW','Other Data','Location','Bench Name','What to Do','Delivered By','Received By','Notes'];
   var data = rows.map(function(r){
@@ -6903,6 +6904,7 @@ function renderShipErrors(){
       || (r.errorType||'').toLowerCase().includes(q)
       || (r.description||'').toLowerCase().includes(q);
   });
+  sherrFiltered = rows;
 
   var tbody = document.getElementById('sherr-tbody');
   if(!tbody) return;
@@ -7098,8 +7100,9 @@ function deleteShipError(){
 }
 
 function exportShipErrorsCSV(){
-  var rows = Object.values(sherrData);
-  rows.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  var rows = sherrFiltered !== null ? sherrFiltered
+    : Object.entries(sherrData).map(function(e){ return Object.assign({_key:e[0]},e[1]); });
+  rows = rows.slice().sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
   var headers = ['Error #','Date','Status','Error Type','Customer','Carrier','Outgoing #','WO #','SO #','Airbill #','Appointment #','Return Tracking','Responsible','Cost','Description','Resolution Notes'];
   var data = rows.map(function(r){
     return [r.errorNum,r.date,r.status,r.errorType,r.customer,r.carrier,r.outgoing,r.wo,r.so,r.tracking,r.apptNum,r.returnTracking,r.responsible,r.cost,r.description,r.resolutionNotes];
