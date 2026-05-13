@@ -5134,15 +5134,14 @@ function findProcShipDate(r){
 
 function procLookupWo(wo){
   var result = {customer:'', po:'', material:'', outgoing:'', photosLink:'', picsQty:'', source:''};
-  // 1. Incoming Forms — richest source
+  // 1. Incoming Forms — customer, po, material, picsQty (NOT photosLink — that belongs to Outgoing)
   Object.values(incomingData).some(function(r){
     if((r.wo||'').trim().toUpperCase()!==wo) return false;
-    result.customer   = result.customer   || (r.customer||'');
-    result.po         = result.po         || (r.customerPO||'');
-    result.material   = result.material   || (r.equipment||'');
-    result.photosLink = result.photosLink || (r.photosLink||'');
-    result.picsQty    = result.picsQty    || (r.picsQty||'');
-    result.source     = result.source     || ('Incoming Form '+(r.formNum||wo));
+    result.customer = result.customer || (r.customer||'');
+    result.po       = result.po       || (r.customerPO||'');
+    result.material = result.material || (r.equipment||'');
+    result.picsQty  = result.picsQty  || (r.picsQty||'');
+    result.source   = result.source   || ('Incoming Form '+(r.formNum||wo));
     return !!(result.customer && result.material);
   });
   // 2. Incoming Items line items
@@ -5157,25 +5156,25 @@ function procLookupWo(wo){
       });
     });
   }
-  // 3. Shipping On Hold history
+  // 3. Shipping On Hold history — customer, po, material only
   if(!result.customer || !result.material){
     Object.values(procData).some(function(r){
       if((r.wo||'').trim().toUpperCase()!==wo) return false;
-      result.customer   = result.customer   || (r.customer||'');
-      result.po         = result.po         || (r.po||'');
-      result.material   = result.material   || (r.material||'');
-      result.photosLink = result.photosLink || (r.photosLink||'');
-      result.picsQty    = result.picsQty    || (r.picsQty||'');
-      result.source     = result.source     || 'On Hold History';
+      result.customer = result.customer || (r.customer||'');
+      result.po       = result.po       || (r.po||'');
+      result.material = result.material || (r.material||'');
+      result.picsQty  = result.picsQty  || (r.picsQty||'');
+      result.source   = result.source   || 'On Hold History';
       return !!(result.customer && result.material);
     });
   }
-  // 4. Shipping history — customer + outgoing
+  // 4. Shipping history — outgoing + photosLink (Outgoing is the correct source for photos)
   Object.values(shpData).some(function(r){
     if(!(r.workOrders||[]).some(function(w){ return (w||'').trim().toUpperCase()===wo; })) return false;
-    result.customer = result.customer || (r.customer||'');
-    result.outgoing = result.outgoing || (r.outgoing||'');
-    result.source   = result.source   || 'Shipping History';
+    result.customer   = result.customer   || (r.customer||'');
+    result.outgoing   = result.outgoing   || (r.outgoing||'');
+    result.photosLink = result.photosLink || (r.photosLink||'');
+    result.source     = result.source     || 'Shipping History';
     return !!(result.customer && result.outgoing);
   });
   return result;
