@@ -2239,7 +2239,6 @@ document.addEventListener('keydown', function(ev){
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
 <script>
 // ── FIREBASE CONFIG ──
@@ -2280,7 +2279,6 @@ var payData = {};
 var sherrData = {};
 var payFiltered = null;
 var sherrFiltered = null;
-if(typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
 var payMonthlyChart    = null;
 var payMethodChart     = null;
 var pendingPayEmailRec = null;
@@ -6357,6 +6355,53 @@ function renderPayStats(rows){
   }
 }
 
+var _payBarLabelPlugin = {
+  id:'payBarLabels',
+  afterDatasetsDraw:function(chart){
+    var ctx=chart.ctx;
+    chart.data.datasets.forEach(function(ds,i){
+      var meta=chart.getDatasetMeta(i);
+      meta.data.forEach(function(bar,idx){
+        var v=ds.data[idx]; if(!v) return;
+        ctx.save();
+        ctx.font='700 9px Inter,sans-serif';
+        ctx.fillStyle='#1565c0';
+        ctx.textAlign='center';
+        ctx.textBaseline='bottom';
+        ctx.fillText(fmtMoney(v), bar.x, bar.y-3);
+        ctx.restore();
+      });
+    });
+  }
+};
+
+var _payPieLabelPlugin = {
+  id:'payPieLabels',
+  afterDatasetsDraw:function(chart){
+    var ctx=chart.ctx;
+    var ds=chart.data.datasets[0]; if(!ds) return;
+    var total=ds.data.reduce(function(a,b){return a+b;},0);
+    var meta=chart.getDatasetMeta(0);
+    meta.data.forEach(function(arc,i){
+      var v=ds.data[i];
+      var pct=Math.round(v/total*100);
+      if(pct<5) return;
+      var mid=(arc.startAngle+arc.endAngle)/2;
+      var r=(arc.innerRadius+arc.outerRadius)/2;
+      var lx=arc.x+Math.cos(mid)*r;
+      var ly=arc.y+Math.sin(mid)*r;
+      ctx.save();
+      ctx.font='700 10px Inter,sans-serif';
+      ctx.fillStyle='#fff';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText(fmtMoney(v), lx, ly-7);
+      ctx.fillText(pct+'%', lx, ly+7);
+      ctx.restore();
+    });
+  }
+};
+
 function renderPayCharts(rows){
   if(typeof Chart === 'undefined') return;
 
@@ -6364,11 +6409,10 @@ function renderPayCharts(rows){
   var monthMap = {};
   rows.forEach(function(r){
     if(!r.date) return;
-    var ym = r.date.substring(0,7); // YYYY-MM
+    var ym = r.date.substring(0,7);
     monthMap[ym] = (monthMap[ym]||0) + (parseFloat(r.amount)||0);
   });
   var sortedMonths = Object.keys(monthMap).sort();
-  // Show last 12 months at most
   if(sortedMonths.length > 12) sortedMonths = sortedMonths.slice(-12);
   var monthLabels = sortedMonths.map(function(ym){
     var p = ym.split('-');
@@ -6382,6 +6426,7 @@ function renderPayCharts(rows){
     if(payMonthlyChart) payMonthlyChart.destroy();
     payMonthlyChart = new Chart(mCtx, {
       type:'bar',
+      plugins:[_payBarLabelPlugin],
       data:{
         labels: monthLabels,
         datasets:[{
@@ -6395,17 +6440,10 @@ function renderPayCharts(rows){
       },
       options:{
         responsive:true,
-        layout:{padding:{top:18}},
+        layout:{padding:{top:20}},
         plugins:{
           legend:{display:false},
-          tooltip:{callbacks:{label:function(ctx){ return ' '+fmtMoney(ctx.raw); }}},
-          datalabels:{
-            anchor:'end',align:'end',
-            formatter:function(v){ return fmtMoney(v); },
-            font:{size:9,weight:'700'},
-            color:'#1565c0',
-            clip:false
-          }
+          tooltip:{callbacks:{label:function(ctx){ return ' '+fmtMoney(ctx.raw); }}}
         },
         scales:{y:{ticks:{callback:function(v){ return '$'+v.toLocaleString(); }},grid:{color:'#f0f2f5'}},x:{grid:{display:false}}}
       }
@@ -6431,6 +6469,7 @@ function renderPayCharts(rows){
     } else {
       payMethodChart = new Chart(dCtx, {
         type:'doughnut',
+        plugins:[_payPieLabelPlugin],
         data:{
           labels: methods,
           datasets:[{data:methodAmts, backgroundColor:methodColors, borderWidth:2, borderColor:'#fff'}]
@@ -6439,17 +6478,7 @@ function renderPayCharts(rows){
           responsive:true,
           plugins:{
             legend:{position:'bottom',labels:{font:{size:11},padding:10}},
-            tooltip:{callbacks:{label:function(ctx){ return ' '+ctx.label+': '+fmtMoney(ctx.raw); }}},
-            datalabels:{
-              formatter:function(v,ctx){
-                var total=ctx.dataset.data.reduce(function(a,b){return a+b;},0);
-                var pct=Math.round(v/total*100);
-                return pct<5 ? '' : fmtMoney(v)+'\n'+pct+'%';
-              },
-              color:'#fff',
-              font:{size:10,weight:'700'},
-              textAlign:'center'
-            }
+            tooltip:{callbacks:{label:function(ctx){ return ' '+ctx.label+': '+fmtMoney(ctx.raw); }}}
           }
         }
       });
