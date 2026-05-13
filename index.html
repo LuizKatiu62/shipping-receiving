@@ -3206,8 +3206,7 @@ function printIncomingLabel(){
     return (h%12||12)+':'+m+(h<12?'AM':'PM');
   })() : '—';
 
-  var win = window.open('','_blank','width=600,height=400');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Equipment Label</title><style>'+
+  var html = ('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Equipment Label</title><style>'+
     '*{margin:0;padding:0;box-sizing:border-box}'+
     'body{font-family:Arial,sans-serif;background:#fff;margin:0;padding:0 0 0 15mm}'+
     '.label{width:10cm;min-height:4.9cm;border:3px solid #000;padding:4px;page-break-inside:avoid}'+
@@ -3246,10 +3245,8 @@ function printIncomingLabel(){
       '<div class="field"><span class="f-label">Pics Time</span><span class="f-value">'+fmtPicsTime+'</span></div>'+
     '</div>'+
   '</div>'+
-  '<div style="text-align:center;margin:12px 0 4px"><button onclick="window.print()" style="padding:8px 28px;background:#1565c0;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif">🖨️ Imprimir</button></div>'+
-  '<script>window.onafterprint=function(){window.close();}<\/script>'+
   '</body></html>');
-  win.document.close();
+  showLabelPreview(html);
 }
 
 function printItemWipLabel(i){
@@ -3267,8 +3264,7 @@ function printItemWipLabel(i){
   }
   var material = woCount > 1 ? 'Assorted Items' : document.getElementById('itm-l'+i+'-mat').value.trim();
 
-  var win = window.open('','_blank','width=600,height=380');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>WIP Label</title><style>'+
+  var html = ('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>WIP Label</title><style>'+
     '*{margin:0;padding:0;box-sizing:border-box}'+
     'body{font-family:Arial,sans-serif;background:#fff;margin:0;padding:0 0 0 15mm}'+
     '.label{width:12cm;min-height:4.9cm;border:3px solid #000;padding:4px;page-break-inside:avoid}'+
@@ -3302,10 +3298,8 @@ function printItemWipLabel(i){
       '<div class="field"><span class="f-label">Date</span><span class="f-value">'+(date?fmtDate(date):'—')+'</span></div>'+
     '</div>'+
   '</div>'+
-  '<div style="text-align:center;margin:12px 0 4px"><button onclick="window.print()" style="padding:8px 28px;background:#1565c0;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif">🖨️ Imprimir</button></div>'+
-  '<script>window.onafterprint=function(){window.close();}<\/script>'+
   '</body></html>');
-  win.document.close();
+  showLabelPreview(html);
 }
 
 function openEpsForm(){
@@ -3396,8 +3390,7 @@ function printItemGenericLabel(i){
   var orderNum   = nobinSo || '—';
   var binColor   = binType==='NOBIN' ? '#6b7280' : '#0ea5e9';
 
-  var win = window.open('','_blank','width=600,height=380');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Item Label</title><style>'+
+  var html = ('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Item Label</title><style>'+
     '*{margin:0;padding:0;box-sizing:border-box}'+
     'body{font-family:Arial,sans-serif;background:#fff;margin:0;padding:0 0 0 15mm}'+
     '.label{width:12cm;min-height:4.9cm;border:3px solid #000;padding:4px;page-break-inside:avoid}'+
@@ -3429,10 +3422,8 @@ function printItemGenericLabel(i){
       '<div class="field"><span class="f-label">Date</span><span class="f-value">'+(date?fmtDate(date):'—')+'</span></div>'+
     '</div>'+
   '</div>'+
-  '<div style="text-align:center;margin:12px 0 4px"><button onclick="window.print()" style="padding:8px 28px;background:#1565c0;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif">🖨️ Imprimir</button></div>'+
-  '<script>window.onafterprint=function(){window.close();}<\/script>'+
   '</body></html>');
-  win.document.close();
+  showLabelPreview(html);
 }
 
 function deleteIncoming(){
@@ -5806,8 +5797,7 @@ function printProcLabel(){
   var mainLabel = wo ? 'Work Order #' : 'Sales Order #';
   var mainValue = wo || so || '—';
 
-  var win = window.open('','_blank','width=600,height=400');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Shipping On Hold Label</title><style>'+
+  var html = ('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Shipping On Hold Label</title><style>'+
     '*{margin:0;padding:0;box-sizing:border-box}'+
     'body{font-family:Arial,sans-serif;background:#fff;margin:0;padding:0 0 0 15mm}'+
     '.label{width:12cm;min-height:4.9cm;border:3px solid #000;padding:4px;page-break-inside:avoid}'+
@@ -5842,10 +5832,8 @@ function printProcLabel(){
       (isEquipex?'<div class="field" style="grid-column:1/-1;margin-top:5px;background:#fffbeb;border:2px solid #f59e0b;border-radius:4px;padding:4px 8px"><span class="f-label" style="color:#92400e;font-size:6.5pt">Next Shipping Date (Equipex)</span><span class="f-value" style="color:#92400e;font-size:12pt">'+fmtDate(nextShip)+'</span></div>':'')+
     '</div>'+
   '</div>'+
-  '<div style="text-align:center;margin:12px 0 4px"><button onclick="window.print()" style="padding:8px 28px;background:#1565c0;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif">🖨️ Imprimir</button></div>'+
-  '<script>window.onafterprint=function(){window.close();}<\/script>'+
   '</body></html>');
-  win.document.close();
+  showLabelPreview(html);
 }
 
 function printPackLabel(){
@@ -5862,8 +5850,7 @@ function printPackLabel(){
              : '#1565c0';
   var daysText = days !== null ? days+' day'+(days!==1?'s':'') : '—';
 
-  var win = window.open('','_blank','width=600,height=400');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Packing &amp; Hold Label</title><style>'+
+  var html = ('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Packing &amp; Hold Label</title><style>'+
     '*{margin:0;padding:0;box-sizing:border-box}'+
     'body{font-family:Arial,sans-serif;background:#fff;margin:0;padding:0 0 0 15mm}'+
     '.label{width:12cm;min-height:4.9cm;border:3px solid #000;padding:4px;page-break-inside:avoid}'+
@@ -5896,10 +5883,8 @@ function printPackLabel(){
       '<div class="field"><span class="f-label">Printed</span><span class="f-value">'+(fmtDate(currDate))+'</span></div>'+
     '</div>'+
   '</div>'+
-  '<div style="text-align:center;margin:12px 0 4px"><button onclick="window.print()" style="padding:8px 28px;background:#1565c0;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif">🖨️ Imprimir</button></div>'+
-  '<script>window.onafterprint=function(){window.close();}<\/script>'+
   '</body></html>');
-  win.document.close();
+  showLabelPreview(html);
 }
 
 function saveProcRecord(){
@@ -7142,6 +7127,51 @@ document.addEventListener('input', function(e){
     try{ t.setSelectionRange(pos, end); }catch(err){}
   }
 });
+</script>
+
+<!-- ══ LABEL PREVIEW OVERLAY ══ -->
+<div id="lbl-preview-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:10000;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeLabelPreview()">
+  <div style="background:#fff;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.3);max-width:95vw;max-height:95vh">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #e2e8f0">
+      <span style="font-weight:800;font-size:.95rem;color:#1e293b">🏷️ Label Preview</span>
+      <button onclick="closeLabelPreview()" style="background:none;border:none;cursor:pointer;font-size:1.4rem;color:#94a3b8;line-height:1;padding:2px 8px;border-radius:6px" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'">×</button>
+    </div>
+    <div style="overflow:auto;padding:16px 20px;display:flex;justify-content:center">
+      <iframe id="lbl-preview-frame" style="border:none;display:block" scrolling="no"></iframe>
+    </div>
+    <div style="display:flex;justify-content:center;gap:10px;padding:12px 16px;border-top:1px solid #e2e8f0">
+      <button onclick="printLabelPreview()" style="padding:9px 28px;background:#1565c0;color:#fff;border:none;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer">🖨️ Imprimir</button>
+      <button onclick="closeLabelPreview()" style="padding:9px 20px;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer">Fechar</button>
+    </div>
+  </div>
+</div>
+<script>
+function showLabelPreview(html){
+  var frame = document.getElementById('lbl-preview-frame');
+  var overlay = document.getElementById('lbl-preview-overlay');
+  frame.style.width = '1px';
+  frame.style.height = '1px';
+  frame.srcdoc = html;
+  frame.onload = function(){
+    try{
+      var body = frame.contentDocument.body;
+      var w = Math.min(body.scrollWidth + 4, window.innerWidth - 72);
+      var h = Math.min(body.scrollHeight + 4, window.innerHeight - 160);
+      frame.style.width  = w + 'px';
+      frame.style.height = h + 'px';
+    }catch(e){}
+  };
+  overlay.style.display = 'flex';
+}
+function closeLabelPreview(){
+  document.getElementById('lbl-preview-overlay').style.display = 'none';
+}
+function printLabelPreview(){
+  var frame = document.getElementById('lbl-preview-frame');
+  frame.contentWindow.focus();
+  frame.contentWindow.print();
+  frame.contentWindow.onafterprint = function(){ closeLabelPreview(); };
+}
 </script>
 </body>
 </html>
