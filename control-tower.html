@@ -371,10 +371,11 @@ body>*{position:relative;z-index:1}
   <div class="search-wrap">
     <div class="search-card">
       <div class="search-title">🔍 Order Lookup</div>
-      <div class="search-sub">Enter a Work Order, Sales Order, Incoming # or Outgoing # to see the complete status</div>
+      <div class="search-sub">Enter a Work Order, Sales Order, Material description, Incoming # or Outgoing # to see the complete status</div>
       <div class="type-row">
         <button class="type-btn active" id="btn-wo" onclick="setType('wo')"><span class="dot"></span>Work Order #</button>
         <button class="type-btn" id="btn-so" onclick="setType('so')"><span class="dot"></span>Sales Order #</button>
+        <button class="type-btn" id="btn-mat" onclick="setType('mat')"><span class="dot"></span>Material / Components</button>
         <button class="type-btn" id="btn-inc" onclick="setType('inc')"><span class="dot"></span>Incoming #</button>
         <button class="type-btn" id="btn-out" onclick="setType('out')"><span class="dot"></span>Outgoing #</button>
       </div>
@@ -393,7 +394,7 @@ body>*{position:relative;z-index:1}
     <div id="results">
       <div class="empty-search">
         <div class="empty-search-icon">🗼</div>
-        <div class="empty-search-text">Enter a Work Order, Sales Order, Incoming # or Outgoing # above to begin</div>
+        <div class="empty-search-text">Enter a Work Order, Sales Order, Material description or Outgoing # above to begin</div>
       </div>
     </div>
   </div>
@@ -867,8 +868,8 @@ function infoRow(lbl, val){
 var searchType = 'wo';
 function setType(t){
   searchType = t;
-  ['wo','so','inc','out'].forEach(function(k){ document.getElementById('btn-'+k).classList.toggle('active', k===t); });
-  var ph = t==='wo' ? 'e.g. 6020183' : t==='so' ? 'e.g. 12345' : t==='out' ? 'e.g. 42500' : 'e.g. EPS-001';
+  ['wo','so','mat','inc','out'].forEach(function(k){ document.getElementById('btn-'+k).classList.toggle('active', k===t); });
+  var ph = t==='wo' ? 'e.g. 6020183' : t==='so' ? 'e.g. 12345' : t==='out' ? 'e.g. 42500' : t==='mat' ? 'Part # or description...' : 'e.g. EPS-001';
   document.getElementById('search-input').placeholder = ph;
   document.getElementById('search-input').focus();
 }
@@ -880,7 +881,7 @@ function clearSearch(){
 function showEmptyState(){
   document.body.classList.remove('has-results');
   document.getElementById('results').innerHTML =
-    '<div class="empty-search"><div class="empty-search-icon">🗼</div><div class="empty-search-text">Enter a Work Order, Sales Order, Incoming # or Outgoing # above to begin</div></div>';
+    '<div class="empty-search"><div class="empty-search-icon">🗼</div><div class="empty-search-text">Enter a Work Order, Sales Order, Material description or Outgoing # above to begin</div></div>';
 }
 
 // SEARCH
@@ -888,6 +889,7 @@ function doSearch(){
   var raw = (document.getElementById('search-input').value||'').trim();
   if(!raw) return;
   var q = norm(raw);
+  if(searchType==='mat'){ renderMatResults(q, raw); return; }
   var result = searchType==='wo' ? searchByWO(q) : searchType==='so' ? searchBySO(q) : searchType==='out' ? searchByOutgoing(q) : searchByIncoming(q);
   renderResults(result, raw);
 }
@@ -943,6 +945,48 @@ function searchByOutgoing(q){
     r.packing.forEach(function(x){ packing.push(x); });
   });
   return {type:'out', q:q, incoming:incoming, components:components, process:process, shipping:shp, packing:packing};
+}
+
+function renderMatResults(q, raw){
+  document.body.classList.add('has-results');
+  var matches = [];
+  Object.values(allData.items).forEach(function(doc){
+    (doc.lineItems||[]).forEach(function(li){
+      var mat = norm(li.material||'');
+      if(!mat || !mat.includes(q)) return;
+      matches.push({
+        material:    li.material||'',
+        qty:         li.pc||'',
+        date:        doc.date||'',
+        binLocation: li.binLocation||'',
+        binStock:    li.binStock||'',
+        workOrderNum:li.workOrderNum||'',
+        salesOrderNum:li.salesOrderNum||'',
+        area:        li.area||'',
+        customer:    li.customer||''
+      });
+    });
+  });
+  matches.sort(function(a,b){ return b.date.localeCompare(a.date); });
+  var el = document.getElementById('results');
+  if(!matches.length){
+    el.innerHTML = '<div class="not-found"><div class="not-found-icon">🔍</div>'+
+      '<div class="not-found-title">No materials found matching "'+escHtml(raw)+'"</div>'+
+      '<div class="not-found-sub">Try a shorter keyword or check the description.</div></div>';
+    return;
+  }
+  var h = '<div class="ct-card"><div class="ct-card-title">📦 Material / Components — '+matches.length+' result'+(matches.length===1?'':'s')+' for "'+escHtml(raw)+'"</div>';
+  h += '<table class="ct-table"><thead><tr><th>Material / Description</th><th>Qty</th><th>Date</th><th>Location</th><th>Work Order #</th><th>Sales Order #</th><th>Area</th><th>Customer</th></tr></thead><tbody>';
+  matches.forEach(function(c){
+    var binHtml = c.binLocation==='WIP' ? '<span class="bin-badge bin-wip">WIP</span>'
+      : c.binLocation==='Stock' ? '<span class="bin-badge bin-stock">Stock'+(c.binStock?' — '+escHtml(c.binStock):'')+'</span>'
+      : c.binLocation ? '<span class="bin-badge bin-nobin">'+escHtml(c.binLocation)+'</span>' : '—';
+    var woLink = c.workOrderNum ? '<a href="javascript:void(0)" onclick="setType(\'wo\');document.getElementById(\'search-input\').value=\''+escHtml(c.workOrderNum)+'\';doSearch()" style="color:#1565c0;font-weight:700;text-decoration:none">'+escHtml(c.workOrderNum)+'</a>' : '—';
+    var soLink = c.salesOrderNum ? '<a href="javascript:void(0)" onclick="setType(\'so\');document.getElementById(\'search-input\').value=\''+escHtml(c.salesOrderNum)+'\';doSearch()" style="color:#1565c0;font-weight:700;text-decoration:none">'+escHtml(c.salesOrderNum)+'</a>' : '—';
+    h += '<tr><td>'+escHtml(c.material||'—')+'</td><td>'+escHtml(c.qty||'—')+'</td><td>'+fmtDate(c.date)+'</td><td>'+binHtml+'</td><td>'+woLink+'</td><td>'+soLink+'</td><td>'+escHtml(c.area||'—')+'</td><td>'+escHtml(c.customer||'—')+'</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  el.innerHTML = h;
 }
 
 // STATUS
