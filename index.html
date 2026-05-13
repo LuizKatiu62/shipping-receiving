@@ -3245,7 +3245,8 @@ function printIncomingLabel(){
       '<div class="field"><span class="f-label">Pics Time</span><span class="f-value">'+fmtPicsTime+'</span></div>'+
     '</div>'+
   '</div>'+
-  '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>'+
+  '<div style="text-align:center;margin:12px 0 4px"><button onclick="window.print()" style="padding:8px 28px;background:#1565c0;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif">🖨️ Imprimir</button></div>'+
+  '<script>window.onafterprint=function(){window.close();}<\/script>'+
   '</body></html>');
   win.document.close();
 }
@@ -3281,7 +3282,7 @@ function printItemWipLabel(i){
     '.field{display:flex;flex-direction:column}'+
     '.f-label{font-size:6pt;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#666}'+
     '.f-value{font-size:9pt;font-weight:700;color:#000}'+
-    '@media print{body{margin:0;padding:0 0 0 15mm}@page{margin:0;size:28cm 5.5cm}}'+
+    '@media print{body{margin:0;padding:0 0 0 15mm}button{display:none}@page{margin:0;size:28cm 5.5cm}}'+
   '</style></head><body>'+
   '<div class="label">'+
     '<div class="label-header">'+
@@ -3300,7 +3301,8 @@ function printItemWipLabel(i){
       '<div class="field"><span class="f-label">Date</span><span class="f-value">'+(date?fmtDate(date):'—')+'</span></div>'+
     '</div>'+
   '</div>'+
-  '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>'+
+  '<div style="text-align:center;margin:12px 0 4px"><button onclick="window.print()" style="padding:8px 28px;background:#1565c0;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif">🖨️ Imprimir</button></div>'+
+  '<script>window.onafterprint=function(){window.close();}<\/script>'+
   '</body></html>');
   win.document.close();
 }
@@ -3408,7 +3410,7 @@ function printItemGenericLabel(i){
     '.field{display:flex;flex-direction:column}'+
     '.f-label{font-size:6pt;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#666}'+
     '.f-value{font-size:9pt;font-weight:700;color:#000}'+
-    '@media print{body{margin:0;padding:0 0 0 15mm}@page{margin:0;size:28cm 5.5cm}}'+
+    '@media print{body{margin:0;padding:0 0 0 15mm}button{display:none}@page{margin:0;size:28cm 5.5cm}}'+
   '</style></head><body>'+
   '<div class="label">'+
     '<div class="label-header">'+
@@ -3426,7 +3428,8 @@ function printItemGenericLabel(i){
       '<div class="field"><span class="f-label">Date</span><span class="f-value">'+(date?fmtDate(date):'—')+'</span></div>'+
     '</div>'+
   '</div>'+
-  '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>'+
+  '<div style="text-align:center;margin:12px 0 4px"><button onclick="window.print()" style="padding:8px 28px;background:#1565c0;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif">🖨️ Imprimir</button></div>'+
+  '<script>window.onafterprint=function(){window.close();}<\/script>'+
   '</body></html>');
   win.document.close();
 }
@@ -5838,7 +5841,8 @@ function printProcLabel(){
       (isEquipex?'<div class="field" style="grid-column:1/-1;margin-top:5px;background:#fffbeb;border:2px solid #f59e0b;border-radius:4px;padding:4px 8px"><span class="f-label" style="color:#92400e;font-size:6.5pt">Next Shipping Date (Equipex)</span><span class="f-value" style="color:#92400e;font-size:12pt">'+fmtDate(nextShip)+'</span></div>':'')+
     '</div>'+
   '</div>'+
-  '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>'+
+  '<div style="text-align:center;margin:12px 0 4px"><button onclick="window.print()" style="padding:8px 28px;background:#1565c0;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif">🖨️ Imprimir</button></div>'+
+  '<script>window.onafterprint=function(){window.close();}<\/script>'+
   '</body></html>');
   win.document.close();
 }
@@ -5873,7 +5877,7 @@ function printPackLabel(){
     '.f-label{font-size:6pt;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#666}'+
     '.f-value{font-size:9pt;font-weight:700;color:#000}'+
     '.days-val{display:inline-block;padding:1px 8px;border-radius:10px;color:#fff;font-weight:900;background:'+daysBg+'}'+
-    '@media print{body{margin:0;padding:0 0 0 15mm}@page{margin:0;size:28cm 5.5cm}}'+
+    '@media print{body{margin:0;padding:0 0 0 15mm}button{display:none}@page{margin:0;size:28cm 5.5cm}}'+
   '</style></head><body>'+
   '<div class="label">'+
     '<div class="label-header">'+
@@ -5891,7 +5895,8 @@ function printPackLabel(){
       '<div class="field"><span class="f-label">Printed</span><span class="f-value">'+(fmtDate(currDate))+'</span></div>'+
     '</div>'+
   '</div>'+
-  '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>'+
+  '<div style="text-align:center;margin:12px 0 4px"><button onclick="window.print()" style="padding:8px 28px;background:#1565c0;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif">🖨️ Imprimir</button></div>'+
+  '<script>window.onafterprint=function(){window.close();}<\/script>'+
   '</body></html>');
   win.document.close();
 }
