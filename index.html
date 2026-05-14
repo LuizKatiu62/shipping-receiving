@@ -712,14 +712,16 @@ document.addEventListener('keydown', function(ev){
   <div id="section-incoming">
     <div class="stats-bar" id="inc-stats"></div>
     <div class="section-header">
-      <div class="section-title">📋 Incoming Form</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="section-title">📋 Incoming Form</div>
+        <button class="btn btn-primary admin-only" onclick="openIncomingModal()">+ New Incoming</button>
+      </div>
       <div class="section-actions">
         <select class="year-select" id="inc-year" onchange="filterIncoming()"><option value="">All Years</option></select>
         <select class="year-select" id="inc-month" onchange="filterIncoming()"><option value="">All Months</option></select>
         <select class="year-select" id="inc-day" onchange="filterIncoming()" style="min-width:80px"><option value="">All Days</option></select>
         <input class="search-input" type="text" id="inc-search" placeholder="Search form #, WO, customer, equipment..." oninput="filterIncoming()">
         <button class="btn btn-secondary" onclick="exportIncomingCSV()">⬇️ Export Excel</button>
-        <button class="btn btn-primary admin-only" onclick="openIncomingModal()">+ New Incoming</button>
       </div>
     </div>
     <div class="table-wrap">
