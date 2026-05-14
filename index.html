@@ -4494,7 +4494,7 @@ function openShipModal(key){
     document.getElementById('shp-photos-link').value = r.photosLink||'';
     document.getElementById('shp-del-btn').style.display = 'inline-flex';
   } else {
-    shpSetNewMode('blank');
+    shpSetNewMode('notfound');
     document.getElementById('shp-modal-title').textContent = 'New Shipment';
     ['shp-customer','shp-customer-po','shp-outgoing','shp-city','shp-province','shp-postal','shp-material-other','shp-carrier-other','shp-tracking','shp-photos-link'].forEach(function(id){ document.getElementById(id).value=''; });
     document.getElementById('shp-material-type').value = '';
