@@ -4063,7 +4063,14 @@ function prefillFromSO(soNum){
   if(customer && !document.getElementById('shp-customer').value){
     document.getElementById('shp-customer').value = customer;
     filled.push('Customer');
+    // Show the auto-filled customer as a "found" banner so user knows it was looked up
+    document.getElementById('shp-customer-filled-name').textContent    = customer;
+    document.getElementById('shp-customer-filled-source').textContent  = '✔ ' + source;
+    shpSetNewMode('found');
     setTimeout(lookupPostalFromCustomer, 0);
+  } else if(!document.getElementById('shp-customer').value) {
+    // SO added but no customer found — reveal the customer input so user can type it
+    shpSetNewMode('notfound');
   }
   if(equipment && !document.getElementById('shp-material-type').value){
     var mType = equipmentType || (knownMats.includes(equipment) ? equipment : 'Other');
