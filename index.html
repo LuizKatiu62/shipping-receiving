@@ -1101,9 +1101,16 @@ document.addEventListener('keydown', function(ev){
         <!-- ══ 1. CUSTOMER INFORMATION ══ -->
         <div class="form-section-header">1. Customer Information</div>
 
-        <div class="form-group full">
-          <label>Customer</label>
-          <input type="text" id="inc-customer" placeholder="Customer name" list="customer-suggestions" autocomplete="off">
+        <div class="form-group">
+          <label style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+            Customer
+            <button type="button" onclick="openShipToModal('select')" style="font-size:.7rem;padding:2px 8px;border:1px solid var(--blue-500);border-radius:4px;background:#eff6ff;color:var(--blue-600);cursor:pointer;font-weight:700;font-family:inherit;white-space:nowrap">📋 ID List</button>
+          </label>
+          <input type="text" id="inc-customer" placeholder="Customer name" list="customer-suggestions" autocomplete="off" oninput="autoFillShipToId()">
+        </div>
+        <div class="form-group">
+          <label>Ship To ID #</label>
+          <input type="text" id="inc-ship-to-id" placeholder="e.g. 137193">
         </div>
         <div class="form-group">
           <label>Customer Contact</label>
@@ -2231,6 +2238,43 @@ document.addEventListener('keydown', function(ev){
 </div>
 
 <div id="toast"></div>
+
+<!-- ══ SHIP TO ID MODAL ══ -->
+<div class="modal-overlay" id="ship-to-modal" style="display:none" onclick="if(event.target===this)closeShipToModal()">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-header">
+      <div class="modal-title">📋 Customer Ship To ID List</div>
+      <button class="modal-close" onclick="closeShipToModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:12px">
+        <input type="text" id="ship-to-search" placeholder="Search by name or ID…" oninput="renderShipToList(this.value)" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.88rem;font-family:inherit;outline:none;box-sizing:border-box">
+      </div>
+      <div style="max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-bottom:16px">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:linear-gradient(180deg,var(--blue-600),var(--blue-500));position:sticky;top:0;z-index:1">
+              <th style="padding:8px 12px;text-align:left;color:#fff;font-size:.7rem;font-weight:700">CUSTOMER NAME</th>
+              <th style="padding:8px 12px;text-align:right;color:#fff;font-size:.7rem;font-weight:700;white-space:nowrap">SHIP TO ID</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="ship-to-tbody"></tbody>
+        </table>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:14px">
+        <div style="font-size:.72rem;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Add New Customer</div>
+        <div style="display:grid;grid-template-columns:1fr 100px auto;gap:8px;align-items:end">
+          <input type="text" id="new-ship-to-name" placeholder="Customer name" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.84rem;font-family:inherit;outline:none">
+          <input type="text" id="new-ship-to-id-input" placeholder="ID #" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:.84rem;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter')addShipToCustomer()">
+          <button class="btn btn-primary btn-sm" onclick="addShipToCustomer()">+ Add</button>
+        </div>
+        <div id="ship-to-add-msg" style="margin-top:6px;font-size:.78rem;color:#16a34a;display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <datalist id="customer-suggestions"></datalist>
 <datalist id="material-suggestions"></datalist>
 <datalist id="supplier-suggestions"></datalist>
@@ -2961,6 +3005,7 @@ function openIncomingModal(key){
     document.getElementById('inc-customer-po').value      = r.customerPO||'';
     document.getElementById('inc-date').value             = r.date||today();
     document.getElementById('inc-customer').value         = r.customer||'';
+    document.getElementById('inc-ship-to-id').value      = r.shipToId||'';
     document.getElementById('inc-customer-contact').value = r.customerContact||'';
     document.getElementById('inc-telephone').value        = r.telephone||'';
     document.getElementById('inc-address').value          = r.address||'';
@@ -3069,7 +3114,7 @@ function openIncomingModal(key){
   } else {
     document.getElementById('inc-modal-title').textContent = 'New Incoming Form';
     document.getElementById('inc-eps-num').value = '';
-    ['inc-form-num','inc-wo','inc-prev-wo','inc-customer-po','inc-customer',
+    ['inc-form-num','inc-wo','inc-prev-wo','inc-customer-po','inc-customer','inc-ship-to-id',
      'inc-customer-contact','inc-telephone','inc-address','inc-custwo',
      'inc-manufacturer','inc-model','inc-serial','inc-typesize',
      'inc-hp','inc-rpm','inc-frame','inc-custstock','inc-kw','inc-otherdata','inc-custasset',
@@ -3120,6 +3165,7 @@ function saveIncoming(){
   var customerPO   = document.getElementById('inc-customer-po').value.trim();
   var date         = document.getElementById('inc-date').value;
   var customer     = document.getElementById('inc-customer').value.trim();
+  var shipToId     = document.getElementById('inc-ship-to-id').value.trim();
   var equipmentType = document.getElementById('inc-equip-type').value;
   var equipmentOther = document.getElementById('inc-equip-other').value.trim().toUpperCase();
   var equipment    = (equipmentType === 'Other' ? equipmentOther : equipmentType).toUpperCase();
@@ -3183,7 +3229,7 @@ function saveIncoming(){
   if(!customer){ alert('Customer Name is required.'); return; }
 
   var record = {
-    formNum, wo, prevWo, customerPO, date, customer, equipment, equipmentType, area,
+    formNum, wo, prevWo, customerPO, date, customer, shipToId, equipment, equipmentType, area,
     customerContact, telephone, address, customerWorkOrder, datePicsTaken,
     manufacturer, modelNumber, serialNumber, typeSize, hp, rpm, frame, customerStockNumber, kw, otherData, customerAsset,
     attachments, attachOther,
@@ -7177,6 +7223,126 @@ function exportShipErrorsCSV(){
     return [r.errorNum,r.date,r.status,r.errorType,r.customer,r.carrier,r.outgoing,r.wo,r.so,r.tracking,r.apptNum,r.returnTracking,r.responsible,r.cost,r.description,r.resolutionNotes];
   });
   toXLS('shipping-errors', headers, data);
+}
+
+// ══ SHIP TO ID LIST ══
+var SHIP_TO_INIT = [
+  {name:'A.I.M',id:137193},{name:'A.J.W. MECHANICAL',id:182235},{name:'A.V. GROUP NACKAWIC',id:156415},
+  {name:'AGROPUR COOPERATIVE',id:126186},{name:'APPLIED PRESSURE INC.',id:143903},{name:'ARAUCO',id:101044},
+  {name:'ATLANTIC CRANE & MATERIAL HANDLING LIMITED',id:179390},{name:'ATLANTIC SILICA',id:127390},
+  {name:'ATLANTIC TOWING',id:126068},{name:'ATLANTIC WALLBOARD',id:152460},{name:'AWHINNEY ENTERPRISES LTD',id:100780},
+  {name:'B&W CONTRACTING',id:101224},{name:'BOURQUE INDL',id:100982},{name:'C. A POTHIER & ASSOCIATES',id:177965},
+  {name:'C.F.M',id:135719},{name:'CAPITAL REGION SERVICE COMMISSION',id:100780},{name:'CASH SALES SJ',id:100780},
+  {name:'CAVENDISH FARMS',id:129108},{name:'CFM',id:135719},{name:'CHEMTRADE CHEMICALS CANADA LTD',id:179032},
+  {name:'CHIPMAN SAWMILL',id:170278},{name:'COASTAL TRANSPORT',id:177025},{name:'CONNORS BROS., A DIVISION OF',id:150369},
+  {name:'COOPER EQUIPMENT',id:176213},{name:'CRAIG MANUFACTURING LTD.',id:126173},{name:'CROWNE PLAZA',id:100780},
+  {name:'DESIGN BUILT MECHANICAL',id:127226},{name:'DMK MARINE',id:127433},{name:'DOAKTOWN SAWMILL',id:129137},
+  {name:'DP WORLD SAINT JOHN, INC.',id:161825},{name:'E.R.STEEVES',id:101104},{name:'ENVIREM ORGANICS INC.',id:179878},
+  {name:'ESAB WARRANTY',id:153311},{name:'GANONG BROTHERS',id:100082},{name:'GRAND LAKE TIMBER',id:129106},
+  {name:'GULF OPERATORS',id:101443},{name:'HALIFAX REGIONAL WATER COMM.',id:152628},
+  {name:'IRVING BLENDING & PACKAGING',id:129109},{name:'IRVING OILREFINARY',id:100379},{name:'IRVING PAPER',id:101083},
+  {name:'IRVING PULP AND PAPER',id:101069},{name:'IRVING TISSUE',id:129013},{name:'ISLAND OXYGEN',id:146820},
+  {name:'J.D.I.TRURO SAWMILL',id:101665},{name:'JOBSITE',id:173166},{name:'KCM',id:155690},
+  {name:'KEDGWICK SAWMILL',id:137823},{name:'KELLY COVE SALMON',id:176412},{name:'KMAC WELDING',id:183663},
+  {name:'KONE INC',id:173954},{name:'LAKE UTOPIA PAPER',id:101057},{name:"LARRY'S CRANE RENTALS LTD.",id:168575},
+  {name:'LINCOLN WARRANTY',id:135628},{name:'LINDE CANADA',id:136114},{name:'LINDE FREDERICTON',id:176673},
+  {name:'LORNEVILLE MECHANICAL',id:100084},{name:'M.I.M',id:126609},{name:'MARITIME BLOWER REPAIR INC.',id:150806},
+  {name:'MARITIMES & NORTHEAST PIPE',id:127012},{name:'MASTER PACKAGING',id:101429},
+  {name:'MAWHINNEY ENTERPRISES LTD',id:136026},{name:'MCCAINS FOOD',id:169969},{name:'MESSER CANADA',id:134808},
+  {name:'MICHELIN NORTH AMERICA (CANADA) INC.',id:171342},{name:'MILLER WARRANTY',id:181084},
+  {name:'MODERN CONSTRUCTION',id:112703},{name:'MOOSEHEAD BREWERIES',id:126403},
+  {name:'N.B. POWER BAYSIDE',id:172544},{name:'N.B. POWER MACTAQUAC',id:124877},{name:'N.B. SOUTHERN',id:101064},
+  {name:'NATURES CROPS INTERNATIONAL LIMITED',id:135812},{name:'NB POWER BEECHWOOD',id:144290},
+  {name:'NB POWER BELLEDUNE',id:124847},{name:'NB POWER COLESON COVE CORP',id:124848},
+  {name:'NB POWER NUCLEAR CORP.',id:151103},{name:'NBCC MONCTON',id:143904},{name:'NEW WAVE ELECTRIC',id:101232},
+  {name:'NORBULK SHIPPING - EAST COAST',id:101825},{name:'OLD DUTCH FOODS LTD.',id:129098},
+  {name:'ORION M. C. INC.',id:155866},{name:'OTIS CANADA',id:140840},
+  {name:'PORT OF SAINT JOHN EMPLOYERS',id:142959},{name:'PSA HALIFAX FAIRVIEW COVE',id:184039},
+  {name:'QUALITY CONCRETE',id:156088},{name:'RAZOR',id:147283},{name:'RST',id:127110},
+  {name:'SERVICENB - LAUNDRY & LINEN',id:128941},{name:'SIMPSON TRUCK & TRACTOR PARTS LTD.',id:126596},
+  {name:'SKRETTING',id:127099},{name:'STRESCON',id:150917},{name:'SUNNY CORNER ENTERPRISES',id:162327},
+  {name:'SUSSEX SAWMILL',id:129107},{name:'SUSSSEX WOODLANDS',id:151807},{name:'THE HARDMAN GROUP',id:176059},
+  {name:'TOWN OF ROTHESAY',id:126553},{name:'TRACC TIRE RECYCLING',id:176389},
+  {name:'TRUE NORTH SALMON LIMITED PARTNERSHIP',id:162782},{name:'TRUEFOAM LIMITED',id:127164},
+  {name:'UNB SAINT JOHN FALICITIES MANAGEMENT',id:152279},{name:'UNITED RENTALS',id:173809},
+  {name:'UNITED RENTALS MONCTON',id:173808},{name:'UNIVERSAL TRUCK AND TRAILER',id:152457},
+  {name:'VENEER SAWMILL',id:137817},{name:'WELDING CASH SALES',id:136026},
+  {name:'WESTMORLAND FISHERIES',id:156552},{name:'XL PLATING & MACHINING INC.',id:137578}
+];
+
+function getShipToList(){
+  try{ var s=localStorage.getItem('ship_to_ids'); return s?JSON.parse(s):SHIP_TO_INIT.slice(); }catch(e){ return SHIP_TO_INIT.slice(); }
+}
+function saveShipToList(list){ localStorage.setItem('ship_to_ids',JSON.stringify(list)); }
+
+function autoFillShipToId(){
+  var name = (document.getElementById('inc-customer')||{value:''}).value.trim().toUpperCase();
+  if(!name) return;
+  var match = getShipToList().find(function(e){ return e.name.toUpperCase()===name; });
+  if(match) document.getElementById('inc-ship-to-id').value = match.id;
+}
+
+var _shipToSelectMode = false;
+function openShipToModal(mode){
+  _shipToSelectMode = (mode==='select');
+  document.getElementById('ship-to-search').value = '';
+  document.getElementById('new-ship-to-name').value = '';
+  document.getElementById('new-ship-to-id-input').value = '';
+  document.getElementById('ship-to-add-msg').style.display = 'none';
+  renderShipToList('');
+  document.getElementById('ship-to-modal').style.display = 'flex';
+  setTimeout(function(){ document.getElementById('ship-to-search').focus(); }, 80);
+}
+function closeShipToModal(){ document.getElementById('ship-to-modal').style.display = 'none'; }
+
+function renderShipToList(q){
+  var list = getShipToList().slice().sort(function(a,b){ return a.name.localeCompare(b.name); });
+  if(q){ var qq=q.toUpperCase(); list=list.filter(function(e){ return e.name.toUpperCase().includes(qq)||String(e.id).includes(qq); }); }
+  var html = '';
+  list.forEach(function(e,i){
+    var bg = i%2===0?'':'background:#fafcff';
+    var safeName = e.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    html += '<tr style="cursor:pointer;'+bg+'" onclick="selectShipTo(\''+safeName+'\',\''+e.id+'\')" title="Click to select">'
+      +'<td style="padding:7px 12px;font-size:.8rem;color:var(--text-primary)">'+e.name+'</td>'
+      +'<td style="padding:7px 12px;font-size:.8rem;font-weight:700;color:var(--blue-600);text-align:right">'+e.id+'</td>'
+      +'<td style="padding:4px 6px;text-align:center"><button onclick="event.stopPropagation();deleteShipTo(\''+safeName+'\')" style="border:none;background:none;color:#ef4444;cursor:pointer;font-size:.85rem;padding:2px 4px" title="Delete">✕</button></td>'
+      +'</tr>';
+  });
+  if(!html) html = '<tr><td colspan="3" style="padding:20px;text-align:center;color:var(--text-muted);font-size:.83rem">No results</td></tr>';
+  document.getElementById('ship-to-tbody').innerHTML = html;
+}
+
+function selectShipTo(name, id){
+  if(_shipToSelectMode){
+    var nameEl = document.getElementById('inc-customer');
+    var idEl   = document.getElementById('inc-ship-to-id');
+    if(nameEl) nameEl.value = name;
+    if(idEl)   idEl.value   = id;
+    closeShipToModal();
+  }
+}
+
+function addShipToCustomer(){
+  var name = document.getElementById('new-ship-to-name').value.trim().toUpperCase();
+  var id   = document.getElementById('new-ship-to-id-input').value.trim();
+  var msg  = document.getElementById('ship-to-add-msg');
+  if(!name||!id){ msg.textContent='Name and ID are required.'; msg.style.color='#ef4444'; msg.style.display='block'; return; }
+  var list = getShipToList();
+  if(list.find(function(e){ return e.name.toUpperCase()===name; })){ msg.textContent='Customer already exists.'; msg.style.color='#ef4444'; msg.style.display='block'; return; }
+  list.push({name:name,id:id});
+  saveShipToList(list);
+  document.getElementById('new-ship-to-name').value = '';
+  document.getElementById('new-ship-to-id-input').value = '';
+  msg.textContent = name+' added!'; msg.style.color='#16a34a'; msg.style.display='block';
+  setTimeout(function(){ msg.style.display='none'; },2500);
+  renderShipToList(document.getElementById('ship-to-search').value);
+}
+
+function deleteShipTo(name){
+  if(!confirm('Remove "'+name+'" from the list?')) return;
+  var list = getShipToList().filter(function(e){ return e.name.toUpperCase()!==name.toUpperCase(); });
+  saveShipToList(list);
+  renderShipToList(document.getElementById('ship-to-search').value);
 }
 </script>
 
