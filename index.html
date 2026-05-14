@@ -1849,7 +1849,22 @@ document.addEventListener('keydown', function(ev){
           <label>Shipment Date</label>
           <input type="date" id="shp-date">
         </div>
-        <div class="form-group" id="shp-customer-group" style="display:none">
+
+        <!-- ── Orders ── -->
+        <div class="form-section-header">Orders</div>
+
+        <div class="form-group full" id="shp-so-group">
+          <label>Sales Order Number(s)</label>
+          <div class="tag-input-row">
+            <input type="text" id="shp-so-input" placeholder="Add Sales Order #" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('so')}" oninput="updateShpOrderFields();checkInputOrderType('shp-so-input','shp-so-hint','so')" onchange="updateShpOrderFields()">
+            <button class="btn btn-secondary btn-sm" onclick="addShpTag('so')">+ Add</button>
+          </div>
+          <div class="tags-list" id="shp-so-tags"></div>
+          <div class="order-type-warn" id="shp-so-hint"></div>
+        </div>
+
+        <!-- Customer — inline below SO so user sees it immediately after entering an order -->
+        <div class="form-group" id="shp-customer-group">
           <label>Customer</label>
           <input type="text" id="shp-customer" placeholder="Customer name" list="customer-suggestions" autocomplete="off" oninput="setTimeout(lookupPostalFromCustomer,0)" onchange="setTimeout(lookupPostalFromCustomer,0)">
         </div>
@@ -1866,18 +1881,6 @@ document.addEventListener('keydown', function(ev){
           <input type="text" id="shp-customer-po" placeholder="e.g. PO-12345">
         </div>
 
-        <!-- ── Orders ── -->
-        <div class="form-section-header">Orders</div>
-
-        <div class="form-group full" id="shp-so-group">
-          <label>Sales Order Number(s)</label>
-          <div class="tag-input-row">
-            <input type="text" id="shp-so-input" placeholder="Add Sales Order #" onkeydown="if(event.key==='Enter'){event.preventDefault();addShpTag('so')}" oninput="updateShpOrderFields();checkInputOrderType('shp-so-input','shp-so-hint','so')" onchange="updateShpOrderFields()">
-            <button class="btn btn-secondary btn-sm" onclick="addShpTag('so')">+ Add</button>
-          </div>
-          <div class="tags-list" id="shp-so-tags"></div>
-          <div class="order-type-warn" id="shp-so-hint"></div>
-        </div>
         <div class="form-group full" id="shp-tr-group">
           <label>Transfer Number(s)</label>
           <div class="tag-input-row">
@@ -3888,8 +3891,9 @@ function lookupPostalFromCustomer(){
 function checkShpOutgoing(){
   var hasInput = document.getElementById('shp-wo-input').value.trim().length > 0;
   var hasWO    = shpTags.wo.length > 0;
-  document.getElementById('shp-outgoing-group').style.display = (hasInput || hasWO) ? 'flex' : 'none';
-  if(!hasInput && !hasWO) document.getElementById('shp-outgoing').value = '';
+  var hasSO    = shpTags.so.length > 0;
+  document.getElementById('shp-outgoing-group').style.display = (hasInput || hasWO || hasSO) ? 'flex' : 'none';
+  if(!hasInput && !hasWO && !hasSO) document.getElementById('shp-outgoing').value = '';
 }
 
 function detectOrderType(num){
@@ -4296,7 +4300,7 @@ function addShpTag(field){
   if(hintId){ var h=document.getElementById(hintId); if(h){ h.textContent=''; h.classList.remove('visible'); } }
   renderShpTags(field);
   if(field === 'wo'){ prefillFromIncoming(val); shpWoRealTimeLookup(); }
-  if(field === 'so') prefillFromSO(val);
+  if(field === 'so') { prefillFromSO(val); checkShpOutgoing(); }
   if(field === 'wo' || field === 'so') lookupProcPhotos();
   updateShpOrderFields();
 }
@@ -4505,7 +4509,7 @@ function openShipModal(key){
     document.getElementById('shp-del-btn').style.display = 'none';
   }
   ['so','tr','wo'].forEach(renderShpTags);
-  document.getElementById('shp-outgoing-group').style.display = shpTags.wo.length ? 'flex' : 'none';
+  document.getElementById('shp-outgoing-group').style.display = (shpTags.wo.length || shpTags.so.length) ? 'flex' : 'none';
   ['shp-so-input','shp-tr-input','shp-wo-input'].forEach(function(id){ document.getElementById(id).value=''; });
   updateShpOrderFields();
   if(!key) lookupProcPhotos();
